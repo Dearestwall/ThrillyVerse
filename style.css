@@ -288,6 +288,10 @@ footer p {
    News Page Specific Styles
    =========================== */
 
+/* ===========================
+   News Page Specific Styles
+   =========================== */
+
 /* Container for News Cards */
 .news-container {
   display: flex;
@@ -297,44 +301,80 @@ footer p {
   padding: 2rem;
 }
 
-/* Styling for Each News Card */
+/* News Card Styling */
 .news-card {
-  background: rgba(0, 0, 0, 0.6); /* Semi-transparent dark background */
+  background: rgba(0, 0, 0, 0.6);
   padding: 20px;
   border-radius: 10px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
   max-width: 800px;
   width: 100%;
+  cursor: pointer;
   animation: fadeIn 1s ease-out;
+  transition: transform 0.3s ease;
 }
 
-/* News Card Image */
+.news-card:hover {
+  transform: scale(1.02);
+}
+
 .news-card img {
   width: 100%;
   border-radius: 10px;
   margin-bottom: 1rem;
 }
 
-/* News Card Date */
 .news-date {
   font-size: 0.9rem;
   color: #ccc;
   margin-bottom: 1rem;
 }
 
-/* News Card Headline */
 .news-card h2 {
   font-size: 2rem;
   margin-bottom: 1rem;
 }
 
-/* News Card Paragraph */
 .news-card p {
   font-size: 1.1rem;
   line-height: 1.6;
 }
 
-/* Animation for Fade-In (can be used on other elements as well) */
+/* Modal Styles */
+.modal {
+  display: none;
+  position: fixed;
+  z-index: 999;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.8);
+  animation: fadeIn 0.5s ease-out;
+}
+
+.modal-content {
+  background: rgba(0, 0, 0, 0.9);
+  margin: 5% auto;
+  padding: 20px;
+  border-radius: 10px;
+  width: 90%;
+  max-width: 800px;
+  position: relative;
+  animation: slideDown 0.5s ease-out;
+}
+
+.close-modal {
+  position: absolute;
+  top: 10px;
+  right: 15px;
+  color: #fff;
+  font-size: 2rem;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+/* Animation Effects */
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -346,21 +386,13 @@ footer p {
   }
 }
 
-/* Responsive Adjustments for News Content */
-@media (max-width: 768px) {
-  .news-card h2 {
-    font-size: 1.8rem;
+@keyframes slideDown {
+  from {
+    transform: translateY(-20px);
+    opacity: 0;
   }
-  .news-card p {
-    font-size: 1rem;
-  }
-}
-
-@media (max-width: 480px) {
-  .news-card h2 {
-    font-size: 1.6rem;
-  }
-  .news-card p {
-    font-size: 0.9rem;
+  to {
+    transform: translateY(0);
+    opacity: 1;
   }
 }
