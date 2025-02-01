@@ -4,6 +4,30 @@
     padding: 0;
     box-sizing: border-box;
 }
+/* Announcement Styling */
+.announcement {
+  background-color: #ffab00; /* Accent color - adjust as needed to match your theme */
+  color: #000;              /* Text color */
+  padding: 15px;
+  text-align: center;
+  font-size: 1.2rem;
+  font-weight: bold;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+  animation: slideDown 1s ease-out;
+  margin-bottom: 1rem;      /* Spacing below the announcement */
+}
+
+/* Slide-down animation */
+@keyframes slideDown {
+  from {
+    transform: translateY(-100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
 
 /* Body Styling */
 body {
