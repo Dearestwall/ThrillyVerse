@@ -24,3 +24,33 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     });
 });
+
+// Wait until the document is fully loaded
+document.addEventListener("DOMContentLoaded", function () {
+  // Get elements
+  const newsCard = document.getElementById("newsCard");
+  const newsModal = document.getElementById("newsModal");
+  const closeModalBtn = document.getElementById("closeModal");
+
+  // Open modal when news card is clicked
+  if (newsCard && newsModal) {
+    newsCard.addEventListener("click", () => {
+      newsModal.style.display = "block";
+    });
+  }
+
+  // Close modal when close button is clicked
+  if (closeModalBtn && newsModal) {
+    closeModalBtn.addEventListener("click", () => {
+      newsModal.style.display = "none";
+    });
+
+    // Close modal when clicking outside the modal content
+    window.addEventListener("click", (event) => {
+      if (event.target === newsModal) {
+        newsModal.style.display = "none";
+      }
+    });
+  }
+});
+
