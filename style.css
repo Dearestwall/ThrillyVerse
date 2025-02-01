@@ -283,3 +283,84 @@ footer p {
         font-size: 1.3rem;
     }
 }
+
+/* ===========================
+   News Page Specific Styles
+   =========================== */
+
+/* Container for News Cards */
+.news-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2rem;
+  padding: 2rem;
+}
+
+/* Styling for Each News Card */
+.news-card {
+  background: rgba(0, 0, 0, 0.6); /* Semi-transparent dark background */
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  max-width: 800px;
+  width: 100%;
+  animation: fadeIn 1s ease-out;
+}
+
+/* News Card Image */
+.news-card img {
+  width: 100%;
+  border-radius: 10px;
+  margin-bottom: 1rem;
+}
+
+/* News Card Date */
+.news-date {
+  font-size: 0.9rem;
+  color: #ccc;
+  margin-bottom: 1rem;
+}
+
+/* News Card Headline */
+.news-card h2 {
+  font-size: 2rem;
+  margin-bottom: 1rem;
+}
+
+/* News Card Paragraph */
+.news-card p {
+  font-size: 1.1rem;
+  line-height: 1.6;
+}
+
+/* Animation for Fade-In (can be used on other elements as well) */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Responsive Adjustments for News Content */
+@media (max-width: 768px) {
+  .news-card h2 {
+    font-size: 1.8rem;
+  }
+  .news-card p {
+    font-size: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .news-card h2 {
+    font-size: 1.6rem;
+  }
+  .news-card p {
+    font-size: 0.9rem;
+  }
+}
