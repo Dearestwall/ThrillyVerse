@@ -320,12 +320,12 @@ footer p {
 
 .news-card img {
   width: 100%; /* Make it responsive */
-  max-width: 500px; /* Reduce maximum width */
+  max-width: 250px; /* Reduce to smallest possible size */
   height: auto; /* Maintain aspect ratio */
-  display: block; /* Remove extra spacing */
+  display: block; /* Prevent extra space */
   margin: 0 auto 1rem auto; /* Center the image */
-  border-radius: 8px; /* Keep rounded corners */
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2); /* Add soft shadow */
+  border-radius: 8px; /* Keep smooth edges */
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Light shadow effect */
 }
 
 
