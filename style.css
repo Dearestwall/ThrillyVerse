@@ -100,31 +100,44 @@ iframe {
     aspect-ratio: 16/9;
 }
 
-/* Footer Styling */
+/* Enhanced Footer Styling */
 footer {
     text-align: center;
-    padding: 2rem;
-    background: rgba(0, 0, 0, 0.7);
-    position: relative;
-    width: 100%;
-    bottom: 0;
+    padding: 2rem 1rem;
+    background: linear-gradient(45deg, #2c3e50, #4ca1af);
+    border-top: 3px solid #ffab00;
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.5);
     margin-top: auto;
 }
 
 footer p {
     font-size: 1rem;
-    color: #ccc;
-    margin-bottom: 0.5rem;
+    color: #f0f0f0;
+    margin: 0.5rem 0;
 }
 
+/* Social Links Container */
+.social-links {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 15px;
+    margin: 1rem 0;
+}
+
+/* Social Links */
 .social-links a {
     text-decoration: none;
     color: #fff;
-    margin: 0 10px;
-    transition: color 0.3s ease;
+    font-size: 1.1rem;
+    padding: 0.5rem 1rem;
+    border-radius: 5px;
+    transition: background 0.3s ease, color 0.3s ease;
 }
 
+/* Hover Effect for Social Links */
 .social-links a:hover {
+    background: rgba(255, 171, 0, 0.2);
     color: #ffab00;
 }
 
