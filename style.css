@@ -6,25 +6,24 @@
 }
 /* Announcement Styling */
 .announcement {
-  background-color: #ffab00; /* Accent color - adjust as needed to match your theme */
-  color: #000;              /* Text color */
+  background-color: #ffab00; /* Accent color; adjust to suit your theme */
+  color: #000;               /* Text color */
   padding: 15px;
   text-align: center;
   font-size: 1.2rem;
   font-weight: bold;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
-  animation: slideDown 1s ease-out;
-  margin-bottom: 1rem;      /* Spacing below the announcement */
+  margin-bottom: 1rem;
+  /* Start off-screen to the left */
+  transform: translateX(-100%);
+  opacity: 0;
+  animation: slideInHorizontal 1s ease-out forwards;
 }
 
-/* Slide-down animation */
-@keyframes slideDown {
-  from {
-    transform: translateY(-100%);
-    opacity: 0;
-  }
+/* Horizontal Slide-in Animation */
+@keyframes slideInHorizontal {
   to {
-    transform: translateY(0);
+    transform: translateX(0);
     opacity: 1;
   }
 }
