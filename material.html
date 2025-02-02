@@ -1,1 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ThrillyVerse Study Materials & News</title>
+  <link rel="stylesheet" href="material.css">
+</head>
+<body>
 
+  <!-- HEADER -->
+  <header>
+    <h1>ThrillyVerse</h1>
+    <p>Think Beyond The Verse</p>
+    <nav class="main-nav">
+      <ul>
+        <li><a href="index.html">Home</a></li>
+        <li><a href="news.html">News</a></li>
+        <li><a href="comics.html">Comics</a></li>
+        <li><a href="material.html" class="active">Study Materials</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <!-- MAIN TABS -->
+  <nav class="main-tabs">
+    <ul>
+      <li data-tab="materials" class="active">Study Materials</li>
+      <li data-tab="news">News</li>
+    </ul>
+  </nav>
+
+  <main>
+    <!-- SEARCH BAR -->
+    <div id="searchBarContainer">
+      <input type="text" id="searchInput" placeholder="Search PDFs or content...">
+      <button id="searchButton">🔍</button>
+      <button id="clearSearch" style="display: none;">❌</button>
+    </div>
+
+    <!-- ERROR MESSAGE (Hidden by default) -->
+    <div id="errorMessage"></div>
+
+    <!-- STUDY MATERIALS SECTION -->
+    <section id="materials" class="tab-content active">
+      <!-- SUBJECT TABS (Horizontal, scrollable in one row) -->
+      <nav class="subject-tabs">
+        <ul>
+          <li data-subject="english" class="active">English</li>
+          <li data-subject="language">Language</li>
+          <li data-subject="literature">Literature</li>
+          <li data-subject="history">History</li>
+          <li data-subject="civics">Civics</li>
+          <li data-subject="geography">Geography</li>
+          <li data-subject="physics">Physics</li>
+          <li data-subject="chemistry">Chemistry</li>
+          <li data-subject="biology">Biology</li>
+          <li data-subject="punjabi">Punjabi</li>
+          <li data-subject="hindi">Hindi</li>
+        </ul>
+      </nav>
+
+      <!-- SUBJECTS CONTENT (PDFs arranged in a grid layout) -->
+      <div class="subjects-content">
+        <!-- English Section -->
+        <div class="subject-section" data-subject="english">
+          <h2>English</h2>
+          <div class="pdf-list">
+            <div class="pdf-item">
+              <a href="pdfs/english-notes.pdf" target="_blank">
+                <img src="pdf-icon.png" alt="PDF Icon">
+                <div class="pdf-details">
+                  <h3>English Notes</h3>
+                  <p>Detailed notes covering grammar, literature, and comprehension.</p>
+                </div>
+              </a>
+            </div>
+            <div class="pdf-item">
+              <a href="pdfs/english-sample-paper.pdf" target="_blank">
+                <img src="pdf-icon.png" alt="PDF Icon">
+                <div class="pdf-details">
+                  <h3>Sample Paper</h3>
+                  <p>Practice sample papers for exam preparation.</p>
+                </div>
+              </a>
+            </div>
+            <!-- Add more English items as needed -->
+          </div>
+        </div>
+
+        <!-- Language Section -->
+        <div class="subject-section" data-subject="language">
+          <h2>Language</h2>
+          <div class="pdf-list">
+            <div class="pdf-item">
+              <a href="pdfs/language-notes.pdf" target="_blank">
+                <img src="pdf-icon.png" alt="PDF Icon">
+                <div class="pdf-details">
+                  <h3>Language Notes</h3>
+                  <p>Essential notes covering vocabulary, grammar, and usage.</p>
+                </div>
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Literature Section -->
+        <div class="subject-section" data-subject="literature">
+          <h2>Literature</h2>
+          <div class="pdf-list">
+            <div class="pdf-item">
+              <a href="pdfs/literature-notes.pdf" target="_blank">
+                <img src="pdf-icon.png" alt="PDF Icon">
+                <div class="pdf-details">
+                  <h3>Literature Notes</h3>
+                  <p>Summaries and analysis of key literary works.</p>
+                </div>
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- History Section -->
+        <div class="subject-section" data-subject="history">
+          <h2>History</h2>
+          <div class="pdf-list">
+            <div class="pdf-item">
+              <a href="pdfs/history-notes.pdf" target="_blank">
+                <img src="pdf-icon.png" alt="PDF Icon">
+                <div class="pdf-details">
+                  <h3>History Notes</h3>
+                  <p>Important events, timelines, and historical analyses.</p>
+                </div>
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Civics Section -->
+        <div class="subject-section" data-subject="civics">
+          <h2>Civics</h2>
+          <div class="pdf-list">
+            <div class="pdf-item">
+              <a href="pdfs/civics-notes.pdf" target="_blank">
+                <img src="pdf-icon.png" alt="PDF Icon">
+                <div class="pdf-details">
+                  <h3>Civics Notes</h3>
+                  <p>Concepts on government, citizenship, and public affairs.</p>
+                </div>
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Geography Section -->
+        <div class="subject-section" data-subject="geography">
+          <h2>Geography</h2>
+          <div class="pdf-list">
+            <div class="pdf-item">
+              <a href="pdfs/geography-notes.pdf" target="_blank">
+                <img src="pdf-icon.png" alt="PDF Icon">
+                <div class="pdf-details">
+                  <h3>Geography Notes</h3>
+                  <p>Maps, geographical terms, and environmental studies.</p>
+                </div>
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Physics Section -->
+        <div class="subject-section" data-subject="physics">
+          <h2>Physics</h2>
+          <div class="pdf-list">
+            <div class="pdf-item">
+              <a href="pdfs/physics-notes.pdf" target="_blank">
+                <img src="pdf-icon.png" alt="PDF Icon">
+                <div class="pdf-details">
+                  <h3>Physics Notes</h3>
+                  <p>Concepts, formulas, and experiment notes.</p>
+                </div>
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Chemistry Section -->
+        <div class="subject-section" data-subject="chemistry">
+          <h2>Chemistry</h2>
+          <div class="pdf-list">
+            <div class="pdf-item">
+              <a href="pdfs/chemistry-notes.pdf" target="_blank">
+                <img src="pdf-icon.png" alt="PDF Icon">
+                <div class="pdf-details">
+                  <h3>Chemistry Notes</h3>
+                  <p>Reactions, periodic table details, and lab notes.</p>
+                </div>
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Biology Section -->
+        <div class="subject-section" data-subject="biology">
+          <h2>Biology</h2>
+          <div class="pdf-list">
+            <div class="pdf-item">
+              <a href="pdfs/biology-notes.pdf" target="_blank">
+                <img src="pdf-icon.png" alt="PDF Icon">
+                <div class="pdf-details">
+                  <h3>Biology Notes</h3>
+                  <p>Diagrams, processes, and chapter summaries.</p>
+                </div>
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Punjabi Section -->
+        <div class="subject-section" data-subject="punjabi">
+          <h2>Punjabi</h2>
+          <div class="pdf-list">
+            <div class="pdf-item">
+              <a href="pdfs/punjabi-notes.pdf" target="_blank">
+                <img src="pdf-icon.png" alt="PDF Icon">
+                <div class="pdf-details">
+                  <h3>Punjabi Notes</h3>
+                  <p>Language notes, poems, and grammar topics.</p>
+                </div>
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Hindi Section -->
+        <div class="subject-section" data-subject="hindi">
+          <h2>Hindi</h2>
+          <div class="pdf-list">
+            <div class="pdf-item">
+              <a href="pdfs/hindi-notes.pdf" target="_blank">
+                <img src="pdf-icon.png" alt="PDF Icon">
+                <div class="pdf-details">
+                  <h3>Hindi Notes</h3>
+                  <p>Language notes, essays, and literature topics.</p>
+                </div>
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- NEWS SECTION -->
+    <section id="news" class="tab-content">
+      <h2>Latest News</h2>
+      <div class="news-items">
+        <div class="news-item">
+          <h3>Update on Class 10 Study Materials</h3>
+          <p>
+            We have updated our study materials for Class 10 with new notes,
+            sample papers, and question papers. Check out the Study Materials tab for more details.
+          </p>
+          <a href="#" class="read-more">Read More</a>
+        </div>
+        <div class="news-item">
+          <h3>New Subjects Coming Soon</h3>
+          <p>
+            Exciting news: We're expanding our library with subjects like Computer Science and Economics soon.
+          </p>
+          <a href="#" class="read-more">Read More</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+   <!-- Footer Links Section -->
+  <footer>
+    <div class="footer-links">
+      <h4>Our Social Media Appearances</h4>
+        <ul>
+        <li><a href="https://t.me/thrillmoviesverse"  target="_blank">ThrilledVerse</a></li>
+ <li><a href="https://t.me/icseverse"  target="_blank">MaterialVerse</a>|</li>
+        <li><a href="https://youtube.com/channel/UCGSsWtRJ5ciemRsuFfixmvQ" target="_blank">Thrill Throne Gaming</a></li>
+          <li><a href="https://www.youtube.com/@ThrillyVerse" target="_blank">YouTube</a></li>
+   <li><a href="https://www.instagram.com/thrillyverse/" target="_blank">Instagram</a></li>
+      </ul>
+    </div>
+    <p>&copy; 2025 ThrillyVerse. All rights reserved.</p>
+  </footer>
+
+  <!-- News Modal (Hidden by default) -->
+  <div id="newsModal" class="modal">
+    <div class="modal-content">
+      <span class="close-modal">×</span>
+      <h3 id="modalTitle"></h3>
+      <p id="modalContent"></p>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
