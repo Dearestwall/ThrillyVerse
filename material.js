@@ -1,32 +1,49 @@
 document.addEventListener("DOMContentLoaded", function () {
-  /* ==========================
+  /* ---------------------------
      MAIN TAB SWITCHING (Study Materials vs. News)
-  ========================== */
+     Only the active tab’s content is displayed.
+  --------------------------- */
   const mainTabs = document.querySelectorAll(".main-tabs li");
   const tabContents = document.querySelectorAll(".tab-content");
+  const searchBarContainer = document.getElementById("searchBarContainer");
+  const errorMessage = document.getElementById("errorMessage");
 
   mainTabs.forEach(tab => {
     tab.addEventListener("click", function () {
+      // Update active tab styles
       mainTabs.forEach(t => t.classList.remove("active"));
       this.classList.add("active");
 
+      // Show only the selected tab's content
       const targetTab = this.getAttribute("data-tab");
       tabContents.forEach(content => {
         if (content.id === targetTab) {
-          content.classList.add("active");
           content.style.display = "block";
+          content.classList.add("active");
         } else {
-          content.classList.remove("active");
           content.style.display = "none";
+          content.classList.remove("active");
         }
       });
-      resetSearch();
+
+      // For the News tab, hide the search bar and error messages;
+      // For the Materials tab, show the search bar and reset search.
+      if (targetTab === "news") {
+        searchBarContainer.style.display = "none";
+        errorMessage.style.display = "none";
+      } else {
+        searchBarContainer.style.display = "flex";
+        resetSearch();
+      }
     });
   });
 
-  /* ==========================
-     SUBJECT TAB SWITCHING (Inside Study Materials)
-  ========================== */
+  // Activate the Materials tab by default
+  document.querySelector('[data-tab="materials"]').click();
+
+  /* ---------------------------
+     SUBJECT TAB SWITCHING (Within Study Materials)
+  --------------------------- */
   const subjectTabs = document.querySelectorAll(".subject-tabs li");
   const subjectSections = document.querySelectorAll(".subject-section");
 
@@ -37,36 +54,40 @@ document.addEventListener("DOMContentLoaded", function () {
 
       const targetSubject = this.getAttribute("data-subject");
       subjectSections.forEach(section => {
-        section.style.display = section.getAttribute("data-subject") === targetSubject ? "block" : "none";
-        section.classList.toggle("active", section.getAttribute("data-subject") === targetSubject);
+        if (section.getAttribute("data-subject") === targetSubject) {
+          section.style.display = "block";
+          section.classList.add("active");
+        } else {
+          section.style.display = "none";
+          section.classList.remove("active");
+        }
       });
       resetSearch();
     });
   });
 
-  // Activate first subject tab by default
+  // Activate the first subject tab by default if available
   if (subjectTabs.length > 0) {
     subjectTabs[0].click();
   }
 
-  /* ==========================
-     SEARCH FUNCTIONALITY (Filter PDFs by Title & Description)
-  ========================== */
+  /* ---------------------------
+     SEARCH FUNCTIONALITY (Only for Study Materials)
+     Debounced for smoother live filtering.
+  --------------------------- */
   const searchInput = document.getElementById("searchInput");
   const searchButton = document.getElementById("searchButton");
   const clearSearchButton = document.getElementById("clearSearch");
-  const errorMessage = document.getElementById("errorMessage");
 
-  // Attach event to close error message
-  const errorClose = document.getElementById("errorClose");
-  if (errorClose) {
-    errorClose.addEventListener("click", resetSearch);
-  }
-
+  let debounceTimeout;
   searchInput.addEventListener("input", function () {
-    clearSearchButton.style.display = this.value ? "inline-block" : "none";
+    clearSearchButton.style.display = this.value.trim() ? "inline-flex" : "none";
     errorMessage.style.display = "none";
-    liveFilterPDFs(this.value);
+
+    clearTimeout(debounceTimeout);
+    debounceTimeout = setTimeout(() => {
+      liveFilterPDFs(this.value);
+    }, 300);
   });
 
   searchButton.addEventListener("click", performSearch);
@@ -79,13 +100,13 @@ document.addEventListener("DOMContentLoaded", function () {
 
   function performSearch() {
     const query = searchInput.value.toLowerCase().trim();
-    let found = false;
-    const pdfItems = document.querySelectorAll(".pdf-item");
-
     if (query === "") {
       resetSearch();
       return;
     }
+
+    let found = false;
+    const pdfItems = document.querySelectorAll(".pdf-item");
 
     pdfItems.forEach(item => {
       const title = item.querySelector(".pdf-details h3").textContent.toLowerCase();
@@ -99,7 +120,7 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
     if (!found) {
-      errorMessage.innerHTML = `<span id="errorClose" title="Close">&times;</span> ❌ No content found. Try again or request material on <a href="https://t.me/icseverse" target="_blank">ICSEverse</a>.`;
+      errorMessage.innerHTML = `<span id="errorClose" title="Close">&times;</span> ❌ No content found. Try another search or request material on <a href="https://t.me/icseverse" target="_blank">ICSEverse</a>.`;
       errorMessage.style.display = "block";
       document.getElementById("errorClose").addEventListener("click", resetSearch);
     }
@@ -128,9 +149,9 @@ document.addEventListener("DOMContentLoaded", function () {
     errorMessage.style.display = "none";
   }
 
-  /* ==========================
+  /* ---------------------------
      BACK TO TOP BUTTON
-  ========================== */
+  --------------------------- */
   const backToTopButton = document.createElement("button");
   backToTopButton.id = "backToTop";
   backToTopButton.innerHTML = "⬆";
@@ -144,9 +165,9 @@ document.addEventListener("DOMContentLoaded", function () {
     window.scrollTo({ top: 0, behavior: "smooth" });
   });
 
-  /* ==========================
-     NEWS MODAL FUNCTIONALITY
-  ========================== */
+  /* ---------------------------
+     NEWS MODAL FUNCTIONALITY (For News tab)
+  --------------------------- */
   const newsLinks = document.querySelectorAll(".news-item .read-more");
   const newsModal = document.getElementById("newsModal");
   const modalTitle = document.getElementById("modalTitle");
