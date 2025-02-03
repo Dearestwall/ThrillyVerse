@@ -14,7 +14,6 @@ body {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
-  /* Remove extra top padding since search bar is now within main tabs */
 }
 
 /* HEADER */
@@ -56,6 +55,7 @@ header p {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  flex-wrap: wrap;
   background: linear-gradient(to right, #6a11cb, #2575fc);
   padding: 0.5rem 1rem;
   border-radius: 5px;
@@ -66,6 +66,7 @@ header p {
   list-style: none;
   display: flex;
   gap: 1rem;
+  flex-wrap: wrap;
 }
 .tabs-container li {
   padding: 0.5rem 1rem;
@@ -74,6 +75,7 @@ header p {
   border-radius: 5px;
   transition: background 0.3s ease, transform 0.3s ease;
   color: #333;
+  white-space: nowrap;
 }
 .tabs-container li.active,
 .tabs-container li:hover {
@@ -82,7 +84,7 @@ header p {
   transform: translateY(-3px);
 }
 
-/* SEARCH BAR CONTAINER (Not fixed, positioned right to tabs) */
+/* SEARCH BAR CONTAINER */
 #searchBarContainer {
   display: flex;
   align-items: center;
@@ -92,6 +94,7 @@ header p {
   border-radius: 50px;
   background: rgba(255, 255, 255, 0.95);
   max-width: 300px;
+  margin-top: 0.5rem;
 }
 #searchInput {
   flex: 1;
@@ -156,8 +159,9 @@ header p {
 .subject-tabs ul::-webkit-scrollbar {
   display: none;
 }
+/* The subject tabs now use auto-sizing based on text with comfortable padding */
 .subject-tabs li {
-  padding: 0.6rem 0.8rem;
+  padding: 0.6rem 1rem;
   cursor: pointer;
   background: #ddd;
   border-radius: 5px;
@@ -166,13 +170,6 @@ header p {
   transition: background 0.3s ease;
   text-align: center;
   white-space: nowrap;
-  min-width: 80px;
-  display: block;
-  width: auto;
-  max-width: 100%;
-}
-
-
 }
 .subject-tabs li.active,
 .subject-tabs li:hover {
@@ -237,7 +234,7 @@ header p {
   color: #555;
 }
 
-/* NEWS SECTION (Only for News tab) */
+/* NEWS SECTION */
 #news {
   display: none;  /* Hidden by default */
 }
@@ -388,8 +385,14 @@ footer p {
 
 /* Responsive Design */
 @media (max-width: 768px) {
+  /* Stack main-tabs elements vertically */
+  .main-tabs {
+    flex-direction: column;
+    align-items: stretch;
+  }
   #searchBarContainer {
-    max-width: 250px;
+    max-width: 100%;
+    margin-top: 0.5rem;
   }
   #searchInput {
     font-size: 0.75rem;
@@ -401,7 +404,6 @@ footer p {
   }
   .subject-tabs li {
     font-size: 0.75rem;
-    min-width: 70px;
   }
   .pdf-list {
     grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
@@ -410,7 +412,7 @@ footer p {
 
 @media (max-width: 480px) {
   #searchBarContainer {
-    max-width: 220px;
+    max-width: 100%;
   }
   .pdf-list {
     grid-template-columns: 1fr;
