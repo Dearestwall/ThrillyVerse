@@ -14,6 +14,7 @@ body {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
+  /* Remove extra top padding since search bar is now within main tabs */
 }
 
 /* HEADER */
@@ -50,21 +51,23 @@ header p {
   color: #2575fc;
 }
 
-/* MAIN TABS */
+/* MAIN TABS AND SEARCH BAR */
 .main-tabs {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   background: linear-gradient(to right, #6a11cb, #2575fc);
-  padding: 0.5rem;
+  padding: 0.5rem 1rem;
   border-radius: 5px;
   margin: 0 20px;
   box-shadow: 0 2px 5px rgba(0,0,0,0.2);
 }
-.main-tabs ul {
+.tabs-container ul {
   list-style: none;
   display: flex;
-  justify-content: center;
   gap: 1rem;
 }
-.main-tabs li {
+.tabs-container li {
   padding: 0.5rem 1rem;
   cursor: pointer;
   background: rgba(255, 255, 255, 0.7);
@@ -72,31 +75,28 @@ header p {
   transition: background 0.3s ease, transform 0.3s ease;
   color: #333;
 }
-.main-tabs li.active,
-.main-tabs li:hover {
+.tabs-container li.active,
+.tabs-container li:hover {
   background: #fff;
   color: #2575fc;
   transform: translateY(-3px);
 }
 
-/* SEARCH BAR CONTAINER (Only for Study Materials) */
+/* SEARCH BAR CONTAINER (Not fixed, positioned right to tabs) */
 #searchBarContainer {
   display: flex;
-  justify-content: center;
   align-items: center;
-  gap: 10px;
-  padding: 8px;
-  border: 2px solid #000;
+  gap: 5px;
+  padding: 5px;
+  border: 1px solid #000;
   border-radius: 50px;
-  background: rgba(255, 255, 255, 0.9);
-  width: 90%;
-  max-width: 500px;
-  margin: 20px auto;
+  background: rgba(255, 255, 255, 0.95);
+  max-width: 300px;
 }
 #searchInput {
   flex: 1;
-  padding: 8px 15px;
-  font-size: 1rem;
+  padding: 5px 8px;
+  font-size: 0.8rem;
   border: none;
   outline: none;
   background: transparent;
@@ -106,11 +106,11 @@ header p {
 #searchButton, #clearSearch {
   background-color: #ffab00;
   border: none;
-  padding: 8px 12px;
+  padding: 5px 8px;
   cursor: pointer;
   border-radius: 50px;
   color: white;
-  font-size: 1rem;
+  font-size: 0.8rem;
   font-weight: bold;
   transition: background 0.3s ease;
 }
@@ -119,10 +119,8 @@ header p {
 }
 #clearSearch {
   background-color: #ff4d4d;
-  font-size: 1rem;
-  border-radius: 50%;
-  width: 35px;
-  height: 35px;
+  width: 25px;
+  height: 25px;
   display: none;
   align-items: center;
   justify-content: center;
@@ -135,12 +133,12 @@ header p {
 #errorMessage {
   display: none;
   text-align: center;
-  font-size: 1rem;
-  padding: 10px;
+  font-size: 0.9rem;
+  padding: 8px;
   margin: 10px 20px;
   color: #ff4d4d;
   background: rgba(255, 0, 0, 0.1);
-  border: 2px solid #ff4d4d;
+  border: 1px solid #ff4d4d;
   border-radius: 5px;
   font-weight: bold;
 }
@@ -159,16 +157,22 @@ header p {
   display: none;
 }
 .subject-tabs li {
-  padding: 0.8rem 1rem;
+  padding: 0.6rem 0.8rem;
   cursor: pointer;
   background: #ddd;
   border-radius: 5px;
   color: #333;
-  font-size: 1rem;
+  font-size: 0.8rem;
   transition: background 0.3s ease;
   text-align: center;
   white-space: nowrap;
-  min-width: 100px;
+  min-width: 80px;
+  display: block;
+  width: auto;
+  max-width: 100%;
+}
+
+
 }
 .subject-tabs li.active,
 .subject-tabs li:hover {
@@ -180,7 +184,7 @@ header p {
 .subjects-content {
   display: flex;
   flex-direction: column;
-  gap: 2rem;
+  gap: 1.5rem;
   padding: 0 20px;
 }
 .subject-section {
@@ -196,7 +200,7 @@ header p {
 }
 .pdf-list {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
   gap: 1rem;
   padding: 1rem;
 }
@@ -207,7 +211,7 @@ header p {
   border-radius: 5px;
   text-align: center;
   transition: transform 0.3s ease;
-  padding: 1rem;
+  padding: 0.8rem;
 }
 .pdf-item:hover {
   transform: scale(1.05);
@@ -219,23 +223,23 @@ header p {
   padding: 0.5rem;
 }
 .pdf-item img {
-  max-width: 80px;
+  max-width: 60px;
   margin: 0 auto 0.5rem;
   display: block;
 }
 .pdf-details h3 {
-  font-size: 1rem;
-  margin-bottom: 0.3rem;
+  font-size: 0.9rem;
+  margin-bottom: 0.2rem;
 }
 .pdf-details p {
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   padding: 0 0.5rem;
   color: #555;
 }
 
-/* NEWS ITEMS (Only for News tab) */
+/* NEWS SECTION (Only for News tab) */
 #news {
-  display: none;  /* Hide news section by default */
+  display: none;  /* Hidden by default */
 }
 .news-items {
   display: flex;
@@ -246,39 +250,41 @@ header p {
 .news-item {
   background: #fff;
   color: #333;
-  padding: 1rem;
+  padding: 0.8rem;
   border-radius: 5px;
   box-shadow: 0 2px 5px rgba(0,0,0,0.2);
 }
 .news-item h3 {
   color: #2575fc;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.4rem;
+  font-size: 1rem;
 }
 .news-item p {
-  font-size: 0.9rem;
-  margin-bottom: 0.5rem;
+  font-size: 0.85rem;
+  margin-bottom: 0.4rem;
 }
 .read-more {
   color: #2575fc;
   text-decoration: none;
   font-weight: bold;
+  font-size: 0.85rem;
 }
 
 /* FOOTER */
 footer {
   background: rgba(0, 0, 0, 0.85);
   text-align: center;
-  padding: 1.5rem 1rem;
-  font-size: 0.9rem;
+  padding: 1rem;
+  font-size: 0.85rem;
   color: #ccc;
   border-top: 3px solid #2575fc;
 }
 .footer-links {
-  margin-bottom: 1rem;
+  margin-bottom: 0.8rem;
 }
 .footer-links h4 {
-  font-size: 1.2rem;
-  margin-bottom: 0.8rem;
+  font-size: 1rem;
+  margin-bottom: 0.5rem;
   color: #ffab00;
   text-transform: uppercase;
   letter-spacing: 1px;
@@ -287,11 +293,11 @@ footer {
   list-style: none;
   display: flex;
   justify-content: center;
-  gap: 15px;
+  gap: 10px;
   flex-wrap: wrap;
 }
 .footer-links ul li {
-  font-size: 1rem;
+  font-size: 0.85rem;
 }
 .footer-links ul li a {
   color: #00bcd4;
@@ -306,15 +312,15 @@ footer {
 .footer-links ul li::after {
   content: "|";
   color: #ffffff;
-  padding: 0 10px;
+  padding: 0 5px;
 }
 .footer-links ul li:last-child::after {
   content: "";
 }
 footer p {
-  font-size: 1rem;
+  font-size: 0.85rem;
   color: #ccc;
-  margin-top: 1rem;
+  margin-top: 0.5rem;
 }
 
 /* Back to Top Button */
@@ -325,8 +331,8 @@ footer p {
   background-color: #2575fc;
   color: white;
   border: none;
-  padding: 10px;
-  font-size: 1.2rem;
+  padding: 8px;
+  font-size: 1rem;
   border-radius: 50%;
   cursor: pointer;
   display: none;
@@ -359,20 +365,20 @@ footer p {
 }
 .modal-content h3 {
   color: #2575fc;
-  font-size: 1.5rem;
-  margin-bottom: 1rem;
+  font-size: 1.3rem;
+  margin-bottom: 0.8rem;
 }
 .modal-content p {
   font-size: 1rem;
   color: #333;
-  margin-bottom: 2rem;
+  margin-bottom: 1.5rem;
 }
 .close-modal {
   position: absolute;
   top: 10px;
   right: 15px;
   cursor: pointer;
-  font-size: 1.5rem;
+  font-size: 1.3rem;
   color: #2575fc;
   font-weight: bold;
 }
@@ -383,28 +389,30 @@ footer p {
 /* Responsive Design */
 @media (max-width: 768px) {
   #searchBarContainer {
-    flex-direction: column;
-    padding: 10px;
+    max-width: 250px;
   }
   #searchInput {
-    width: 100%;
-    text-align: center;
+    font-size: 0.75rem;
+    padding: 4px 6px;
   }
   #searchButton, #clearSearch {
-    width: 100%;
-    margin-top: 5px;
+    font-size: 0.7rem;
+    padding: 4px 6px;
   }
-  .subject-tabs ul {
-    padding: 0 10px;
+  .subject-tabs li {
+    font-size: 0.75rem;
+    min-width: 70px;
+  }
+  .pdf-list {
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
   }
 }
 
 @media (max-width: 480px) {
+  #searchBarContainer {
+    max-width: 220px;
+  }
   .pdf-list {
     grid-template-columns: 1fr;
-  }
-  .subject-tabs li {
-    min-width: 80px;
-    font-size: 0.8rem;
   }
 }
