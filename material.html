@@ -15,9 +15,9 @@
     <nav class="main-nav">
       <ul>
         <li><a href="index.html">Home</a></li>
-                <li><a href="news.html">News</a></li>
-                <li><a href="comics.html">Comics</a></li>
-               <li><a href="material.html">ICSE Material</a></li>
+        <li><a href="news.html">News</a></li>
+        <li><a href="comics.html">Comics</a></li>
+        <li><a href="material.html">ICSE Material</a></li>
       </ul>
     </nav>
   </header>
@@ -25,17 +25,18 @@
   <!-- MAIN TABS -->
   <nav class="main-tabs">
     <ul>
+      <!-- Study Materials tab is active by default -->
       <li data-tab="materials" class="active">Study Materials</li>
       <li data-tab="news">News</li>
     </ul>
   </nav>
 
   <main>
-    <!-- SEARCH BAR -->
+    <!-- SEARCH BAR (Only visible in Study Materials) -->
     <div id="searchBarContainer">
       <input type="text" id="searchInput" placeholder="Search PDFs or content...">
       <button id="searchButton">🔍</button>
-      <button id="clearSearch" style="display: none;">❌</button>
+      <button id="clearSearch" title="Clear search">❌</button>
     </div>
 
     <!-- ERROR MESSAGE (Hidden by default) -->
@@ -43,14 +44,13 @@
 
     <!-- STUDY MATERIALS SECTION -->
     <section id="materials" class="tab-content active">
-      <!-- SUBJECT TABS (Horizontal, scrollable in one row) -->
+      <!-- SUBJECT TABS -->
       <nav class="subject-tabs">
         <ul>
-          
           <li data-subject="language">Language</li>
           <li data-subject="literature">Literature</li>
           <li data-subject="maths">Maths</li>
-           <li data-subject="physics">Physics</li>
+          <li data-subject="physics">Physics</li>
           <li data-subject="chemistry">Chemistry</li>
           <li data-subject="biology">Biology</li>
           <li data-subject="history">His/Civics</li>
@@ -62,13 +62,12 @@
           <li data-subject="physical education">Phy. Edu</li>
           <li data-subject="economics">Economics</li>
           <li data-subject="papers">PreBoards</li>
-          
         </ul>
       </nav>
 
-      <!-- SUBJECTS CONTENT (PDFs arranged in a grid layout) -->
+      <!-- SUBJECTS CONTENT (PDF grid layout) -->
       <div class="subjects-content">
-        <!-- English Section -->
+          <!-- English Section -->
         <div class="subject-section" data-subject="literature">
           <h2>English Literature</h2>
           <div class="pdf-list">
@@ -323,16 +322,14 @@
           </div>
         </div>
     </section>
-
-    <!-- NEWS SECTION -->
+    <!-- NEWS SECTION (Only visible in News tab) -->
     <section id="news" class="tab-content">
       <h2>Latest News</h2>
       <div class="news-items">
         <div class="news-item">
           <h3>Update on Class 10 Study Materials</h3>
           <p>
-            We have updated our study materials for Class 10 with new notes,
-            sample papers, and question papers. Check out the Study Materials tab for more details.
+            We have updated our study materials for Class 10 with new notes, sample papers, and question papers.
           </p>
           <a href="#" class="read-more">Read More</a>
         </div>
@@ -347,22 +344,22 @@
     </section>
   </main>
 
-   <!-- Footer Links Section -->
+  <!-- FOOTER -->
   <footer>
     <div class="footer-links">
       <h4>Our Social Media Appearances</h4>
-        <ul>
-        <li><a href="https://t.me/thrillmoviesverse"  target="_blank">ThrilledVerse</a></li>
- <li><a href="https://t.me/icseverse"  target="_blank">MaterialVerse</a>|</li>
+      <ul>
+        <li><a href="https://t.me/thrillmoviesverse" target="_blank">ThrilledVerse</a></li>
+        <li><a href="https://t.me/icseverse" target="_blank">MaterialVerse</a></li>
         <li><a href="https://youtube.com/channel/UCGSsWtRJ5ciemRsuFfixmvQ" target="_blank">Thrill Throne Gaming</a></li>
-          <li><a href="https://www.youtube.com/@ThrillyVerse" target="_blank">YouTube</a></li>
-   <li><a href="https://www.instagram.com/thrillyverse/" target="_blank">Instagram</a></li>
+        <li><a href="https://www.youtube.com/@ThrillyVerse" target="_blank">YouTube</a></li>
+        <li><a href="https://www.instagram.com/thrillyverse/" target="_blank">Instagram</a></li>
       </ul>
     </div>
     <p>&copy; 2025 ThrillyVerse. All rights reserved.</p>
   </footer>
 
-  <!-- News Modal (Hidden by default) -->
+  <!-- NEWS MODAL (For News items only) -->
   <div id="newsModal" class="modal">
     <div class="modal-content">
       <span class="close-modal">×</span>
