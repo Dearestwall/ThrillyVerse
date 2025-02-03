@@ -32,7 +32,7 @@ header p {
   color: #ccc;
 }
 
-/* Main Navigation in Header */
+/* Main Navigation */
 .main-nav ul {
   list-style: none;
   display: flex;
@@ -50,9 +50,9 @@ header p {
   color: #2575fc;
 }
 
-/* MAIN TABS (Study Materials & News) with Site Theme Background */
+/* MAIN TABS */
 .main-tabs {
-  background: linear-gradient(to right, #6a11cb, #2575fc); /* Theme background */
+  background: linear-gradient(to right, #6a11cb, #2575fc);
   padding: 0.5rem;
   border-radius: 5px;
   margin: 0 20px;
@@ -79,31 +79,29 @@ header p {
   transform: translateY(-3px);
 }
 
-/* SEARCH BAR CONTAINER */
+/* SEARCH BAR CONTAINER (Only for Study Materials) */
 #searchBarContainer {
   display: flex;
   justify-content: center;
   align-items: center;
-  margin: 20px;
   gap: 10px;
-  padding: 5px 10px;
-  border: 2px solid #000; /* Black border */
-  border-radius: 50px; /* Oval shape */
-  background: transparent;
+  padding: 8px;
+  border: 2px solid #000;
+  border-radius: 50px;
+  background: rgba(255, 255, 255, 0.9);
   width: 90%;
   max-width: 500px;
-  margin-left: auto;
-  margin-right: auto;
+  margin: 20px auto;
 }
 #searchInput {
+  flex: 1;
   padding: 8px 15px;
-  width: 70%;
-  font-size: 0.9rem;
+  font-size: 1rem;
   border: none;
   outline: none;
-  text-align: center;
   background: transparent;
   color: #333;
+  text-align: center;
 }
 #searchButton, #clearSearch {
   background-color: #ffab00;
@@ -112,7 +110,7 @@ header p {
   cursor: pointer;
   border-radius: 50px;
   color: white;
-  font-size: 0.9rem;
+  font-size: 1rem;
   font-weight: bold;
   transition: background 0.3s ease;
 }
@@ -123,12 +121,11 @@ header p {
   background-color: #ff4d4d;
   font-size: 1rem;
   border-radius: 50%;
-  display: none;
   width: 35px;
   height: 35px;
-  line-height: 35px;
-  text-align: center;
-  padding: 0;
+  display: none;
+  align-items: center;
+  justify-content: center;
 }
 #clearSearch:hover {
   background-color: #cc0000;
@@ -137,30 +134,21 @@ header p {
 /* ERROR MESSAGE */
 #errorMessage {
   display: none;
-  position: relative;
   text-align: center;
   font-size: 1rem;
-  padding: 10px 40px 10px 10px;
-  margin: 10px 20px 0;
+  padding: 10px;
+  margin: 10px 20px;
   color: #ff4d4d;
   background: rgba(255, 0, 0, 0.1);
   border: 2px solid #ff4d4d;
   border-radius: 5px;
   font-weight: bold;
 }
-#errorMessage #errorClose {
-  position: absolute;
-  top: 5px;
-  right: 10px;
-  cursor: pointer;
-  font-size: 1.2rem;
-}
 
-/* SUBJECT TABS (Horizontal, Scrollable in One Row) */
+/* SUBJECT TABS */
 .subject-tabs ul {
   list-style: none;
   display: flex;
-  flex-wrap: nowrap;
   overflow-x: auto;
   gap: 10px;
   margin-bottom: 1rem;
@@ -188,7 +176,7 @@ header p {
   color: #fff;
 }
 
-/* SUBJECTS CONTENT */
+/* SUBJECTS CONTENT & PDF LIST */
 .subjects-content {
   display: flex;
   flex-direction: column;
@@ -206,14 +194,11 @@ header p {
   color: white;
   margin-bottom: 1rem;
 }
-
-/* PDF LIST (Grid Layout - Non-scrollable) */
 .pdf-list {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
   gap: 1rem;
   padding: 1rem;
-  overflow: hidden;
 }
 .pdf-item {
   background: #fff;
@@ -234,7 +219,7 @@ header p {
   padding: 0.5rem;
 }
 .pdf-item img {
-  max-width: 50px;
+  max-width: 80px;
   margin: 0 auto 0.5rem;
   display: block;
 }
@@ -248,7 +233,10 @@ header p {
   color: #555;
 }
 
-/* NEWS ITEMS */
+/* NEWS ITEMS (Only for News tab) */
+#news {
+  display: none;  /* Hide news section by default */
+}
 .news-items {
   display: flex;
   flex-direction: column;
@@ -285,8 +273,6 @@ footer {
   color: #ccc;
   border-top: 3px solid #2575fc;
 }
-
-/* FOOTER LINKS */
 .footer-links {
   margin-bottom: 1rem;
 }
@@ -305,7 +291,6 @@ footer {
   flex-wrap: wrap;
 }
 .footer-links ul li {
-  display: inline-block;
   font-size: 1rem;
 }
 .footer-links ul li a {
@@ -326,48 +311,10 @@ footer {
 .footer-links ul li:last-child::after {
   content: "";
 }
-
-/* COPYRIGHT */
 footer p {
   font-size: 1rem;
   color: #ccc;
   margin-top: 1rem;
-}
-
-
-/* Responsive Design */
-@media (max-width: 768px) {
-  #searchBarContainer {
-    flex-direction: column;
-    gap: 5px;
-  }
-  
-  #searchInput {
-    width: 80%;
-  }
-  
-  #searchButton, #clearSearch {
-    width: 80%;
-  }
-  
-  .subject-tabs ul {
-    padding: 0 10px;
-  }
-}
-
-@media (max-width: 480px) {
-  .pdf-list {
-    grid-template-columns: 1fr;
-  }
-  
-  .subject-tabs ul {
-    padding: 0 5px;
-  }
-  
-  .subject-tabs li {
-    min-width: 80px;
-    font-size: 0.8rem;
-  }
 }
 
 /* Back to Top Button */
@@ -389,7 +336,7 @@ footer p {
   background-color: #6a11cb;
 }
 
-/* News Modal */
+/* NEWS MODAL */
 .modal {
   position: fixed;
   top: 0;
@@ -407,7 +354,7 @@ footer p {
   padding: 20px;
   border-radius: 8px;
   text-align: center;
-  width: 80%;
+  width: 90%;
   max-width: 600px;
 }
 .modal-content h3 {
@@ -431,4 +378,33 @@ footer p {
 }
 .close-modal:hover {
   color: #e69500;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  #searchBarContainer {
+    flex-direction: column;
+    padding: 10px;
+  }
+  #searchInput {
+    width: 100%;
+    text-align: center;
+  }
+  #searchButton, #clearSearch {
+    width: 100%;
+    margin-top: 5px;
+  }
+  .subject-tabs ul {
+    padding: 0 10px;
+  }
+}
+
+@media (max-width: 480px) {
+  .pdf-list {
+    grid-template-columns: 1fr;
+  }
+  .subject-tabs li {
+    min-width: 80px;
+    font-size: 0.8rem;
+  }
 }
