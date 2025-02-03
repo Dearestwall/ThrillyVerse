@@ -119,7 +119,7 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
     if (!found) {
-      errorMessage.innerHTML = `<span id="errorClose" title="Close">&times;</span> ❌ No content found. Try another search or request material on <a href="https://t.me/icseverse" target="_blank">ICSEverse</a>.`;
+      errorMessage.innerHTML = `<span id="errorClose" title="Close">&times;</span>No content found. Try another search or request material on <a href="https://t.me/icseverse" target="_blank">ICSEverse</a>.`;
       errorMessage.style.display = "block";
       document.getElementById("errorClose").addEventListener("click", resetSearch);
     }
