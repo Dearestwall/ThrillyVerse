@@ -1,48 +1,32 @@
 document.addEventListener("DOMContentLoaded", function () {
-  /* ---------------------------
-     MAIN TAB SWITCHING (Study Materials vs. News)
-  --------------------------- */
+  /* ==========================
+     MAIN TAB SWITCHING (Study Materials, News, Quiz)
+  ========================== */
   const mainTabs = document.querySelectorAll(".main-tabs li");
   const tabContents = document.querySelectorAll(".tab-content");
-  const searchBarContainer = document.getElementById("searchBarContainer");
-  const errorMessage = document.getElementById("errorMessage");
 
   mainTabs.forEach(tab => {
     tab.addEventListener("click", function () {
-      // Update active tab styles
       mainTabs.forEach(t => t.classList.remove("active"));
       this.classList.add("active");
 
-      // Show only the selected tab's content
       const targetTab = this.getAttribute("data-tab");
       tabContents.forEach(content => {
         if (content.id === targetTab) {
-          content.style.display = "block";
           content.classList.add("active");
+          content.style.display = "block";
         } else {
-          content.style.display = "none";
           content.classList.remove("active");
+          content.style.display = "none";
         }
       });
-
-      // For the News tab, hide the search bar and error messages;
-      // For the Materials tab, show the search bar and reset search.
-      if (targetTab === "news") {
-        searchBarContainer.style.display = "none";
-        errorMessage.style.display = "none";
-      } else {
-        searchBarContainer.style.display = "flex";
-        resetSearch();
-      }
+      resetSearch();
     });
   });
 
-  // Activate the Materials tab by default
-  document.querySelector('[data-tab="materials"]').click();
-
-  /* ---------------------------
-     SUBJECT TAB SWITCHING (Within Study Materials)
-  --------------------------- */
+  /* ==========================
+     SUBJECT TAB SWITCHING (Inside Study Materials)
+  ========================== */
   const subjectTabs = document.querySelectorAll(".subject-tabs li");
   const subjectSections = document.querySelectorAll(".subject-section");
 
@@ -64,29 +48,22 @@ document.addEventListener("DOMContentLoaded", function () {
       resetSearch();
     });
   });
-
-  // Activate the first subject tab by default if available
   if (subjectTabs.length > 0) {
     subjectTabs[0].click();
   }
 
-  /* ---------------------------
-     SEARCH FUNCTIONALITY (Only for Study Materials)
-     Debounced for smoother live filtering.
-  --------------------------- */
+  /* ==========================
+     SEARCH FUNCTIONALITY (Live & Button-Click)
+  ========================== */
   const searchInput = document.getElementById("searchInput");
   const searchButton = document.getElementById("searchButton");
   const clearSearchButton = document.getElementById("clearSearch");
+  const errorMessage = document.getElementById("errorMessage");
 
-  let debounceTimeout;
   searchInput.addEventListener("input", function () {
-    clearSearchButton.style.display = this.value.trim() ? "inline-flex" : "none";
+    clearSearchButton.style.display = this.value ? "inline-block" : "none";
     errorMessage.style.display = "none";
-
-    clearTimeout(debounceTimeout);
-    debounceTimeout = setTimeout(() => {
-      liveFilterPDFs(this.value);
-    }, 300);
+    liveFilterPDFs(this.value);
   });
 
   searchButton.addEventListener("click", performSearch);
@@ -99,13 +76,13 @@ document.addEventListener("DOMContentLoaded", function () {
 
   function performSearch() {
     const query = searchInput.value.toLowerCase().trim();
+    let found = false;
+    const pdfItems = document.querySelectorAll(".pdf-item");
+
     if (query === "") {
       resetSearch();
       return;
     }
-
-    let found = false;
-    const pdfItems = document.querySelectorAll(".pdf-item");
 
     pdfItems.forEach(item => {
       const title = item.querySelector(".pdf-details h3").textContent.toLowerCase();
@@ -119,7 +96,7 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
     if (!found) {
-      errorMessage.innerHTML = `<span id="errorClose" title="Close">&times;</span>No content found. Try another search or request material on <a href="https://t.me/icseverse" target="_blank">ICSEverse</a>.`;
+      errorMessage.innerHTML = `<span id="errorClose" title="Close">&times;</span> ❌ No content found. Try again or request material on <a href="https://t.me/icseverse" target="_blank">ICSEverse</a>.`;
       errorMessage.style.display = "block";
       document.getElementById("errorClose").addEventListener("click", resetSearch);
     }
@@ -143,14 +120,14 @@ document.addEventListener("DOMContentLoaded", function () {
   function resetSearch() {
     searchInput.value = "";
     const pdfItems = document.querySelectorAll(".pdf-item");
-    pdfItems.forEach(item => (item.style.display = "block"));
+    pdfItems.forEach(item => item.style.display = "block");
     clearSearchButton.style.display = "none";
     errorMessage.style.display = "none";
   }
 
-  /* ---------------------------
+  /* ==========================
      BACK TO TOP BUTTON
-  --------------------------- */
+  ========================== */
   const backToTopButton = document.createElement("button");
   backToTopButton.id = "backToTop";
   backToTopButton.innerHTML = "⬆";
@@ -164,9 +141,9 @@ document.addEventListener("DOMContentLoaded", function () {
     window.scrollTo({ top: 0, behavior: "smooth" });
   });
 
-  /* ---------------------------
-     NEWS MODAL FUNCTIONALITY (For News tab)
-  --------------------------- */
+  /* ==========================
+     NEWS MODAL FUNCTIONALITY
+  ========================== */
   const newsLinks = document.querySelectorAll(".news-item .read-more");
   const newsModal = document.getElementById("newsModal");
   const modalTitle = document.getElementById("modalTitle");
@@ -196,64 +173,58 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   });
 
-  /* ---------------------------
-     QUIZ TAB FUNCTIONALITY (Maha Quiz and Others)
-  --------------------------- */
-  const quizTabLink = document.getElementById('quizTab');
-  const quizTabContent = document.getElementById('quizTabContent');
+  /* ==========================
+     POPUP NOTIFICATION FOR MAHA QUIZ (in Study Materials Tab)
+  ========================== */
+  const quizPopup = document.getElementById("quizPopup");
+  const gotoQuiz = document.getElementById("gotoQuiz");
 
-  // Show quiz tab content when clicked
-  quizTabLink.addEventListener('click', function() {
-    quizTabContent.style.display = 'block';  // Show the quiz tab content
-  });
-
-  // Function to display a popup notification about the new quiz
-  function showQuizNotification() {
-    const notification = document.createElement('div');
-    notification.classList.add('quiz-notification');
-    notification.innerHTML = `New Quiz Alert: The Maha Quiz is now live! <a href="https://docs.google.com/forms/d/e/1FAIpQLSf01oDsCf11o6JJ6_FiQfzqckur39VGAeq2muZ_xOSrLdZEVw/viewform?usp=sharing" target="_blank">Click Here to Take the Quiz</a><button class="close-notification">X</button>`;
-    
-    // Add notification to the body
-    document.body.appendChild(notification);
-
-    // Add event listener to close the notification
-    const closeBtn = notification.querySelector('.close-notification');
-    closeBtn.addEventListener('click', function() {
-      notification.remove();
-    });
-
-    // Automatically hide notification after 5 seconds
-    setTimeout(function() {
-      notification.remove();
-    }, 10000);
-
-    // Redirect to quiz tab when notification is clicked
-    notification.addEventListener('click', function () {
-      const quizTab = document.querySelector('li[data-tab="quiz"]');
-      if (quizTab) {
-        quizTab.click();
-      }
-    });
+  // Show popup only when the Study Materials tab is active
+  function showQuizPopup() {
+    const activeTab = document.querySelector(".main-tabs li.active").getAttribute("data-tab");
+    if (activeTab === "materials") {
+      quizPopup.style.display = "flex";
+    } else {
+      quizPopup.style.display = "none";
+    }
   }
 
-  // Trigger notification for Maha Quiz
-  showQuizNotification();
+  // Show popup after 3 seconds if the materials tab is active
+  setTimeout(showQuizPopup, 3000);
 
-  // Example of handling dynamic quizzes (add more in future)
-  const quizList = [
-    {
-      title: "Maha Quiz: Physics, Chemistry, and Mathematics",
-      description: "A challenging quiz that tests your knowledge in Physics, Chemistry, and Mathematics. It includes a variety of questions to challenge students at all levels.",
-      link: "https://docs.google.com/forms/d/e/1FAIpQLSf01oDsCf11o6JJ6_FiQfzqckur39VGAeq2muZ_xOSrLdZEVw/viewform?usp=sharing"
-    }
-  ];
-
-  // Dynamically add quizzes to the quiz tab
-  const quizTabContentContainer = document.getElementById('quizTabContent');
-  quizList.forEach(function(quiz) {
-    const quizItem = document.createElement('div');
-    quizItem.classList.add('quiz-item');
-    quizItem.innerHTML = `<h4>${quiz.title}</h4><p>${quiz.description}</p><a href="${quiz.link}" target="_blank">Take Quiz</a>`;
-    quizTabContentContainer.appendChild(quizItem);
+  // "Go to Quiz Tab" link click handler
+  gotoQuiz.addEventListener("click", function(e) {
+    e.preventDefault();
+    document.querySelector('.main-tabs li[data-tab="quiz"]').click();
+    quizPopup.style.display = "none";
   });
+
+  // Close popup when clicking the close button
+  document.querySelector(".popup-notification .close-popup").addEventListener("click", function() {
+    quizPopup.style.display = "none";
+  });
+
+  // Re-check popup display on tab switching
+  mainTabs.forEach(tab => {
+    tab.addEventListener("click", showQuizPopup);
+  });
+
+  /* ==========================
+     DYNAMIC ANNOUNCEMENT (Rotate Messages)
+  ========================== */
+  const announcements = [
+    "Maha Quiz For Chemistry, Physics And Mathematics Out Now!",
+    "New Study Materials Updated Daily!",
+    "Explore Latest News and Quizzes on ThrillyVerse!"
+  ];
+  let announcementIndex = 0;
+  const announcementText = document.getElementById("announcementText");
+  setInterval(() => {
+    announcementIndex = (announcementIndex + 1) % announcements.length;
+    announcementText.style.opacity = 0;
+    setTimeout(() => {
+      announcementText.textContent = announcements[announcementIndex];
+      announcementText.style.opacity = 1;
+    }, 500);
+  }, 5000);
 });
