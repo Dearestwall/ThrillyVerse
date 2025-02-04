@@ -1,23 +1,23 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-DR54STFG33"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-
-  gtag('config', 'G-DR54STFG33');
-</script>
   <meta charset="UTF-8">
+  <meta name="description" content="ThrillyVerse Study Materials & News - Explore PDF materials, quizzes, news and more">
+  <meta name="keywords" content="ThrillyVerse, Study Materials, Quiz, News, PDFs, Education, ICSE">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>ThrillyVerse Study Materials & News</title>
+  <!-- Google Tag Manager -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DR54STFG33"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-DR54STFG33');
+  </script>
   <link rel="stylesheet" href="material.css">
 </head>
 <body>
-
- <!-- HEADER -->
+  <!-- HEADER -->
   <header>
     <h1>ThrillyVerse</h1>
     <p>Think Beyond The Verse</p>
@@ -26,18 +26,18 @@
         <li><a href="index.html">Home</a></li>
         <li><a href="news.html">News</a></li>
         <li><a href="comics.html">Comics</a></li>
-        <li><a href="material.html">ICSE Material</a></li>
+        <li><a href="material.html" class="active">ICSE Material</a></li>
       </ul>
     </nav>
   </header>
 
-  <!-- MAIN TABS AND SEARCH BAR (Grouped in a flex container) -->
+  <!-- MAIN TABS AND SEARCH BAR -->
   <nav class="main-tabs">
     <div class="tabs-container">
       <ul>
         <li data-tab="materials" class="active">Study Materials</li>
         <li data-tab="news">News</li>
-         <li data-tab="quiz">Quiz</li>  <!-- New Quiz Tab -->
+        <li data-tab="quiz">Quiz</li>
       </ul>
     </div>
     <div id="searchBarContainer">
@@ -46,19 +46,12 @@
       <button id="clearSearch" title="Clear search">❌</button>
     </div>
   </nav>
-  <!-- Announcement Note -->
-  <div class="announcement">
-    <p>Maha Quiz For Chemistry, Physics And Mathematics Out Now!</p>
-    <p>View this site In Desktop Site View Of Chrome For Better Experience</p>
-    <p>If You Not want see Ads Or wanna Get Direct Link Get For 10rs. For all Subjects Lifetime DM In Telegram Link In Bio</p>
-  </div>
 
   <main>
-   
-    <!-- ERROR MESSAGE (Hidden by default) -->
+    <!-- ERROR MESSAGE -->
     <div id="errorMessage"></div>
 
-    <!-- STUDY MATERIALS SECTION -->
+ <!-- STUDY MATERIALS SECTION -->
     <section id="materials" class="tab-content active">
       <!-- SUBJECT TABS -->
       <nav class="subject-tabs">
@@ -334,41 +327,47 @@
       </div>
     </section>
     
-    <!-- NEWS SECTION (Only visible in News tab) -->
+    <!-- NEWS SECTION -->
     <section id="news" class="tab-content">
       <h2>Latest News</h2>
       <div class="news-items">
         <div class="news-item">
           <h3>Update on Class 10 Study Materials</h3>
-          <p>
-            We have updated our study materials for Class 10 with new notes, sample papers, and question papers.
-          </p>
+          <p>We have updated our study materials for Class 10 with new notes, sample papers, and question papers.</p>
           <a href="#" class="read-more">Read More</a>
         </div>
         <div class="news-item">
           <h3>New Subjects Coming Soon</h3>
-          <p>
-            Exciting news: We're expanding our library with subjects like Computer Science and Economics soon.
-          </p>
+          <p>Exciting news: We're expanding our library with subjects like Computer Science and Economics soon.</p>
           <a href="#" class="read-more">Read More</a>
         </div>
       </div>
     </section>
-    
-    <!-- Quiz Tab Content -->
-    <section class="tab-content" id="quiz">
+
+    <!-- QUIZ SECTION -->
+    <section id="quiz" class="tab-content">
       <h2>Available Quizzes</h2>
       <p>Test your knowledge with our quizzes! More quizzes will be added soon.</p>
       <ul>
         <li>
           <a href="https://ouo.io/PWdFx7" target="_blank">Maha Quiz: Physics, Chemistry, Mathematics</a>
         </li>
-        <!-- More quizzes will be added here in the future -->
       </ul>
     </section>
-  </div>
-
   </main>
+
+  <!-- POPUP NOTIFICATION FOR MAHA QUIZ (Appears on Study Materials Tab) -->
+  <div id="quizPopup" class="popup-notification">
+    <span class="popup-text">Maha Quiz is Live Now! <a href="#" id="gotoQuiz">Go to Quiz Tab</a></span>
+    <button class="close-popup">&times;</button>
+  </div>
+   <!-- ANNOUNCEMENT (Dynamic) -->
+ <section id="announcement" class="announcement">
+            <h2>📢 Important Announcement</h2>
+            <p>Want to skip ads while opening PDFs? Get a <strong>direct link</strong> for <strong>all subjects</strong> by just paying <strong>₹10 one time!</strong></p>
+            <p><a href="https://t.me/dearestwall" target="_blank" class="cta-button">💬 DM DearestWall Here</a></p>
+            <p><strong>For the best experience, we recommend visiting this site in Desktop Mode on Chrome.</strong></p>
+        </section>
 
   <!-- FOOTER -->
   <footer>
@@ -381,16 +380,16 @@
         <li><a href="https://www.youtube.com/@ThrillyVerse" target="_blank">YouTube</a></li>
         <li><a href="https://www.instagram.com/thrillyverse/" target="_blank">Instagram</a></li>
       </ul>
-    </div>
+    </div> 
+    <p class="contact-footer">For inquiries, <a href="https://t.me/+LniQHT_ltBsyNmE1" target="_blank">click here to contact us</a>.</p>
     <p>&copy; 2025 ThrillyVerse. All rights reserved.</p>
+   
   </footer>
- 
 
-
-  <!-- NEWS MODAL (For News items only) -->
+  <!-- NEWS MODAL -->
   <div id="newsModal" class="modal">
     <div class="modal-content">
-      <span class="close-modal">×</span>
+      <span class="close-modal">&times;</span>
       <h3 id="modalTitle"></h3>
       <p id="modalContent"></p>
     </div>
