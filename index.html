@@ -1,78 +1,84 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-DR54STFG33"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-
-  gtag('config', 'G-DR54STFG33');
-</script>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ThrillyVerse - Think Beyond The Verse</title>
-    <meta name="description" content="">
-    <link rel="stylesheet" href="style.css">
-    <script src="script.js" defer></script>
+  <meta charset="UTF-8">
+  <meta name="description" content="ThrillyVerse Study Materials & News - Explore PDF materials, quizzes, news and more">
+  <meta name="keywords" content="ThrillyVerse, Study Materials, Quiz, News, PDFs, Education, ICSE">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ThrillyVerse - Think Beyond The Verse</title>
+  <!-- Google Tag Manager Script (deferred) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DR54STFG33"></script>
+  <script defer>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){ dataLayer.push(arguments); }
+    gtag('js', new Date());
+    gtag('config', 'G-DR54STFG33');
+  </script>
+  <link rel="stylesheet" href="style.css">
+  <!-- Ensure any additional scripts are deferred -->
+  <script src="script.js" defer></script>
 </head>
 <body>
-
-    <header>
-        <h1>ThrillyVerse</h1>
-        <p>Think Beyond The Verse</p>
-        <nav>
-            <ul>
-                <li><a href="index.html">Home</a></li>
-                <li><a href="news.html">News</a></li>
-                <li><a href="comics.html">Comics</a></li>
-               <li><a href="material.html">ICSE Material</a></li>
-            </ul>
-        </nav>
-    </header>
-  <!-- Announcement Note -->
-  <div class="announcement">
-    <p>Content for Class X ICSE Students Is Out Now on ICSE Material Page!</p>
-    <p>View this site In Desktop Site View Of Chrome For Better Experience</p>
-  </div>
-
-
-    <main>
-        <h2>Our Projects</h2>
-        <div class="projects">
-            <h3>Calculator</h3>
-            <iframe src="https://dearestwall.github.io/Calculator/" width="100%" height="500px"></iframe>
-        
-            <h3>Tic Tac Toe</h3>
-            <iframe src="https://dearestwall.github.io/tictactoe/" width="100%" height="400px"></iframe>
-        </div>
-       <button id="backToTop" title="Back to Top">▲</button>
-        
-    </main>
-
-     <footer>
-  <div class="footer-content">
-    <!-- Site Title -->
-  
-
-    <!-- Footer Links Section -->
-    <div class="footer-links">
-      <h4>Our Social Media Appearances</h4>
-        <ul>
-        <li><a href="https://t.me/thrillmoviesverse"  target="_blank">ThrilledVerse</a></li> |
-        <li><a href="https://t.me/icseverse"  target="_blank">MaterialVerse</a></li> |
-        <li><a href="https://youtube.com/channel/UCGSsWtRJ5ciemRsuFfixmvQ" target="_blank">Thrill Throne Gaming</a></li> |
-        <li><a href="https://www.youtube.com/@ThrillyVerse" target="_blank">YouTube</a></li> |
-        <li><a href="https://www.instagram.com/thrillyverse/" target="_blank">Instagram</a></li> |
+  <!-- HEADER with Accessible Navigation -->
+  <header role="banner">
+    <h1>ThrillyVerse</h1>
+    <p>Think Beyond The Verse</p>
+    <nav role="navigation" aria-label="Main Navigation">
+      <ul>
+        <li><a href="index.html">Home</a></li>
+        <li><a href="news.html">News</a></li>
+        <li><a href="comics.html">Comics</a></li>
+        <li><a href="material.html" class="active">ICSE Material</a></li>
       </ul>
-    </div>
+    </nav>
+  </header>
 
-    <!-- Copyright -->
-   <p>&copy; 2025 ThrillyVerse. All rights reserved.</p>
+  <!-- Announcement Section -->
+  <div class="announcement" role="region" aria-label="Important Announcement">
+    <p>Content for Class X ICSE Students Is Out Now on the ICSE Material Page!</p>
+    <p>View this site in Desktop Mode on Chrome for a better experience.</p>
   </div>
-</footer>
-  
-    <script src="script.js" defer></script>
+
+  <!-- MAIN CONTENT -->
+  <main role="main">
+    <h2>Our Projects</h2>
+    <div class="projects">
+      <h3>Calculator</h3>
+      <!-- Each iframe now includes a title attribute for accessibility -->
+      <iframe src="https://dearestwall.github.io/Calculator/" title="Calculator Project" width="100%" height="500px" loading="lazy"></iframe>
+      
+      <h3>Tic Tac Toe</h3>
+      <iframe src="https://dearestwall.github.io/tictactoe/" title="Tic Tac Toe Game" width="100%" height="400px" loading="lazy"></iframe>
+    </div>
+    <button id="backToTop" title="Back to Top">▲</button>
+  </main>
+
+  <!-- FOOTER -->
+  <footer role="contentinfo">
+    <div class="footer-content">
+      <div class="footer-links" aria-label="Social Media Links">
+        <h4>Our Social Media Appearances</h4>
+        <ul>
+          <li><a href="https://t.me/thrillmoviesverse" target="_blank">ThrilledVerse</a></li>
+          <li><a href="https://t.me/icseverse" target="_blank">MaterialVerse</a></li>
+          <li><a href="https://youtube.com/channel/UCGSsWtRJ5ciemRsuFfixmvQ" target="_blank">Thrill Throne Gaming</a></li>
+          <li><a href="https://www.youtube.com/@ThrillyVerse" target="_blank">YouTube</a></li>
+          <li><a href="https://www.instagram.com/thrillyverse/" target="_blank">Instagram</a></li>
+        </ul>
+      </div>
+      <p class="contact-footer">For inquiries, <a href="https://t.me/+LniQHT_ltBsyNmE1" target="_blank">click here to contact us</a>.</p>
+      <p>&copy; 2025 ThrillyVerse. All rights reserved.</p>
+      
+    </div>
+  </footer>
+
+  <!-- Accessible News Modal (if used on news pages) -->
+  <div id="newsModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle" tabindex="-1">
+    <div class="modal-content">
+      <button id="closeModal" class="close-modal" aria-label="Close Modal">&times;</button>
+      <h3 id="modalTitle"></h3>
+      <p id="modalContent"></p>
+    </div>
+  </div>
 </body>
 </html>
