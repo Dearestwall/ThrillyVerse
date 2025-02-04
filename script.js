@@ -1,71 +1,50 @@
 document.addEventListener("DOMContentLoaded", function () {
-  // Smooth scrolling for anchor links
-  const links = document.querySelectorAll('a');
-  links.forEach(link => {
-    link.addEventListener('click', function (e) {
-      const targetId = this.getAttribute('href');
-
-      // Allow normal navigation for external links (HTTP URLs) or HTML page links
-      if (targetId.startsWith("http") || targetId.includes(".html")) {
-        return;
-      }
-
-      // Smooth scroll for internal anchor links (e.g., #section)
-      if (targetId.startsWith("#")) {
+  // Smooth scrolling for internal anchor links (only for links starting with '#')
+  document.querySelectorAll('a[href^="#"]').forEach(link => {
+    link.addEventListener("click", function (e) {
+      const target = document.querySelector(this.getAttribute("href"));
+      if (target) {
         e.preventDefault();
-        const target = document.querySelector(targetId);
-        if (target) {
-          window.scrollTo({
-            top: target.offsetTop - 50,
-            behavior: 'smooth'
-          });
-        }
+        window.scrollTo({
+          top: target.offsetTop - 50,
+          behavior: "smooth"
+        });
       }
     });
   });
 
   // Back to Top Button functionality
   const backToTopButton = document.getElementById("backToTop");
-  window.addEventListener("scroll", function () {
-    if (window.pageYOffset > 300) {
-      backToTopButton.style.display = "block";
-    } else {
-      backToTopButton.style.display = "none";
-    }
+  window.addEventListener("scroll", () => {
+    backToTopButton.style.display = window.pageYOffset > 300 ? "block" : "none";
   });
   
-  backToTopButton.addEventListener("click", function () {
-    window.scrollTo({
-      top: 0,
-      behavior: "smooth"
-    });
+  backToTopButton.addEventListener("click", () => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
   });
 
-  // News modal functionality with accessibility enhancements
-  const newsCard = document.getElementById("newsCard");
+  // Accessible News Modal functionality (if the modal exists on this page)
   const newsModal = document.getElementById("newsModal");
   const closeModalBtn = document.getElementById("closeModal");
-
-  if (newsCard && newsModal) {
-    newsCard.addEventListener("click", () => {
-      newsModal.style.display = "block";
-      // Move focus to the modal container for keyboard users
-      newsModal.focus();
-    });
-  }
-
-  if (closeModalBtn && newsModal) {
+  
+  if (newsModal && closeModalBtn) {
+    // If a news card trigger exists, add an event listener
+    const newsCard = document.getElementById("newsCard");
+    if (newsCard) {
+      newsCard.addEventListener("click", () => {
+        newsModal.style.display = "block";
+        newsModal.focus();
+      });
+    }
     closeModalBtn.addEventListener("click", () => {
       newsModal.style.display = "none";
-      // Return focus to the triggering element
-      newsCard.focus();
+      if (newsCard) newsCard.focus();
     });
-
-    // Close modal when clicking outside the modal content
+    // Close modal when clicking outside modal content
     window.addEventListener("click", (event) => {
       if (event.target === newsModal) {
         newsModal.style.display = "none";
-        newsCard.focus();
+        if (newsCard) newsCard.focus();
       }
     });
   }
