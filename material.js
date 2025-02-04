@@ -195,4 +195,65 @@ document.addEventListener("DOMContentLoaded", function () {
       newsModal.style.display = "none";
     }
   });
+
+  /* ---------------------------
+     QUIZ TAB FUNCTIONALITY (Maha Quiz and Others)
+  --------------------------- */
+  const quizTabLink = document.getElementById('quizTab');
+  const quizTabContent = document.getElementById('quizTabContent');
+
+  // Show quiz tab content when clicked
+  quizTabLink.addEventListener('click', function() {
+    quizTabContent.style.display = 'block';  // Show the quiz tab content
+  });
+
+  // Function to display a popup notification about the new quiz
+  function showQuizNotification() {
+    const notification = document.createElement('div');
+    notification.classList.add('quiz-notification');
+    notification.innerHTML = `New Quiz Alert: The Maha Quiz is now live! <a href="https://docs.google.com/forms/d/e/1FAIpQLSf01oDsCf11o6JJ6_FiQfzqckur39VGAeq2muZ_xOSrLdZEVw/viewform?usp=sharing" target="_blank">Click Here to Take the Quiz</a><button class="close-notification">X</button>`;
+    
+    // Add notification to the body
+    document.body.appendChild(notification);
+
+    // Add event listener to close the notification
+    const closeBtn = notification.querySelector('.close-notification');
+    closeBtn.addEventListener('click', function() {
+      notification.remove();
+    });
+
+    // Automatically hide notification after 5 seconds
+    setTimeout(function() {
+      notification.remove();
+    }, 10000);
+
+    // Redirect to quiz tab when notification is clicked
+    notification.addEventListener('click', function () {
+      const quizTab = document.querySelector('li[data-tab="quiz"]');
+      if (quizTab) {
+        quizTab.click();
+      }
+    });
+  }
+
+  // Trigger notification for Maha Quiz
+  showQuizNotification();
+
+  // Example of handling dynamic quizzes (add more in future)
+  const quizList = [
+    {
+      title: "Maha Quiz: Physics, Chemistry, and Mathematics",
+      description: "A challenging quiz that tests your knowledge in Physics, Chemistry, and Mathematics. It includes a variety of questions to challenge students at all levels.",
+      link: "https://docs.google.com/forms/d/e/1FAIpQLSf01oDsCf11o6JJ6_FiQfzqckur39VGAeq2muZ_xOSrLdZEVw/viewform?usp=sharing"
+    }
+  ];
+
+  // Dynamically add quizzes to the quiz tab
+  const quizTabContentContainer = document.getElementById('quizTabContent');
+  quizList.forEach(function(quiz) {
+    const quizItem = document.createElement('div');
+    quizItem.classList.add('quiz-item');
+    quizItem.innerHTML = `<h4>${quiz.title}</h4><p>${quiz.description}</p><a href="${quiz.link}" target="_blank">Take Quiz</a>`;
+    quizTabContentContainer.appendChild(quizItem);
+  });
 });
