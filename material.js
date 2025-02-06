@@ -174,40 +174,47 @@ document.addEventListener("DOMContentLoaded", function () {
   });
 
   /* ==========================
-     POPUP NOTIFICATION FOR MAHA QUIZ (in Study Materials Tab)
-  ========================== */
-  const quizPopup = document.getElementById("quizPopup");
-  const gotoQuiz = document.getElementById("gotoQuiz");
+   POPUP NOTIFICATION FOR MAHA QUIZ (in Study Materials Tab)
+========================== */
+const quizPopup = document.getElementById("quizPopup");
+const gotoQuiz = document.getElementById("gotoQuiz");
+const closePopupButton = document.querySelector(".popup-notification .close-popup");
 
-  // Show popup only when the Study Materials tab is active
-  function showQuizPopup() {
-    const activeTab = document.querySelector(".main-tabs li.active").getAttribute("data-tab");
-    if (activeTab === "materials") {
-      quizPopup.style.display = "flex";
-    } else {
+// Show popup only when the Study Materials tab is active
+function showQuizPopup() {
+  const activeTab = document.querySelector(".main-tabs li.active").getAttribute("data-tab");
+  if (activeTab === "materials") {
+    quizPopup.style.display = "flex";
+
+    // Automatically hide the popup after 5 seconds
+    setTimeout(() => {
       quizPopup.style.display = "none";
-    }
+    }, 2000);
+  } else {
+    quizPopup.style.display = "none";
   }
+}
 
-  // Show popup after 3 seconds if the materials tab is active
-  setTimeout(showQuizPopup, 3000);
+// Show popup after 3 seconds if the materials tab is active
+setTimeout(showQuizPopup, 1000);
 
-  // "Go to Quiz Tab" link click handler
-  gotoQuiz.addEventListener("click", function(e) {
-    e.preventDefault();
-    document.querySelector('.main-tabs li[data-tab="quiz"]').click();
-    quizPopup.style.display = "none";
-  });
+// "Go to Quiz Tab" link click handler
+gotoQuiz.addEventListener("click", function(e) {
+  e.preventDefault();
+  document.querySelector('.main-tabs li[data-tab="quiz"]').click();
+  quizPopup.style.display = "none";
+});
 
-  // Close popup when clicking the close button
-  document.querySelector(".popup-notification .close-popup").addEventListener("click", function() {
-    quizPopup.style.display = "none";
-  });
+// Close popup when clicking the close button
+closePopupButton.addEventListener("click", function() {
+  quizPopup.style.display = "none";
+});
 
-  // Re-check popup display on tab switching
-  mainTabs.forEach(tab => {
-    tab.addEventListener("click", showQuizPopup);
-  });
+// Re-check popup display on tab switching
+mainTabs.forEach(tab => {
+  tab.addEventListener("click", showQuizPopup);
+});
+
 
   /* ==========================
      DYNAMIC ANNOUNCEMENT (Rotate Messages)
