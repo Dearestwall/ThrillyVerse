@@ -402,3 +402,19 @@ footer p {
     padding: 15px;
   }
 }
+/* Banner Responsive Styles */
+.banner {
+  width: 100%;         /* Makes the image fill its container's width */
+  height: auto;        /* Maintains the aspect ratio */
+  max-width: 600px;    /* Optional: sets an upper limit on the image's width */
+  display: block;      /* Ensures that margin auto works for centering */
+  margin: 0 auto;      /* Centers the image horizontally */
+}
+
+/* Optional: Adjust banner styles for very small devices */
+@media (max-width: 480px) {
+  .banner {
+    max-width: 100%;  /* Allow full width on very small screens */
+    padding: 0 10px;  /* Add some horizontal padding if desired */
+  }
+}
