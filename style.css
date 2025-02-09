@@ -5,6 +5,11 @@
   box-sizing: border-box;
 }
 
+/* Enable native smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
 /* ANNOUNCEMENT Styling */
 .announcement {
   background-color: #ffab00; /* Accent color */
@@ -19,6 +24,7 @@
   transform: translateX(-100%);
   opacity: 0;
   animation: slideInHorizontal 1s ease-out forwards;
+  will-change: transform, opacity;
 }
 
 @keyframes slideInHorizontal {
@@ -304,16 +310,14 @@ footer p {
 /* ===========================
    News Page Specific Styles
    =========================== */
-/* NEWS SECTION LAYOUT IMPROVEMENTS */
 .news-container {
-  background-color: rgba(0, 0, 0, 0.7); /* Darker background for better visibility */
+  background-color: rgba(0, 0, 0, 0.7);
   padding: 2rem;
   border-radius: 10px;
   margin: 2rem auto;
-  max-width: 1100px; /* Increases the content width on larger screens */
+  max-width: 1100px;
 }
 
-/* Flexbox for better alignment */
 .news-grid {
   display: flex;
   flex-wrap: wrap;
@@ -321,13 +325,12 @@ footer p {
   gap: 20px;
 }
 
-/* Individual News Card */
 .news-card {
   background: rgba(255, 255, 255, 0.1);
   padding: 20px;
   border-radius: 12px;
   width: 90%;
-  max-width: 500px; /* Increased width */
+  max-width: 500px;
   cursor: pointer;
   transition: transform 0.3s ease, background 0.3s ease;
   text-align: center;
@@ -339,7 +342,6 @@ footer p {
   background: rgba(255, 255, 255, 0.15);
 }
 
-/* News Image */
 .news-card img {
   width: 100%;
   max-width: 400px;
@@ -348,42 +350,35 @@ footer p {
   margin-bottom: 1rem;
 }
 
-/* News Title */
 .news-card h2 {
   font-size: 2rem;
   margin-bottom: 0.5rem;
   color: #ffab00;
 }
 
-/* Date */
 .news-date {
   font-size: 1rem;
   color: #ccc;
   margin-bottom: 1rem;
 }
 
-/* News Description */
 .news-card p {
   font-size: 1.2rem;
   line-height: 1.6;
 }
 
-/* Responsive Adjustments */
 @media (max-width: 768px) {
   .news-container {
     margin: 1rem;
     padding: 1.5rem;
   }
-
   .news-card {
     width: 100%;
     max-width: 100%;
   }
-
   .news-card h2 {
     font-size: 1.7rem;
   }
-
   .news-card p {
     font-size: 1.1rem;
   }
@@ -393,28 +388,26 @@ footer p {
   .news-card h2 {
     font-size: 1.5rem;
   }
-
   .news-card p {
     font-size: 1rem;
   }
-
   .news-card {
     padding: 15px;
   }
 }
+
 /* Banner Responsive Styles */
 .banner {
-  width: 100%;         /* Makes the image fill its container's width */
-  height: auto;        /* Maintains the aspect ratio */
-  max-width: 600px;    /* Optional: sets an upper limit on the image's width */
-  display: block;      /* Ensures that margin auto works for centering */
-  margin: 0 auto;      /* Centers the image horizontally */
+  width: 100%;         /* Fills container's width */
+  height: auto;        /* Maintains aspect ratio */
+  max-width: 600px;    /* Optional upper limit */
+  display: block;      /* Allows centering */
+  margin: 0 auto;      /* Centers horizontally */
 }
 
-/* Optional: Adjust banner styles for very small devices */
 @media (max-width: 480px) {
   .banner {
-    max-width: 100%;  /* Allow full width on very small screens */
-    padding: 0 10px;  /* Add some horizontal padding if desired */
+    max-width: 100%;  /* Full width on very small screens */
+    padding: 0 10px;  /* Optional horizontal padding */
   }
 }
