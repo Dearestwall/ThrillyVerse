@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Thrillyverse</title>
+  <meta name="description" content="The website you are searching for has now shifted to another address. Click the link to visit our new site.">
+  <style>
+    /* Basic Reset */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    html, body {
+      height: 100%;
+      font-family: Arial, sans-serif;
+      color: #fff;
+      overflow: hidden;
+    }
+    /* Enhanced Animated Background */
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: linear-gradient(270deg, #ff7e5f, #feb47b, #ff7e5f);
+      background-size: 600% 600%;
+      animation: gradientAnimation 20s ease infinite;
+    }
+    @keyframes gradientAnimation {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+    /* Content Container */
+    .container {
+      background: rgba(0, 0, 0, 0.6);
+      padding: 2rem 3rem;
+      border-radius: 15px;
+      text-align: center;
+      box-shadow: 0 0 20px rgba(0, 0, 0, 0.4);
+      max-width: 90%;
+      margin: auto;
+    }
+    /* Enhanced Title & Headings */
+    h1 {
+      font-size: 3rem;
+      margin-bottom: 1rem;
+      text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.5);
+    }
+    p {
+      font-size: 1.2rem;
+      margin-bottom: 1.5rem;
+      line-height: 1.4;
+    }
+    /* Live Countdown Timer Styling */
+    .timer {
+      font-size: 2rem;
+      font-weight: bold;
+      margin-bottom: 1.5rem;
+      color: #ffeb3b;
+      text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.5);
+    }
+    /* Enhanced Button Styling */
+    a {
+      display: inline-block;
+      padding: 0.75rem 1.5rem;
+      font-size: 1rem;
+      color: #fff;
+      text-decoration: none;
+      background: linear-gradient(45deg, #6a5acd, #00bfff);
+      background-size: 200% auto;
+      border-radius: 5px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+      transition: all 0.3s ease;
+    }
+    a:hover,
+    a:focus {
+      background-position: right center;
+      transform: scale(1.05);
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+    }
+  </style>
+</head>
+<body>
+  <div class="container" role="main">
+    <h1>i thrillyverse</h1>
+    <p>The website you are searching for has now shifted to another address.</p>
+    <div class="timer">
+      Redirecting in <span id="timer">5</span> seconds
+    </div>
+    <a href="https://dearestwall.github.io/ThrillyVerse/home.html" title="Go to the new site" id="redirectLink">Click here to go</a>
+  </div>
+
+  <script>
+    // Set the countdown time in seconds
+    let countdown = 5;
+    const timerElement = document.getElementById('timer');
+
+    // Update the timer every second
+    const countdownInterval = setInterval(() => {
+      countdown--;
+      timerElement.textContent = countdown;
+      if (countdown <= 0) {
+        clearInterval(countdownInterval);
+        window.location.href = "https://dearestwall.github.io/ThrillyVerse/home.html";
+      }
+    }, 1000);
+  </script>
+</body>
+</html>
