@@ -1,18 +1,4 @@
 document.addEventListener("DOMContentLoaded", function () {
-  // Smooth scrolling for internal anchor links (only for links starting with '#')
-  document.querySelectorAll('a[href^="#"]').forEach(link => {
-    link.addEventListener("click", function (e) {
-      const target = document.querySelector(this.getAttribute("href"));
-      if (target) {
-        e.preventDefault();
-        window.scrollTo({
-          top: target.offsetTop - 50,
-          behavior: "smooth"
-        });
-      }
-    });
-  });
-
   // Back to Top Button functionality
   const backToTopButton = document.getElementById("backToTop");
   window.addEventListener("scroll", () => {
@@ -28,7 +14,6 @@ document.addEventListener("DOMContentLoaded", function () {
   const closeModalBtn = document.getElementById("closeModal");
   
   if (newsModal && closeModalBtn) {
-    // If a news card trigger exists, add an event listener
     const newsCard = document.getElementById("newsCard");
     if (newsCard) {
       newsCard.addEventListener("click", () => {
@@ -40,7 +25,7 @@ document.addEventListener("DOMContentLoaded", function () {
       newsModal.style.display = "none";
       if (newsCard) newsCard.focus();
     });
-    // Close modal when clicking outside modal content
+    // Close the modal if clicking outside its content area
     window.addEventListener("click", (event) => {
       if (event.target === newsModal) {
         newsModal.style.display = "none";
