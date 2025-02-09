@@ -6,16 +6,7 @@
   <meta name="keywords" content="ThrillyVerse, Study Materials, Quiz, News, PDFs, Education, ICSE">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>ThrillyVerse - Think Beyond The Verse</title>
-  <!-- Google Tag Manager Script (deferred) -->
-  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DR54STFG33"></script>
-  <script defer>
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){ dataLayer.push(arguments); }
-    gtag('js', new Date());
-    gtag('config', 'G-DR54STFG33');
-  </script>
   <link rel="stylesheet" href="style.css">
-  <!-- Ensure any additional scripts are deferred -->
   <script src="script.js" defer></script>
 </head>
 <body>
@@ -25,10 +16,10 @@
     <p>Think Beyond The Verse</p>
     <nav role="navigation" aria-label="Main Navigation">
       <ul>
-        <li><a href="home.html">Home</a></li>
+        <li><a href="home.html" class="active">Home</a></li>
         <li><a href="news.html">News</a></li>
         <li><a href="comics.html">Comics</a></li>
-        <li><a href="material.html" class="active">ICSE Material</a></li>
+        <li><a href="material.html">ICSE Material</a></li>
       </ul>
     </nav>
   </header>
@@ -44,11 +35,22 @@
     <h2>Our Projects</h2>
     <div class="projects">
       <h3>Calculator</h3>
-      <!-- Each iframe now includes a title attribute for accessibility -->
-      <iframe src="https://dearestwall.github.io/Calculator/" title="Calculator Project" width="100%" height="500px" loading="lazy"></iframe>
+      <iframe
+        src="https://dearestwall.github.io/Calculator/"
+        title="Calculator Project"
+        width="100%"
+        height="500px"
+        loading="lazy">
+      </iframe>
       
       <h3>Tic Tac Toe</h3>
-      <iframe src="https://dearestwall.github.io/tictactoe/" title="Tic Tac Toe Game" width="100%" height="400px" loading="lazy"></iframe>
+      <iframe
+        src="https://dearestwall.github.io/tictactoe/"
+        title="Tic Tac Toe Game"
+        width="100%"
+        height="400px"
+        loading="lazy">
+      </iframe>
     </div>
     <button id="backToTop" title="Back to Top">▲</button>
   </main>
@@ -66,9 +68,10 @@
           <li><a href="https://www.instagram.com/thrillyverse/" target="_blank">Instagram</a></li>
         </ul>
       </div>
-      <p class="contact-footer">For inquiries, <a href="https://t.me/+LniQHT_ltBsyNmE1" target="_blank">click here to contact us</a>.</p>
+      <p class="contact-footer">
+        For inquiries, <a href="https://t.me/+LniQHT_ltBsyNmE1" target="_blank">click here to contact us</a>.
+      </p>
       <p>&copy; 2025 ThrillyVerse. All rights reserved.</p>
-      
     </div>
   </footer>
 
@@ -80,5 +83,20 @@
       <p id="modalContent"></p>
     </div>
   </div>
+
+  <!-- Deferred Google Tag Manager Loading -->
+  <script>
+    window.addEventListener('load', function() {
+      var gtmScript = document.createElement('script');
+      gtmScript.src = 'https://www.googletagmanager.com/gtag/js?id=G-DR54STFG33';
+      gtmScript.async = true;
+      document.head.appendChild(gtmScript);
+
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){ dataLayer.push(arguments); }
+      gtag('js', new Date());
+      gtag('config', 'G-DR54STFG33');
+    });
+  </script>
 </body>
 </html>
