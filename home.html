@@ -8,8 +8,8 @@
   <title>ThrillyVerse - Think Beyond The Verse</title>
   <link rel="stylesheet" href="style.css">
   <script src="script.js" defer></script> 
-<meta name="google-site-verification" content="OhqIbjgpUm-GS0vpPK0kp36lxRmK7O8sWM5BykJ0Cwk" />
-<head/>
+  <meta name="google-site-verification" content="OhqIbjgpUm-GS0vpPK0kp36lxRmK7O8sWM5BykJ0Cwk" />
+</head>
 <body>
   <!-- HEADER with Accessible Navigation -->
   <header role="banner">
@@ -33,23 +33,22 @@
 
   <!-- MAIN CONTENT -->
   <main role="main">
-    
     <h2>Our Projects</h2>
+    
+    <!-- URL Shortener Section -->
+    <section class="url-shortener-section">
+      <h2>Try Our URL Shortener</h2>
+      <iframe id="shortenerFrame"
+              src="https://urls.thrillyverse.workers.dev/" 
+              title="URL Shortener Tool" 
+              frameborder="0" 
+              scrolling="yes"
+              width="100%"
+              loading="lazy">
+      </iframe>
+    </section>
+
     <div class="projects">
-   
-  <h2>Try Our URL Shortener</h2>
-  <iframe 
-    src="https://urls.thrillyverse.workers.dev/" 
-    title="URL Shortener Tool" 
-    frameborder="0" 
-    scrolling="yes"
-     width="100%"
-   "
-    loading="lazy">
-  </iframe>
-
-
-   
       <h3>Calculator</h3>
       <iframe
         src="https://dearestwall.github.io/Calculator/"
@@ -99,6 +98,17 @@
       <p id="modalContent"></p>
     </div>
   </div>
+
+  <!-- Script to listen for messages from the URL shortener iframe -->
+  <script>
+    window.addEventListener("message", function(event) {
+      // Optionally check event.origin for security
+      if (event.data && event.data.type === 'setHeight') {
+        const iframe = document.getElementById("shortenerFrame");
+        iframe.style.height = event.data.height + "px";
+      }
+    });
+  </script>
 
   <!-- Deferred Google Tag Manager Loading -->
   <script>
