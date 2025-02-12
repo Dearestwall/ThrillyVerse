@@ -7,7 +7,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>ThrillyVerse - Think Beyond The Verse</title>
   <link rel="stylesheet" href="style.css">
-  <script src="script.js" defer></script> 
+  <script src="script.js" defer></script>
   <meta name="google-site-verification" content="OhqIbjgpUm-GS0vpPK0kp36lxRmK7O8sWM5BykJ0Cwk" />
 </head>
 <body>
@@ -44,29 +44,22 @@
               frameborder="0" 
               scrolling="yes"
               width="100%"
-        height="100%"
               loading="lazy">
       </iframe>
     </section>
 
     <div class="projects">
       <h3>Calculator</h3>
-      <iframe
-        src="https://dearestwall.github.io/Calculator/"
-        title="Calculator Project"
-        width="100%"
-        height="500px"
-        loading="lazy">
-      </iframe>
+      <iframe src="https://dearestwall.github.io/Calculator/" 
+              title="Calculator Project" 
+              width="100%" height="500px" 
+              loading="lazy"></iframe>
       
       <h3>Tic Tac Toe</h3>
-      <iframe
-        src="https://dearestwall.github.io/tictactoe/"
-        title="Tic Tac Toe Game"
-        width="100%"
-        height="400px"
-        loading="lazy">
-      </iframe>
+      <iframe src="https://dearestwall.github.io/tictactoe/" 
+              title="Tic Tac Toe Game" 
+              width="100%" height="400px" 
+              loading="lazy"></iframe>
     </div>
     <button id="backToTop" title="Back to Top">▲</button>
   </main>
@@ -100,10 +93,10 @@
     </div>
   </div>
 
-  <!-- Script to listen for messages from the URL shortener iframe -->
+  <!-- Listener for dynamic resizing of the URL shortener iframe -->
   <script>
     window.addEventListener("message", function(event) {
-      // Optionally check event.origin for security
+      // Optionally, verify event.origin for security.
       if (event.data && event.data.type === 'setHeight') {
         const iframe = document.getElementById("shortenerFrame");
         iframe.style.height = event.data.height + "px";
