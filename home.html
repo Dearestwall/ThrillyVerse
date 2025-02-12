@@ -92,8 +92,19 @@
       <p id="modalContent"></p>
     </div>
   </div>
+   <!-- Listener for dynamic resizing of the URL shortener iframe -->
+  <script>
+  function sendHeight() {
+    const height = document.documentElement.scrollHeight;
+    // Send the height to the parent window; for added security, replace '*' with your GitHub Pages origin.
+    parent.postMessage({ type: 'setHeight', height: height }, 'https://dearestwall.github.io/ThrillyVerse/home.html');
+  }
+  window.addEventListener('load', sendHeight);
+  window.addEventListener('resize', sendHeight);
+</script>
 
-  <!-- Listener for dynamic resizing of the URL shortener iframe -->
+
+ 
   <script>
     window.addEventListener("message", function(event) {
       // Optionally, verify event.origin for security.
