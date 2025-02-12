@@ -409,33 +409,3 @@ footer p {
   }
 }
 
-/* URL Shortener Section */
-.url-shortener-section {
-  width: 100%;
-  max-width: 800px;
-  margin: 2rem auto;
-  padding: 0 1rem;
-  text-align: center;
-}
-
-.url-shortener-section h2 {
-  font-size: 2rem;
-  margin-bottom: 1rem;
-  color: #5563DE;
-}
-
-/* Responsive iframe container for URL shortener tool */
-.url-shortener-section iframe {
-  width: 100%;
-  aspect-ratio: 16 / 9;
-  border: none;
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-}
-
-/* Fallback for browsers that do not support aspect-ratio */
-@supports not (aspect-ratio: 16/9) {
-  .url-shortener-section iframe {
-    height: 450px;
-  }
-}
