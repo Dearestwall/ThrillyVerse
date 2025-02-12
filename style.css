@@ -261,9 +261,7 @@ footer p {
   main h3 { font-size: 1.3rem; }
 }
 
-/* ===========================
-   Modal (News) Styles
-   =========================== */
+/* Modal (News) Styles */
 .modal {
   display: none;
   position: fixed;
@@ -308,9 +306,7 @@ footer p {
   }
 }
 
-/* ===========================
-   News Page Specific Styles
-   =========================== */
+/* News Page Specific Styles */
 .news-container {
   background-color: rgba(0, 0, 0, 0.7);
   padding: 2rem;
