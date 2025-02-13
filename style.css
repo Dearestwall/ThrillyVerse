@@ -12,14 +12,15 @@ html {
 
 /* ANNOUNCEMENT Styling */
 .announcement {
-  background-color: #ffab00;
-  color: #000;
+  background-color: #ffab00; /* Accent color */
+  color: #000;               /* Text color */
   padding: 15px;
   text-align: center;
   font-size: 1.2rem;
   font-weight: bold;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
   margin-bottom: 1rem;
+  /* Start off-screen to the left and animate in */
   transform: translateX(-100%);
   opacity: 0;
   animation: slideInHorizontal 1s ease-out forwards;
@@ -119,7 +120,6 @@ h3 {
   margin-top: 2rem;
 }
 
-/* Global iframe styling to match original theme */
 iframe {
   width: 100%;
   max-width: 100%;
@@ -127,8 +127,7 @@ iframe {
   border-radius: 10px;
   box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
   margin-bottom: 2rem;
-  background: #fff;
-  /* Remove fixed aspect-ratio for dynamic height adjustment */
+  aspect-ratio: 16/9;
 }
 
 /* BACK TO TOP Button */
@@ -246,8 +245,7 @@ footer p {
   header p { font-size: 1.2rem; }
   nav ul { flex-direction: column; margin-top: 1rem; }
   nav ul li { margin: 10px 0; }
-  /* Adjust iframes for small devices */
-  iframe { height: auto; }
+  iframe { aspect-ratio: 4/3; }
   main h2 { font-size: 2rem; }
   main h3 { font-size: 1.5rem; }
   footer { padding: 1rem; }
@@ -257,12 +255,14 @@ footer p {
 @media (max-width: 480px) {
   header h1 { font-size: 2rem; }
   header p { font-size: 1rem; }
-  iframe { height: auto; }
+  iframe { aspect-ratio: 4/3; }
   main h2 { font-size: 1.8rem; }
   main h3 { font-size: 1.3rem; }
 }
 
-/* Modal (News) Styles */
+/* ===========================
+   Modal (News) Styles
+   =========================== */
 .modal {
   display: none;
   position: fixed;
@@ -307,7 +307,9 @@ footer p {
   }
 }
 
-/* News Page Specific Styles */
+/* ===========================
+   News Page Specific Styles
+   =========================== */
 .news-container {
   background-color: rgba(0, 0, 0, 0.7);
   padding: 2rem;
@@ -396,21 +398,20 @@ footer p {
 
 /* Banner Responsive Styles */
 .banner {
-  width: 100%;
-  height: auto;
-  max-width: 600px;
-  display: block;
-  margin: 0 auto;
+  width: 100%;         /* Fills container's width */
+  height: auto;        /* Maintains aspect ratio */
+  max-width: 600px;    /* Optional upper limit */
+  display: block;      /* Allows centering */
+  margin: 0 auto;      /* Centers horizontally */
 }
 
 @media (max-width: 480px) {
   .banner {
-    max-width: 100%;
-    padding: 0 10px;
+    max-width: 100%;  /* Full width on very small screens */
+    padding: 0 10px;  /* Optional horizontal padding */
   }
 }
 
-/* URL Shortener Section */
 .url-shortener-section {
   width: 100%;
   max-width: 800px;
@@ -425,13 +426,19 @@ footer p {
   color: #5563DE;
 }
 
-/* Responsive iframe container for URL shortener tool */
+/* Responsive iframe container */
 .url-shortener-section iframe {
   width: 100%;
-  /* Do not set a fixed aspect-ratio here */
+  /* Set an aspect ratio of 16:9, adjust height as needed */
+  aspect-ratio: 16 / 9;
   border: none;
   border-radius: 8px;
   box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-  /* Allow dynamic height to be set via postMessage */
-  min-height: 600px;
+}
+
+/* For browsers that do not support aspect-ratio, fallback using height */
+@supports not (aspect-ratio: 16/9) {
+  .url-shortener-section iframe {
+    height: 450px; /* Adjust as needed */
+  }
 }
