@@ -5,11 +5,6 @@
   box-sizing: border-box;
 }
 
-/* Enable native smooth scrolling */
-html {
-  scroll-behavior: smooth;
-}
-
 /* ANNOUNCEMENT Styling */
 .announcement {
   background-color: #ffab00; /* Accent color */
@@ -24,7 +19,6 @@ html {
   transform: translateX(-100%);
   opacity: 0;
   animation: slideInHorizontal 1s ease-out forwards;
-  will-change: transform, opacity;
 }
 
 @keyframes slideInHorizontal {
@@ -47,49 +41,116 @@ body {
 
 /* HEADER Styling */
 header {
-  text-align: center;
-  padding: 2rem 0;
   background: rgba(0, 0, 0, 0.7);
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
 }
 
-header h1 {
-  font-size: 3rem;
+/* Header Top Row */
+.header-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 2rem;
+  flex-wrap: wrap;
+}
+
+/* Branding: Logo & Site Text */
+.branding {
+  display: flex;
+  align-items: center;
+}
+.site-logo {
+  width: 60px;
+  height: 60px;
+  object-fit: cover;
+  border-radius: 50%;
+  margin-right: 1rem;
+}
+.branding-text h1 {
+  font-size: 2.8rem; /* Larger title */
   color: #fff;
-  margin-bottom: 0.5rem;
-  animation: fadeIn 1s ease-in-out;
+  margin: 0;
 }
-
-header p {
-  font-size: 1.5rem;
-  font-weight: lighter;
+.tagline {
+  font-size: 1.2rem;
   color: #ccc;
-  animation: fadeIn 1.5s ease-in-out;
+  margin: 0;
 }
 
-/* Navigation Styling */
-nav ul {
+/* Navigation Toggle Button */
+.nav-toggle {
+  background: none;
+  border: none;
+  color: #fff;
+  font-size: 2.5rem;
+  cursor: pointer;
+  display: none; /* Shown on smaller screens */
+  transition: transform 0.3s ease;
+}
+
+/* Main Navigation */
+.main-nav {
+  background: rgba(0, 0, 0, 0.7);
+  overflow: hidden;
+  transition: max-height 0.3s ease;
+}
+.nav-menu {
   list-style: none;
+  margin: 0;
+  padding: 0;
   display: flex;
   justify-content: center;
-  margin-top: 1rem;
+  gap: 20px;
 }
-
-nav ul li {
-  margin: 0 15px;
-}
-
-nav ul li a {
+.nav-menu li a {
   text-decoration: none;
-  font-size: 1.2rem;
+  font-size: 1.5rem;
   color: #fff;
-  transition: color 0.3s ease;
+  padding: 12px 20px;
+  border-radius: 4px;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+.nav-menu li a:hover,
+.nav-menu li a.active {
+  background-color: #ffab00;
+  color: #000;
 }
 
-nav ul li a:hover,
-nav ul li a.active {
-  color: #ffab00;
+/* Responsive Navigation for Small Screens */
+@media (max-width: 768px) {
+  .nav-toggle {
+    display: block;
+  }
+  .main-nav {
+    max-height: 0;
+  }
+  .nav-menu {
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+  }
+  .nav-menu li a {
+    font-size: 1.2rem;
+    padding: 10px 16px;
+  }
+  .main-nav.active {
+    max-height: 300px; /* Adjust height as needed */
+  }
 }
+@media (max-width: 480px) {
+  .branding-text h1 {
+    font-size: 2rem;
+  }
+  .tagline {
+    font-size: 1rem;
+  }
+  .nav-menu li a {
+    font-size: 1rem;
+    padding: 8px 12px;
+  }
+}
+
+
 
 /* MAIN Section Styling */
 main {
@@ -120,15 +181,6 @@ h3 {
   margin-top: 2rem;
 }
 
-iframe {
-  width: 100%;
-  max-width: 100%;
-  border: 3px solid #fff;
-  border-radius: 10px;
-  box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
-  margin-bottom: 2rem;
-  aspect-ratio: 16/9;
-}
 
 /* BACK TO TOP Button */
 #backToTop {
@@ -148,11 +200,9 @@ iframe {
   display: none;
   z-index: 1000;
 }
-
 #backToTop:hover {
   opacity: 1;
 }
-
 /* FOOTER Styling */
 footer {
   text-align: center;
@@ -160,23 +210,19 @@ footer {
   background: rgba(0, 0, 0, 0.7);
   margin-top: auto;
 }
-
 .footer-content {
   display: flex;
   flex-direction: column;
   align-items: center;
 }
-
 .footer-links {
   margin: 1rem 0;
 }
-
 .footer-links h4 {
   font-size: 1.2rem;
   margin-bottom: 0.5rem;
   color: #ffab00;
 }
-
 .footer-links ul {
   list-style: none;
   display: flex;
@@ -185,30 +231,46 @@ footer {
   gap: 15px;
   padding: 0;
 }
-
 .footer-links ul li {
   font-size: 1rem;
 }
-
 .footer-links ul li a {
   text-decoration: none;
   color: #fff;
   transition: color 0.3s ease;
 }
-
 .footer-links ul li a:hover {
   color: #ffab00;
 }
-
 footer p {
   font-size: 1rem;
   color: #ccc;
   margin-top: 1rem;
 }
-
 .contact-footer a {
   color: #ffab00;
   text-decoration: underline;
+}
+
+/* ANNOUNCEMENT Styling */
+.announcement {
+  background-color: #ffab00;
+  color: #000;
+  padding: 15px;
+  text-align: center;
+  font-size: 1.2rem;
+  font-weight: bold;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+  margin-bottom: 1rem;
+  transform: translateX(-100%);
+  opacity: 0;
+  animation: slideInHorizontal 1s ease-out forwards;
+}
+@keyframes slideInHorizontal {
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
 }
 
 /* Animation Effects */
@@ -245,7 +307,7 @@ footer p {
   header p { font-size: 1.2rem; }
   nav ul { flex-direction: column; margin-top: 1rem; }
   nav ul li { margin: 10px 0; }
-  iframe { aspect-ratio: 4/3; }
+  
   main h2 { font-size: 2rem; }
   main h3 { font-size: 1.5rem; }
   footer { padding: 1rem; }
@@ -255,7 +317,7 @@ footer p {
 @media (max-width: 480px) {
   header h1 { font-size: 2rem; }
   header p { font-size: 1rem; }
-  iframe { aspect-ratio: 4/3; }
+  
   main h2 { font-size: 1.8rem; }
   main h3 { font-size: 1.3rem; }
 }
@@ -310,14 +372,16 @@ footer p {
 /* ===========================
    News Page Specific Styles
    =========================== */
+/* NEWS SECTION LAYOUT IMPROVEMENTS */
 .news-container {
-  background-color: rgba(0, 0, 0, 0.7);
+  background-color: rgba(0, 0, 0, 0.7); /* Darker background for better visibility */
   padding: 2rem;
   border-radius: 10px;
   margin: 2rem auto;
-  max-width: 1100px;
+  max-width: 1100px; /* Increases the content width on larger screens */
 }
 
+/* Flexbox for better alignment */
 .news-grid {
   display: flex;
   flex-wrap: wrap;
@@ -325,12 +389,13 @@ footer p {
   gap: 20px;
 }
 
+/* Individual News Card */
 .news-card {
   background: rgba(255, 255, 255, 0.1);
   padding: 20px;
   border-radius: 12px;
   width: 90%;
-  max-width: 500px;
+  max-width: 500px; /* Increased width */
   cursor: pointer;
   transition: transform 0.3s ease, background 0.3s ease;
   text-align: center;
@@ -342,6 +407,7 @@ footer p {
   background: rgba(255, 255, 255, 0.15);
 }
 
+/* News Image */
 .news-card img {
   width: 100%;
   max-width: 400px;
@@ -350,35 +416,42 @@ footer p {
   margin-bottom: 1rem;
 }
 
+/* News Title */
 .news-card h2 {
   font-size: 2rem;
   margin-bottom: 0.5rem;
   color: #ffab00;
 }
 
+/* Date */
 .news-date {
   font-size: 1rem;
   color: #ccc;
   margin-bottom: 1rem;
 }
 
+/* News Description */
 .news-card p {
   font-size: 1.2rem;
   line-height: 1.6;
 }
 
+/* Responsive Adjustments */
 @media (max-width: 768px) {
   .news-container {
     margin: 1rem;
     padding: 1.5rem;
   }
+
   .news-card {
     width: 100%;
     max-width: 100%;
   }
+
   .news-card h2 {
     font-size: 1.7rem;
   }
+
   .news-card p {
     font-size: 1.1rem;
   }
@@ -388,57 +461,196 @@ footer p {
   .news-card h2 {
     font-size: 1.5rem;
   }
+
   .news-card p {
     font-size: 1rem;
   }
+
   .news-card {
     padding: 15px;
   }
 }
-
 /* Banner Responsive Styles */
 .banner {
-  width: 100%;         /* Fills container's width */
-  height: auto;        /* Maintains aspect ratio */
-  max-width: 600px;    /* Optional upper limit */
-  display: block;      /* Allows centering */
-  margin: 0 auto;      /* Centers horizontally */
+  width: 100%;         /* Makes the image fill its container's width */
+  height: auto;        /* Maintains the aspect ratio */
+  max-width: 600px;    /* Optional: sets an upper limit on the image's width */
+  display: block;      /* Ensures that margin auto works for centering */
+  margin: 0 auto;      /* Centers the image horizontally */
 }
 
+/* Optional: Adjust banner styles for very small devices */
 @media (max-width: 480px) {
   .banner {
-    max-width: 100%;  /* Full width on very small screens */
-    padding: 0 10px;  /* Optional horizontal padding */
+    max-width: 100%;  /* Allow full width on very small screens */
+    padding: 0 10px;  /* Add some horizontal padding if desired */
   }
 }
-
-.url-shortener-section {
-  width: 100%;
-  max-width: 800px;
-  margin: 2rem auto;
-  padding: 0 1rem;
+/* Projects Section */
+.projects-section {
+  padding: 2rem;
   text-align: center;
+  background: linear-gradient(to right, #6a11cb, #2575fc); /* Matches your site background */
 }
 
-.url-shortener-section h2 {
-  font-size: 2rem;
-  margin-bottom: 1rem;
-  color: #5563DE;
+.projects-section h2 {
+  margin-bottom: 1.5rem;
+  color: #fff;
 }
 
-/* Responsive iframe container */
-.url-shortener-section iframe {
+.projects-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  margin: 0 auto;
+  max-width: 800px;
+  padding: 0 1rem;
+}
+
+/* PROJECTS SECTION Styling */
+.projects-section {
+  padding: 2rem;
+  text-align: center;
+  background: linear-gradient(to right, #6a11cb, #2575fc);
+}
+.projects-section h2 {
+  margin-bottom: 1.5rem;
+  color: #fff;
+}
+.projects-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  margin: 0 auto;
+  max-width: 800px;
+  padding: 0 1rem;
+}
+
+/* PROJECT CARD Styling */
+.project-card {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  overflow: hidden;
+  transition: transform 0.3s ease;
+}
+.project-card:hover {
+  transform: scale(1.02);
+}
+.project-header {
+  display: flex;
+  align-items: center;
+  padding: 1rem;
+  background: rgba(0, 0, 0, 0.2);
+}
+.project-logo {
+  width: 50px;
+  height: 50px;
+  object-fit: cover;
+  border-radius: 50%;
+  margin-right: 1rem;
+}
+.project-header h3.project-title {
+  font-size: 1.8rem;
+  color: #ffab00;
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis; 
+} 
+.project-image {
+  position: relative;
+  overflow: hidden;
+}
+/* If using slider, apply slider container styles */
+.slider {
+  position: relative;
+  overflow: hidden;
+  max-width: 100%;
+  height: 300px; /* Adjust as needed */
+}
+.slides {
+  display: flex;
+  transition: transform 0.5s ease-in-out;
+  height: 100%;
+}
+.slides img {
   width: 100%;
-  /* Set an aspect ratio of 16:9, adjust height as needed */
-  aspect-ratio: 16 / 9;
+  flex-shrink: 0;
+  object-fit: contain;
+}
+.slider-prev,
+.slider-next {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(0, 0, 0, 0.7);
+  color: #fff;
   border: none;
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  font-size: 2rem;
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  border-radius: 4px;
+}
+.slider-prev {
+  left: 10px;
+}
+.slider-next {
+  right: 10px;
+}
+.project-image img:not(.slides img) {
+  width: 100%;
+  height: auto;
+  object-fit: cover;
+  cursor: pointer;
 }
 
-/* For browsers that do not support aspect-ratio, fallback using height */
-@supports not (aspect-ratio: 16/9) {
-  .url-shortener-section iframe {
-    height: 450px; /* Adjust as needed */
-  }
+/* PROJECT BUTTON */
+.project-button {
+  padding: 1rem;
+}
+.project-button button {
+  background-color: #ffab00;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  color: #fff;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+.project-button button:hover {
+  background-color: #e09b00;
+}
+/* FULLSCREEN MODAL Styling */
+.modal {
+  display: none;
+  position: fixed;
+  z-index: 10000;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.9);
+  text-align: center;
+  padding-top: 5vh;
+  overflow: auto;
+}
+.modal-content {
+  max-width: 90vw;
+  max-height: 90vh;
+  width: auto;
+  height: auto;
+  margin: auto;
+}
+.close {
+  position: absolute;
+  top: 20px;
+  right: 30px;
+  font-size: 3rem;
+  color: #ffab00;
+  background: rgba(0, 0, 0, 0.7);
+  border: none;
+  cursor: pointer;
+  padding: 0.5rem 1rem;
+  border-radius: 50%;
 }
