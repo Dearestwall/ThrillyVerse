@@ -8,19 +8,31 @@
   <script src="script.js" defer></script>
 </head>
 <body>
-  <!-- HEADER with Accessible Navigation -->
+  
+<!-- HEADER with Dynamic Navigation -->
   <header role="banner">
-    <h1>ThrillyVerse</h1>
-    <p>Think Beyond The Verse</p>
-    <nav role="navigation" aria-label="Main Navigation">
-      <ul>
-        <li><a href="home.html">Home</a></li>
-        <li><a href="news.html" class="active">News</a></li>
+    <div class="header-top">
+      <div class="branding">
+<img src="https://i.ibb.co/0pjPXpZy/thrillyverse.png"  border="0" alt="ThrillyVerse Logo" class="site-logo">
+        <div class="branding-text">
+          <h1>ThrillyVerse</h1>
+          <p class="tagline">Think Beyond The Verse</p>
+        </div>
+      </div>
+      <button class="nav-toggle" aria-label="Open navigation" aria-expanded="false">
+        <span class="toggle-icon">&#9776;</span>
+      </button>
+    </div>
+    <nav class="main-nav" role="navigation" aria-label="Main Navigation">
+      <ul class="nav-menu">
+        <li><a href="home.html" class="active">Home</a></li>
+        <li><a href="news.html">News</a></li>
         <li><a href="comics.html">Comics</a></li>
         <li><a href="material.html">ICSE Material</a></li>
       </ul>
     </nav>
   </header>
+
 
   <main role="main">
     <h2>Latest News</h2>
