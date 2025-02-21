@@ -11,12 +11,22 @@
   <meta name="google-site-verification" content="OhqIbjgpUm-GS0vpPK0kp36lxRmK7O8sWM5BykJ0Cwk" />
 </head>
 <body>
-  <!-- HEADER with Accessible Navigation -->
+  <!-- HEADER with Dynamic Navigation -->
   <header role="banner">
-    <h1>ThrillyVerse</h1>
-    <p>Think Beyond The Verse</p>
-    <nav role="navigation" aria-label="Main Navigation">
-      <ul>
+    <div class="header-top">
+      <div class="branding">
+<img src="https://i.ibb.co/0pjPXpZy/thrillyverse.png" loading="lazy" border="0" alt="ThrillyVerse Logo" class="site-logo">
+        <div class="branding-text">
+          <h1>ThrillyVerse</h1>
+          <p class="tagline">Think Beyond The Verse</p>
+        </div>
+      </div>
+      <button class="nav-toggle" aria-label="Open navigation" aria-expanded="false">
+        <span class="toggle-icon">&#9776;</span>
+      </button>
+    </div>
+    <nav class="main-nav" role="navigation" aria-label="Main Navigation">
+      <ul class="nav-menu">
         <li><a href="home.html" class="active">Home</a></li>
         <li><a href="news.html">News</a></li>
         <li><a href="comics.html">Comics</a></li>
@@ -33,40 +43,106 @@
 
   <!-- MAIN CONTENT -->
   <main role="main">
-    <h2>Our Projects</h2>
-    
+    <section class="projects-section">
+      <h2>Our Projects</h2>
+      <div class="projects-container">
+        <!-- Tic Tac Toe Project Card with Slider -->
+        <div class="project-card">
+          <div class="project-header">
+            <img src="https://i.ibb.co/nsFHZWWr/image.png" alt="Tic Tac Toe Logo" class="project-logo">
+            <h3 class="project-title">Tic Tac Toe</h3>
+          </div>
+          <div class="project-image slider">
+            <div class="slides">
+  <img src="https://i.ibb.co/YBjTLJMy/image.png" alt="Tic Tac Toe-Interface" loading="lazy">
+<img src="https://i.ibb.co/yF6GQP5G/image.png" alt="Tic Tac Toe-Just To Start" loading="lazy">
+              <img src="https://i.ibb.co/Y48BrJqR/image.png" loading="lazy" alt="Tic Tac Toe-OnGoing" border="0">
+            </div>
+            <button class="slider-prev" aria-label="Previous screenshot">&#10094;</button>
+            <button class="slider-next" aria-label="Next screenshot">&#10095;</button>
+          </div>
+          <div class="project-button">
+            <button onclick="window.location.href='https://dearestwall.github.io/tictactoe/'">
+              Want to Play?
+            </button>
+          </div>
+        </div>
 
+        <!-- Comics Project Card -->
+        <div class="project-card">
+          <div class="project-header">
+    <img src="https://i.ibb.co/htsB2rN/image.png" alt="Comics Logo" class="project-logo">
+            <h3 class="project-title">Comics</h3>
+          </div>
+           <div class="project-image slider">
+         <div class="slides">
+<img src="https://i.ibb.co/mVpwSnxN/image.png" loading="lazy" border="0" alt="Comics-Interface">
+  <img src="https://i.ibb.co/YFwLbZpd/image.png" loading="lazy" alt="Comics-Reading" border="0">
+  <img src="https://i.ibb.co/LDpd7mPg/image.png" loading="lazy" alt="Comics-Audible Working" border="0">
+          </div>
+            <button class="slider-prev" aria-label="Previous screenshot">&#10094;</button>
+            <button class="slider-next" aria-label="Next screenshot">&#10095;</button>
+          </div>
+          <div class="project-button">
+            <button onclick="window.location.href='comics.html'">
+              Read Comics
+            </button>
+          </div>
+        </div>
 
-    <div class="projects">
-      <h3>Tic Tac Toe</h3>
-      <iframe src="https://dearestwall.github.io/tictactoe/" 
-              title="Tic Tac Toe Game" 
-              width="100%" height="600px" 
-              loading="lazy"></iframe>
-     
-      <h3>Calculator</h3>
-      <iframe src="https://dearestwall.github.io/Calculator/" 
-              title="Calculator Project" 
-              width="100%" height="500px" 
-              loading="lazy"></iframe>
-      
-      
-    </div>
-        <!-- URL Shortener Section -->
-    <section class="url-shortener-section">
-      <h2>Try Our URL Shortener</h2>
-      <iframe id="shortenerFrame"
-              src="https://urls.thrillyverse.workers.dev/" 
-              title="URL Shortener Tool" 
-              frameborder="0" 
-              scrolling="yes"
-              width="100%"
-              height="800px"
-        
-              >
-      </iframe>
+        <!-- Calculator Project Card -->
+        <div class="project-card">
+          <div class="project-header">
+            <img src="https://i.ibb.co/8n5Y7M2B/image.png" alt="Calculator Logo" class="project-logo">
+            <h3 class="project-title">Calculator</h3>
+          </div>
+         <div class="project-image slider">
+         <div class="slides">
+    <img src="https://i.ibb.co/WpdZftH6/image.png" loading="lazy" alt="Claculator-Interface" border="0">
+<img src="https://i.ibb.co/fdG206bx/image.png" loading="lazy" alt="Calculator-Calculating" border="0">
+          </div>
+            <button class="slider-prev" aria-label="Previous screenshot">&#10094;</button>
+            <button class="slider-next" aria-label="Next screenshot">&#10095;</button>
+          </div>
+         
+          <div class="project-button">
+            <button onclick="window.location.href='https://dearestwall.github.io/Calculator/'">
+              Calculate Now
+            </button>
+          </div>
+        </div>
+
+        <!-- URL Shortener Project Card -->
+        <div class="project-card">
+          <div class="project-header">
+            <img src="https://i.ibb.co/5X5tjwjv/image.png" alt="URL Shortener Logo" class="project-logo">
+            <h3 class="project-title">URL Shortener</h3>
+          </div>
+        <div class="project-image slider">
+         <div class="slides">
+<img src="https://i.ibb.co/mCMsK7Jt/image.png"loading="lazy"  alt="URL Shortner-Interface" border="0">
+           <img src="https://i.ibb.co/gLYWT1yz/image.png" loading="lazy" alt="URL Shortner-Working" border="0">
+          </div>
+            <button class="slider-prev" aria-label="Previous screenshot">&#10094;</button>
+            <button class="slider-next" aria-label="Next screenshot">&#10095;</button>
+          </div>
+         
+          <div class="project-button">
+            <button onclick="window.location.href='https://urls.thrillyverse.workers.dev/'">
+              Shorten Your URL
+            </button>
+          </div>
+        </div>
+      </div>
     </section>
-    
+
+    <!-- Fullscreen Modal for Image Viewing -->
+    <div id="fullscreenModal" class="modal">
+      <button class="close" id="modalClose" aria-label="Close image">&times;</button>
+      <img class="modal-content" id="modalImage" alt="">
+      <div id="caption"></div>
+    </div>
+
     <button id="backToTop" title="Back to Top">▲</button>
   </main>
 
