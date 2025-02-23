@@ -55,7 +55,6 @@ document.addEventListener("DOMContentLoaded", function() {
       }
     });
   });
-
   const fullscreenModal = document.getElementById("fullscreenModal");
   if (fullscreenModal) {
     document.getElementById("modalClose").addEventListener('click', () => {
@@ -71,35 +70,49 @@ document.addEventListener("DOMContentLoaded", function() {
   }
 
   /*-----------------------------
-    MOBILE NAVIGATION TOGGLE (3-DOT MENU)
+    MOBILE NAVIGATION TOGGLE (Hamburger Menu)
   -----------------------------*/
   const menuToggle = document.getElementById("menuToggle");
   if (menuToggle) {
     menuToggle.addEventListener("click", function(e) {
       e.stopPropagation();
-      const navMenu = document.querySelector(".main-nav ul");
-      if (navMenu) {
-        if (navMenu.style.display === "flex") {
-          navMenu.style.display = "none";
-          menuToggle.classList.remove("active");
-          menuToggle.innerHTML = "&#8942;"; // three dots
-        } else {
-          navMenu.style.display = "flex";
-          menuToggle.classList.add("active");
-          menuToggle.innerHTML = "&times;"; // close icon
+      // Only toggle if screen width is less than 768px
+      if (window.innerWidth < 768) {
+        const navMenu = document.querySelector(".main-nav ul");
+        if (navMenu) {
+          if (navMenu.style.display === "flex") {
+            navMenu.style.display = "none";
+            menuToggle.classList.remove("active");
+            menuToggle.innerHTML = "&#9776;"; // hamburger icon
+          } else {
+            navMenu.style.display = "flex";
+            menuToggle.classList.add("active");
+            menuToggle.innerHTML = "&times;"; // close icon
+          }
         }
       }
     });
-    // Hide nav menu when clicking outside the toggle and menu
+    // Hide nav menu when clicking outside (for mobile)
     document.addEventListener("click", function(e) {
-      const navMenu = document.querySelector(".main-nav ul");
-      if (navMenu && !navMenu.contains(e.target) && e.target.id !== "menuToggle") {
-        navMenu.style.display = "none";
-        menuToggle.classList.remove("active");
-        menuToggle.innerHTML = "&#8942;";
+      if (window.innerWidth < 768) {
+        const navMenu = document.querySelector(".main-nav ul");
+        if (navMenu && !navMenu.contains(e.target) && e.target.id !== "menuToggle") {
+          navMenu.style.display = "none";
+          menuToggle.classList.remove("active");
+          menuToggle.innerHTML = "&#9776;";
+        }
       }
     });
   }
+  // On window resize, ensure nav is shown on big screens
+  window.addEventListener("resize", function() {
+    if (window.innerWidth >= 768) {
+      const navMenu = document.querySelector(".main-nav ul");
+      if (navMenu) {
+        navMenu.style.display = "flex";
+      }
+    }
+  });
 
   /*-----------------------------
     MAIN TABS (Materials, News, Quiz)
@@ -159,7 +172,6 @@ document.addEventListener("DOMContentLoaded", function() {
   const searchButton = document.getElementById("searchButton");
   const clearSearchButton = document.getElementById("clearSearch");
   const errorMessage = document.getElementById("errorMessage");
-
   if (searchInput) {
     searchInput.addEventListener("input", function() {
       if (clearSearchButton) {
@@ -174,7 +186,6 @@ document.addEventListener("DOMContentLoaded", function() {
     });
     clearSearchButton && clearSearchButton.addEventListener("click", resetSearch);
   }
-
   function performSearch() {
     const query = searchInput.value.toLowerCase().trim();
     let found = false;
@@ -200,7 +211,6 @@ document.addEventListener("DOMContentLoaded", function() {
     }
     clearSearchButton.style.display = "none";
   }
-
   function liveFilterPDFs(query) {
     query = query.toLowerCase().trim();
     const pdfItems = document.querySelectorAll(".pdf-item");
@@ -214,7 +224,6 @@ document.addEventListener("DOMContentLoaded", function() {
       }
     });
   }
-
   function resetSearch() {
     if (searchInput) searchInput.value = "";
     const pdfItems = document.querySelectorAll(".pdf-item");
@@ -224,26 +233,41 @@ document.addEventListener("DOMContentLoaded", function() {
   }
 
   /*-----------------------------
-    NEWS MODAL FUNCTIONALITY (News Page)
+    NEWS MODAL FUNCTIONALITY (News Page & Materials News Tab)
   -----------------------------*/
   const newsModal = document.getElementById("newsModal");
-  const newsCards = document.querySelectorAll(".news-card");
-  if (newsModal && newsCards.length > 0) {
-    newsCards.forEach(card => {
-      card.addEventListener("click", function() {
-        const titleElement = card.querySelector("h2") || card.querySelector("h3");
-        const contentElement = card.querySelector("p");
-        const modalTitle = document.getElementById("newsModalTitle");
-        const modalContent = document.getElementById("modalContent");
-        if (titleElement && modalTitle) {
-          modalTitle.textContent = titleElement.textContent;
-        }
-        if (contentElement && modalContent) {
-          modalContent.textContent = contentElement.textContent;
-        }
-        newsModal.style.display = "flex";
+  // Updated selector: Check both .news-card and .news-item for .read-more
+  const newsButtons = document.querySelectorAll(".news-card .read-more, .news-item .read-more");
+  function openNewsModal(card) {
+    const titleElement = card.querySelector("h2") || card.querySelector("h3");
+    const contentElement = card.querySelector("p");
+    const modalTitle = document.getElementById("newsModalTitle") || document.getElementById("modalTitle");
+    const modalContent = document.getElementById("modalContent");
+    if (titleElement && modalTitle) {
+      modalTitle.textContent = titleElement.textContent;
+    }
+    if (contentElement && modalContent) {
+      modalContent.textContent = contentElement.textContent;
+    }
+    newsModal.style.display = "flex";
+  }
+  if (newsModal) {
+    if (newsButtons.length > 0) {
+      newsButtons.forEach(btn => {
+        btn.addEventListener("click", function(e) {
+          e.preventDefault();
+          const card = this.closest(".news-card, .news-item");
+          openNewsModal(card);
+        });
       });
-    });
+    } else {
+      const newsCards = document.querySelectorAll(".news-card, .news-item");
+      newsCards.forEach(card => {
+        card.addEventListener("click", function() {
+          openNewsModal(card);
+        });
+      });
+    }
     const newsCloseBtn = newsModal.querySelector(".close-modal");
     if (newsCloseBtn) {
       newsCloseBtn.addEventListener("click", function() {
@@ -263,7 +287,6 @@ document.addEventListener("DOMContentLoaded", function() {
   const quizPopup = document.getElementById("quizPopup");
   const gotoQuiz = document.getElementById("gotoQuiz");
   const closePopupButton = document.querySelector(".popup-notification .close-popup");
-
   function showQuizPopup() {
     const activeTab = document.querySelector(".main-tabs li.active")?.getAttribute("data-tab");
     if (activeTab === "materials") {
@@ -278,18 +301,15 @@ document.addEventListener("DOMContentLoaded", function() {
     }
   }
   setTimeout(showQuizPopup, 1000);
-
   gotoQuiz && gotoQuiz.addEventListener("click", function(e) {
     e.preventDefault();
     const quizTab = document.querySelector('.main-tabs li[data-tab="quiz"]');
     quizTab && quizTab.click();
     if (quizPopup) quizPopup.style.display = "none";
   });
-
   closePopupButton && closePopupButton.addEventListener("click", function() {
     if (quizPopup) quizPopup.style.display = "none";
   });
-
   mainTabs.forEach(tab => {
     tab.addEventListener("click", showQuizPopup);
   });
