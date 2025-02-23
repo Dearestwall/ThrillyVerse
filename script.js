@@ -1,20 +1,4 @@
 document.addEventListener("DOMContentLoaded", function() {
-  // Navigation Toggle for Small Screens
-  const navToggle = document.querySelector('.nav-toggle');
-  const mainNav = document.querySelector('.main-nav');
-  
-  navToggle.addEventListener('click', function() {
-    mainNav.classList.toggle('active');
-    const expanded = navToggle.getAttribute('aria-expanded') === 'true';
-    navToggle.setAttribute('aria-expanded', !expanded);
-    if (!expanded) {
-      navToggle.style.transform = 'rotate(180deg)';
-      navToggle.setAttribute('aria-label', 'Close navigation');
-    } else {
-      navToggle.style.transform = 'rotate(0deg)';
-      navToggle.setAttribute('aria-label', 'Open navigation');
-    }
-  });
 
   // Back To Top Button
   const backToTopButton = document.getElementById("backToTop");
