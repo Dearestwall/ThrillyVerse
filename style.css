@@ -39,117 +39,39 @@ body {
   overflow-x: hidden;
 }
 
-/* HEADER Styling */
+/* HEADER */
 header {
-  background: rgba(0, 0, 0, 0.7);
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+  text-align: center;
+  padding: 1.5rem 1rem;
+  background: rgba(0, 0, 0, 0.8);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
 }
-
-/* Header Top Row */
-.header-top {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1rem 2rem;
-  flex-wrap: wrap;
+header h1 {
+  font-size: 3rem;
+  margin-bottom: 0.5rem;
 }
-
-/* Branding: Logo & Site Text */
-.branding {
-  display: flex;
-  align-items: center;
-}
-.site-logo {
-  width: 60px;
-  height: 60px;
-  object-fit: cover;
-  border-radius: 50%;
-  margin-right: 1rem;
-}
-.branding-text h1 {
-  font-size: 2.8rem; /* Larger title */
-  color: #fff;
-  margin: 0;
-}
-.tagline {
-  font-size: 1.2rem;
+header p {
+  font-size: 1.5rem;
   color: #ccc;
-  margin: 0;
-}
-
-/* Navigation Toggle Button */
-.nav-toggle {
-  background: none;
-  border: none;
-  color: #fff;
-  font-size: 2.5rem;
-  cursor: pointer;
-  display: none; /* Shown on smaller screens */
-  transition: transform 0.3s ease;
 }
 
 /* Main Navigation */
-.main-nav {
-  background: rgba(0, 0, 0, 0.7);
-  overflow: hidden;
-  transition: max-height 0.3s ease;
-}
-.nav-menu {
+.main-nav ul {
   list-style: none;
-  margin: 0;
-  padding: 0;
   display: flex;
   justify-content: center;
-  gap: 20px;
+  gap: 1rem;
+  margin-top: 0.5rem;
 }
-.nav-menu li a {
+.main-nav a {
   text-decoration: none;
-  font-size: 1.5rem;
   color: #fff;
-  padding: 12px 20px;
-  border-radius: 4px;
-  transition: background-color 0.3s ease, color 0.3s ease;
+  transition: color 0.3s ease;
 }
-.nav-menu li a:hover,
-.nav-menu li a.active {
-  background-color: #ffab00;
-  color: #000;
+.main-nav a:hover,
+.main-nav a.active {
+  color: #2575fc;
 }
-
-/* Responsive Navigation for Small Screens */
-@media (max-width: 768px) {
-  .nav-toggle {
-    display: block;
-  }
-  .main-nav {
-    max-height: 0;
-  }
-  .nav-menu {
-    flex-direction: column;
-    align-items: center;
-    gap: 10px;
-  }
-  .nav-menu li a {
-    font-size: 1.2rem;
-    padding: 10px 16px;
-  }
-  .main-nav.active {
-    max-height: 300px; /* Adjust height as needed */
-  }
-}
-@media (max-width: 480px) {
-  .branding-text h1 {
-    font-size: 2rem;
-  }
-  .tagline {
-    font-size: 1rem;
-  }
-  .nav-menu li a {
-    font-size: 1rem;
-    padding: 8px 12px;
-  }
-}
-
 
 
 /* MAIN Section Styling */
