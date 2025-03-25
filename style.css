@@ -885,3 +885,64 @@ h3 {
   .popup-notification { width: 90%; bottom: 10px; right: 5%; }
   .announcement { font-size: 0.9rem; padding: 10px; margin: 5px 10px; }
 }
+/* ----- Additional Styles for Class and Stream Buttons ----- */
+/* Class Buttons */
+    .class-buttons {
+      display: flex;
+      justify-content: center;
+      gap: 1rem;
+      margin: 1rem 0;
+      flex-wrap: wrap;
+    }
+    .class-btn {
+      padding: 0.75rem 1.25rem;
+      font-size: 1rem;
+      border: 2px solid var(--accent-color);
+      border-radius: 25px;
+      background: transparent;
+      color: var(--text-color);
+      cursor: pointer;
+      transition: background 0.3s ease, color 0.3s ease, transform 0.3s ease;
+    }
+    .class-btn.active {
+      background: var(--accent-color);
+      color: #111;
+      transform: translateY(-2px);
+    }
+    /* Stream Buttons (Horizontally scrollable) */
+    .stream-buttons {
+      display: flex;
+      gap: 1rem;
+      overflow-x: auto;
+      padding-bottom: 0.5rem;
+      margin: 1rem 0;
+      -webkit-overflow-scrolling: touch;
+    }
+    .stream-buttons::-webkit-scrollbar {
+      display: none;
+    }
+    .stream-btn {
+      flex: 0 0 auto;
+      padding: 0.75rem 1.25rem;
+      font-size: 1rem;
+      border: 2px solid var(--accent-color);
+      border-radius: 25px;
+      background: transparent;
+      color: var(--text-color);
+      cursor: pointer;
+      transition: background 0.3s ease, color 0.3s ease, transform 0.3s ease;
+    }
+    .stream-btn.active {
+      background: var(--accent-color);
+      color: #111;
+      transform: translateY(-2px);
+    }
+    /* Utility: Hide element completely */
+    .hidden { display: none !important; }
+    /* Responsive adjustments for buttons */
+    @media (max-width: 600px) {
+      .class-btn, .stream-btn {
+        font-size: 0.9rem;
+        padding: 0.5rem 1rem;
+      }
+    }
