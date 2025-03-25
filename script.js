@@ -335,3 +335,183 @@ document.addEventListener("DOMContentLoaded", function() {
     }, 5000);
   }
 });
+
+
+<!-- Additional Button Handling Script -->
+document.addEventListener("DOMContentLoaded", function() {
+  // --- Main Tabs Switching ---
+  const mainTabs = document.querySelectorAll(".main-tabs li");
+  const tabContents = document.querySelectorAll(".tab-content");
+  const class10Section = document.getElementById("class10");
+  const class11Section = document.getElementById("class11");
+
+  mainTabs.forEach(tab => {
+    tab.addEventListener("click", function() {
+      const target = this.getAttribute("data-tab");
+      // Update active state on main tabs
+      mainTabs.forEach(t => t.classList.remove("active"));
+      this.classList.add("active");
+
+      // Show only the selected tab's content
+      tabContents.forEach(content => {
+        if (content.id === target) {
+          content.style.display = "block";
+          content.classList.add("active");
+        } else {
+          content.style.display = "none";
+          content.classList.remove("active");
+        }
+      });
+      
+      // Hide study materials if not on "materials" tab
+      if (target !== "materials") {
+        if (class10Section) {
+          class10Section.style.display = "none";
+          class10Section.classList.remove("active");
+        }
+        if (class11Section) {
+          class11Section.style.display = "none";
+          class11Section.classList.remove("active");
+        }
+      }
+    });
+  });
+
+  // --- Handle Class Buttons (Class 10 vs. Class 11) ---
+  const btnClass10 = document.getElementById("btnClass10");
+  const btnClass11 = document.getElementById("btnClass11");
+
+  if (btnClass10 && btnClass11 && class10Section && class11Section) {
+    btnClass10.addEventListener("click", function() {
+      btnClass10.classList.add("active");
+      btnClass11.classList.remove("active");
+      class10Section.style.display = "block";
+      class10Section.classList.add("active");
+      class11Section.style.display = "none";
+      class11Section.classList.remove("active");
+    });
+    btnClass11.addEventListener("click", function() {
+      btnClass11.classList.add("active");
+      btnClass10.classList.remove("active");
+      class11Section.style.display = "block";
+      class11Section.classList.add("active");
+      class10Section.style.display = "none";
+      class10Section.classList.remove("active");
+    });
+  }
+
+  // --- Handle Stream Buttons in Class 11 ---
+  const btnCommerce = document.getElementById("btnCommerce");
+  const btnScience = document.getElementById("btnScience");
+  const btnArts = document.getElementById("btnArts");
+  
+  // Get all subject tab items and content sections inside Class 11
+  const subjectTabItems = document.querySelectorAll("#class11-subject-tabs li");
+  const subjectSections = document.querySelectorAll("#class11-subjects-content .subject-section");
+
+  function updateStream(selectedStream) {
+    // For subject tabs: Show only those with matching data-stream
+    subjectTabItems.forEach(tab => {
+      if (tab.dataset.stream === selectedStream) {
+        tab.style.display = "inline-block";
+        // Optionally, you can set the first one as active
+      } else {
+        tab.style.display = "none";
+        tab.classList.remove("active");
+      }
+    });
+    // For subject sections: Show only those with matching data-stream
+    subjectSections.forEach(section => {
+      if (section.dataset.stream === selectedStream) {
+        section.style.display = "block";
+        section.classList.add("active");
+      } else {
+        section.style.display = "none";
+        section.classList.remove("active");
+      }
+    });
+    // Activate the first visible subject tab if available
+    const visibleTabs = Array.from(subjectTabItems).filter(tab => tab.style.display !== "none");
+    if (visibleTabs.length > 0) {
+      visibleTabs[0].classList.add("active");
+    }
+  }
+
+  if (btnCommerce && btnScience && btnArts) {
+    btnCommerce.addEventListener("click", function() {
+      btnCommerce.classList.add("active");
+      btnScience.classList.remove("active");
+      btnArts.classList.remove("active");
+      updateStream("commerce");
+    });
+    btnScience.addEventListener("click", function() {
+      btnScience.classList.add("active");
+      btnCommerce.classList.remove("active");
+      btnArts.classList.remove("active");
+      updateStream("science");
+    });
+    btnArts.addEventListener("click", function() {
+      btnArts.classList.add("active");
+      btnCommerce.classList.remove("active");
+      btnScience.classList.remove("active");
+      updateStream("arts");
+    });
+  }
+});
+
+document.addEventListener("DOMContentLoaded", function () {
+  const streamButtons = document.querySelectorAll(".stream-btn");
+  const streamContents = document.querySelectorAll(".stream-content");
+  const subjectTabs = document.querySelectorAll(".subject-tabs ul li");
+  const subjectSections = document.querySelectorAll(".subject-section");
+
+  // Function to switch between streams
+  streamButtons.forEach((btn) => {
+    btn.addEventListener("click", function () {
+      // Remove "active" class from all buttons
+      streamButtons.forEach((b) => b.classList.remove("active"));
+      this.classList.add("active");
+
+      // Hide all stream contents
+      streamContents.forEach((content) => (content.style.display = "none"));
+
+      // Show the selected stream content
+      if (this.id === "btnCommerce") {
+        document.getElementById("commerceStream").style.display = "block";
+      } else if (this.id === "btnScience") {
+        document.getElementById("scienceStream").style.display = "block";
+      } else if (this.id === "btnArts") {
+        document.getElementById("humanitiesStream").style.display = "block";
+      }
+    });
+  });
+
+  // Function to switch between subjects within a stream
+  function handleSubjectClick(event) {
+    const selectedSubject = event.target.getAttribute("data-subject");
+    const parentNav = event.target.closest(".subject-tabs");
+    const parentStream = event.target.closest(".stream-content");
+
+    if (!selectedSubject) return;
+
+    // Remove active class from all subject tabs within the current stream
+    parentNav.querySelectorAll("li").forEach((tab) => tab.classList.remove("active"));
+    event.target.classList.add("active");
+
+    // Hide all subjects in the current stream
+    parentStream.querySelectorAll(".subject-section").forEach((section) => {
+      section.style.display = "none";
+    });
+
+    // Show the selected subject
+    parentStream.querySelector(`.subject-section[data-subject="${selectedSubject}"]`).style.display = "block";
+  }
+
+  // Attach event listeners to all subject tabs
+  document.querySelectorAll(".subject-tabs ul li").forEach((tab) => {
+    tab.addEventListener("click", handleSubjectClick);
+  });
+
+  // Initialize: Show Commerce by default
+  document.getElementById("btnCommerce").click();
+});
