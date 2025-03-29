@@ -51,7 +51,7 @@ document.addEventListener("DOMContentLoaded", function() {
         modal.style.display = "block";
         modalImg.src = img.src;
         captionText.textContent = img.alt;
-        document.body.style.overflow = "hidden";
+        document.body.style.overflow = "hidden"; // disable background scroll while modal is open
       }
     });
   });
@@ -76,23 +76,21 @@ document.addEventListener("DOMContentLoaded", function() {
   if (menuToggle) {
     menuToggle.addEventListener("click", function(e) {
       e.stopPropagation();
-      // Only toggle if screen width is less than 768px
       if (window.innerWidth < 768) {
         const navMenu = document.querySelector(".main-nav ul");
         if (navMenu) {
           if (navMenu.style.display === "flex") {
             navMenu.style.display = "none";
             menuToggle.classList.remove("active");
-            menuToggle.innerHTML = "&#9776;"; // hamburger icon
+            menuToggle.innerHTML = "&#9776;";
           } else {
             navMenu.style.display = "flex";
             menuToggle.classList.add("active");
-            menuToggle.innerHTML = "&times;"; // close icon
+            menuToggle.innerHTML = "&times;";
           }
         }
       }
     });
-    // Hide nav menu when clicking outside (for mobile)
     document.addEventListener("click", function(e) {
       if (window.innerWidth < 768) {
         const navMenu = document.querySelector(".main-nav ul");
@@ -104,7 +102,6 @@ document.addEventListener("DOMContentLoaded", function() {
       }
     });
   }
-  // On window resize, ensure nav is shown on big screens
   window.addEventListener("resize", function() {
     if (window.innerWidth >= 768) {
       const navMenu = document.querySelector(".main-nav ul");
@@ -127,11 +124,11 @@ document.addEventListener("DOMContentLoaded", function() {
         const targetTab = this.getAttribute("data-tab");
         tabContents.forEach(content => {
           if (content.id === targetTab) {
-            content.classList.add("active");
             content.style.display = "block";
+            content.classList.add("active");
           } else {
-            content.classList.remove("active");
             content.style.display = "none";
+            content.classList.remove("active");
           }
         });
         resetSearch();
@@ -162,7 +159,7 @@ document.addEventListener("DOMContentLoaded", function() {
         resetSearch();
       });
     });
-    subjectTabs[0] && subjectTabs[0].click();
+    if (subjectTabs[0]) subjectTabs[0].click();
   }
 
   /*==============================
@@ -205,7 +202,7 @@ document.addEventListener("DOMContentLoaded", function() {
       }
     });
     if (!found) {
-      errorMessage.innerHTML = `<span id="errorClose" title="Close">&times;</span>No content found. Try again or request material on <a href="https://t.me/icseverse" target="_blank">ICSEverse</a>.`;
+      errorMessage.innerHTML = `<span id="errorClose" title="Close">&times;</span> No content found. Try again or request material on <a href="https://t.me/icseverse" target="_blank">ICSEverse</a>.`;
       errorMessage.style.display = "block";
       document.getElementById("errorClose").addEventListener("click", resetSearch);
     }
@@ -236,57 +233,53 @@ document.addEventListener("DOMContentLoaded", function() {
     NEWS MODAL FUNCTIONALITY (News Page & Materials News Tab)
   -----------------------------*/
   const newsModal = document.getElementById("newsModal");
-  // Updated selector: Check both .news-card and .news-item for .read-more
-  const newsButtons = document.querySelectorAll(".news-card .read-more, .news-item .read-more");
+  const modalTitle = document.getElementById("modalTitle");
+  const modalContent = document.getElementById("modalContent");
   function openNewsModal(card) {
-    const titleElement = card.querySelector("h2") || card.querySelector("h3");
-    const contentElement = card.querySelector("p");
-    const modalTitle = document.getElementById("newsModalTitle") || document.getElementById("modalTitle");
-    const modalContent = document.getElementById("modalContent");
-    if (titleElement && modalTitle) {
+    const titleElement = card.querySelector("h3");
+    // Retrieve detailed content from data-detail attribute of the read-more button
+    const detailHTML = card.querySelector(".read-more").getAttribute("data-detail");
+    if (titleElement) {
       modalTitle.textContent = titleElement.textContent;
-    }
-    if (contentElement && modalContent) {
-      modalContent.textContent = contentElement.textContent;
-    }
-    newsModal.style.display = "flex";
-  }
-  if (newsModal) {
-    if (newsButtons.length > 0) {
-      newsButtons.forEach(btn => {
-        btn.addEventListener("click", function(e) {
-          e.preventDefault();
-          const card = this.closest(".news-card, .news-item");
-          openNewsModal(card);
-        });
-      });
     } else {
-      const newsCards = document.querySelectorAll(".news-card, .news-item");
-      newsCards.forEach(card => {
-        card.addEventListener("click", function() {
-          openNewsModal(card);
-        });
-      });
+      modalTitle.textContent = "News Update";
     }
+    modalContent.innerHTML = detailHTML || "";
+    newsModal.style.display = "flex";
+    document.body.style.overflow = "hidden";
+  }
+  document.querySelectorAll(".news-item .read-more").forEach(link => {
+    link.addEventListener("click", function(e) {
+      e.preventDefault();
+      const newsItem = this.closest(".news-item");
+      openNewsModal(newsItem);
+    });
+  });
+  if (newsModal) {
     const newsCloseBtn = newsModal.querySelector(".close-modal");
     if (newsCloseBtn) {
       newsCloseBtn.addEventListener("click", function() {
         newsModal.style.display = "none";
+        document.body.style.overflow = "auto";
       });
     }
     window.addEventListener("click", function(event) {
       if (event.target === newsModal) {
         newsModal.style.display = "none";
+        document.body.style.overflow = "auto";
       }
     });
   }
 
   /*-----------------------------
-    POPUP NOTIFICATION FOR MAHA QUIZ (Materials Page)
+    POPUP NOTIFICATION FOR MAHA QUIZ & CLASS XI MATERIAL
   -----------------------------*/
   const quizPopup = document.getElementById("quizPopup");
   const gotoQuiz = document.getElementById("gotoQuiz");
   const closePopupButton = document.querySelector(".popup-notification .close-popup");
+  // New popup for Class XI material availability
+  const classXIAvailablePopup = document.getElementById("classXIAvailablePopup");
+
   function showQuizPopup() {
     const activeTab = document.querySelector(".main-tabs li.active")?.getAttribute("data-tab");
     if (activeTab === "materials") {
@@ -296,8 +289,16 @@ document.addEventListener("DOMContentLoaded", function() {
           quizPopup.style.display = "none";
         }, 2000);
       }
+      // Show Class XI availability popup if applicable
+      if (classXIAvailablePopup) {
+        classXIAvailablePopup.style.display = "flex";
+        setTimeout(() => {
+          classXIAvailablePopup.style.display = "none";
+        }, 3000);
+      }
     } else {
       if (quizPopup) quizPopup.style.display = "none";
+      if (classXIAvailablePopup) classXIAvailablePopup.style.display = "none";
     }
   }
   setTimeout(showQuizPopup, 1000);
@@ -336,9 +337,9 @@ document.addEventListener("DOMContentLoaded", function() {
   }
 });
 
-
-
-<!-- Additional Button Handling Script -->
+/*-----------------------------
+    ADDITIONAL BUTTON HANDLING & STREAM/SUBJECT SWITCHING
+-----------------------------*/
 document.addEventListener("DOMContentLoaded", function() {
   // --- Main Tabs Switching ---
   const mainTabs = document.querySelectorAll(".main-tabs li");
@@ -349,11 +350,8 @@ document.addEventListener("DOMContentLoaded", function() {
   mainTabs.forEach(tab => {
     tab.addEventListener("click", function() {
       const target = this.getAttribute("data-tab");
-      // Update active state on main tabs
       mainTabs.forEach(t => t.classList.remove("active"));
       this.classList.add("active");
-
-      // Show only the selected tab's content
       tabContents.forEach(content => {
         if (content.id === target) {
           content.style.display = "block";
@@ -363,8 +361,6 @@ document.addEventListener("DOMContentLoaded", function() {
           content.classList.remove("active");
         }
       });
-      
-      // Hide study materials if not on "materials" tab
       if (target !== "materials") {
         if (class10Section) {
           class10Section.style.display = "none";
@@ -377,7 +373,6 @@ document.addEventListener("DOMContentLoaded", function() {
       }
     });
   });
-  
 
   // --- Handle Class Buttons (Class 10 vs. Class 11) ---
   const btnClass10 = document.getElementById("btnClass10");
@@ -407,22 +402,18 @@ document.addEventListener("DOMContentLoaded", function() {
   const btnScience = document.getElementById("btnScience");
   const btnArts = document.getElementById("btnArts");
   
-  // Get all subject tab items and content sections inside Class 11
   const subjectTabItems = document.querySelectorAll("#class11-subject-tabs li");
   const subjectSections = document.querySelectorAll("#class11-subjects-content .subject-section");
 
   function updateStream(selectedStream) {
-    // For subject tabs: Show only those with matching data-stream
     subjectTabItems.forEach(tab => {
       if (tab.dataset.stream === selectedStream) {
         tab.style.display = "inline-block";
-        // Optionally, you can set the first one as active
       } else {
         tab.style.display = "none";
         tab.classList.remove("active");
       }
     });
-    // For subject sections: Show only those with matching data-stream
     subjectSections.forEach(section => {
       if (section.dataset.stream === selectedStream) {
         section.style.display = "block";
@@ -432,7 +423,6 @@ document.addEventListener("DOMContentLoaded", function() {
         section.classList.remove("active");
       }
     });
-    // Activate the first visible subject tab if available
     const visibleTabs = Array.from(subjectTabItems).filter(tab => tab.style.display !== "none");
     if (visibleTabs.length > 0) {
       visibleTabs[0].classList.add("active");
@@ -467,17 +457,11 @@ document.addEventListener("DOMContentLoaded", function () {
   const subjectTabs = document.querySelectorAll(".subject-tabs ul li");
   const subjectSections = document.querySelectorAll(".subject-section");
 
-  // Function to switch between streams
   streamButtons.forEach((btn) => {
     btn.addEventListener("click", function () {
-      // Remove "active" class from all buttons
       streamButtons.forEach((b) => b.classList.remove("active"));
       this.classList.add("active");
-
-      // Hide all stream contents
       streamContents.forEach((content) => (content.style.display = "none"));
-
-      // Show the selected stream content
       if (this.id === "btnCommerce") {
         document.getElementById("commerceStream").style.display = "block";
       } else if (this.id === "btnScience") {
@@ -488,53 +472,173 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   });
 
-  // Function to switch between subjects within a stream
   function handleSubjectClick(event) {
     const selectedSubject = event.target.getAttribute("data-subject");
     const parentNav = event.target.closest(".subject-tabs");
     const parentStream = event.target.closest(".stream-content");
-
     if (!selectedSubject) return;
-
-    // Remove active class from all subject tabs within the current stream
     parentNav.querySelectorAll("li").forEach((tab) => tab.classList.remove("active"));
     event.target.classList.add("active");
-
-    // Hide all subjects in the current stream
     parentStream.querySelectorAll(".subject-section").forEach((section) => {
       section.style.display = "none";
     });
-
-    // Show the selected subject
     parentStream.querySelector(`.subject-section[data-subject="${selectedSubject}"]`).style.display = "block";
   }
-
-  // Attach event listeners to all subject tabs
   document.querySelectorAll(".subject-tabs ul li").forEach((tab) => {
     tab.addEventListener("click", handleSubjectClick);
   });
-
-  // Initialize: Show Commerce by default
   document.getElementById("btnCommerce").click();
 });
+
 document.addEventListener("DOMContentLoaded", function() {
   // Additional Function: Floating Bubble Animation
   const bubbleContainer = document.querySelector(".bubble-container");
   if (bubbleContainer) {
-    const bubbleCount = 30; // Adjust this value as needed
+    const bubbleCount = 30;
     for (let i = 0; i < bubbleCount; i++) {
       const bubble = document.createElement("div");
       bubble.classList.add("bubble");
-      // Set a random size between 20px and 60px
       const size = Math.random() * 40 + 20;
       bubble.style.width = `${size}px`;
       bubble.style.height = `${size}px`;
-      // Random position within the viewport
       bubble.style.left = `${Math.random() * 100}%`;
       bubble.style.top = `${Math.random() * 100}%`;
-      // Random animation duration between 5s and 15s
       bubble.style.animationDuration = `${Math.random() * 10 + 5}s`;
       bubbleContainer.appendChild(bubble);
     }
+  }
+});
+
+/*-----------------------------
+    DONATE BUTTON VALIDATION
+-----------------------------*/
+const donateButton = document.querySelector(".cta-button");
+if (donateButton) {
+  donateButton.addEventListener("click", function(e) {
+    if (!/Mobi|Android/i.test(navigator.userAgent)) {
+      e.preventDefault();
+      let errorPopup = document.getElementById("donateError");
+      if (!errorPopup) {
+        errorPopup = document.createElement("div");
+        errorPopup.id = "donateError";
+        errorPopup.textContent = "Donation can only be processed on mobile devices. Please use your mobile device to donate.";
+        document.body.appendChild(errorPopup);
+      }
+      errorPopup.classList.add("show");
+      setTimeout(() => {
+        errorPopup.classList.remove("show");
+      }, 3000);
+      return;
+    }
+  });
+}
+
+/*-----------------------------
+    NEWS MODAL FUNCTIONALITY
+-----------------------------*/
+document.addEventListener("DOMContentLoaded", function() {
+  const newsModal = document.getElementById("newsModal");
+  const modalTitle = document.getElementById("modalTitle");
+  const modalContent = document.getElementById("modalContent");
+  function openNewsModal(card) {
+    const titleElement = card.querySelector("h3");
+    const detailHTML = card.querySelector(".read-more").getAttribute("data-detail");
+    if (titleElement) {
+      modalTitle.textContent = titleElement.textContent;
+    } else {
+      modalTitle.textContent = "News Update";
+    }
+    modalContent.innerHTML = detailHTML || "";
+    newsModal.style.display = "flex";
+    document.body.style.overflow = "hidden";
+  }
+  document.querySelectorAll(".news-item .read-more").forEach(link => {
+    link.addEventListener("click", function(e) {
+      e.preventDefault();
+      const newsItem = this.closest(".news-item");
+      openNewsModal(newsItem);
+    });
+  });
+  if (newsModal) {
+    const newsCloseBtn = newsModal.querySelector(".close-modal");
+    if (newsCloseBtn) {
+      newsCloseBtn.addEventListener("click", function() {
+        newsModal.style.display = "none";
+        document.body.style.overflow = "auto";
+      });
+    }
+    window.addEventListener("click", function(event) {
+      if (event.target === newsModal) {
+        newsModal.style.display = "none";
+        document.body.style.overflow = "auto";
+      }
+    });
+  }
+});
+
+/*-----------------------------
+    POPUP NOTIFICATION FOR MAHA QUIZ & CLASS XI MATERIAL
+-----------------------------*/
+document.addEventListener("DOMContentLoaded", function() {
+  const quizPopup = document.getElementById("quizPopup");
+  const gotoQuiz = document.getElementById("gotoQuiz");
+  const closePopupButton = document.querySelector(".popup-notification .close-popup");
+  const classXIAvailablePopup = document.getElementById("classXIAvailablePopup");
+
+  function showQuizPopup() {
+    const activeTab = document.querySelector(".main-tabs li.active")?.getAttribute("data-tab");
+    if (activeTab === "materials") {
+      if (quizPopup) {
+        quizPopup.style.display = "flex";
+        setTimeout(() => {
+          quizPopup.style.display = "none";
+        }, 2000);
+      }
+      if (classXIAvailablePopup) {
+        classXIAvailablePopup.style.display = "flex";
+        setTimeout(() => {
+          classXIAvailablePopup.style.display = "none";
+        }, 3000);
+      }
+    } else {
+      if (quizPopup) quizPopup.style.display = "none";
+      if (classXIAvailablePopup) classXIAvailablePopup.style.display = "none";
+    }
+  }
+  setTimeout(showQuizPopup, 1000);
+  gotoQuiz && gotoQuiz.addEventListener("click", function(e) {
+    e.preventDefault();
+    const quizTab = document.querySelector('.main-tabs li[data-tab="quiz"]');
+    quizTab && quizTab.click();
+    if (quizPopup) quizPopup.style.display = "none";
+  });
+  closePopupButton && closePopupButton.addEventListener("click", function() {
+    if (quizPopup) quizPopup.style.display = "none";
+  });
+  document.querySelectorAll(".main-tabs li").forEach(tab => {
+    tab.addEventListener("click", showQuizPopup);
+  });
+});
+
+/*-----------------------------
+    DYNAMIC ANNOUNCEMENT (Rotate Messages)
+-----------------------------*/
+document.addEventListener("DOMContentLoaded", function() {
+  const announcements = [
+    "Maha Quiz For Chemistry, Physics And Mathematics Out Now!",
+    "New Study Materials Updated Daily!",
+    "Explore Latest News and Quizzes on ThrillyVerse!"
+  ];
+  let announcementIndex = 0;
+  const announcementText = document.getElementById("announcementText");
+  if (announcementText) {
+    setInterval(() => {
+      announcementIndex = (announcementIndex + 1) % announcements.length;
+      announcementText.style.opacity = 0;
+      setTimeout(() => {
+        announcementText.textContent = announcements[announcementIndex];
+        announcementText.style.opacity = 1;
+      }, 500);
+    }, 5000);
   }
 });
