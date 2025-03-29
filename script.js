@@ -165,9 +165,9 @@ document.addEventListener("DOMContentLoaded", function() {
     subjectTabs[0] && subjectTabs[0].click();
   }
 
-  /*-----------------------------
+  /*==============================
     SEARCH FUNCTIONALITY (Materials Page)
-  -----------------------------*/
+  ==============================*/
   const searchInput = document.getElementById("searchInput");
   const searchButton = document.getElementById("searchButton");
   const clearSearchButton = document.getElementById("clearSearch");
@@ -180,11 +180,11 @@ document.addEventListener("DOMContentLoaded", function() {
       if (errorMessage) errorMessage.style.display = "none";
       liveFilterPDFs(this.value);
     });
-    searchButton && searchButton.addEventListener("click", performSearch);
+    if (searchButton) searchButton.addEventListener("click", performSearch);
     searchInput.addEventListener("keypress", function(e) {
       if (e.key === "Enter") performSearch();
     });
-    clearSearchButton && clearSearchButton.addEventListener("click", resetSearch);
+    if (clearSearchButton) clearSearchButton.addEventListener("click", resetSearch);
   }
   function performSearch() {
     const query = searchInput.value.toLowerCase().trim();
@@ -205,11 +205,11 @@ document.addEventListener("DOMContentLoaded", function() {
       }
     });
     if (!found) {
-      errorMessage.innerHTML = `<span id="errorClose" title="Close">&times;</span> ❌ No content found. Try again or request material on <a href="https://t.me/icseverse" target="_blank">ICSEverse</a>.`;
+      errorMessage.innerHTML = `<span id="errorClose" title="Close">&times;</span>No content found. Try again or request material on <a href="https://t.me/icseverse" target="_blank">ICSEverse</a>.`;
       errorMessage.style.display = "block";
       document.getElementById("errorClose").addEventListener("click", resetSearch);
     }
-    clearSearchButton.style.display = "none";
+    if (clearSearchButton) clearSearchButton.style.display = "none";
   }
   function liveFilterPDFs(query) {
     query = query.toLowerCase().trim();
@@ -337,6 +337,7 @@ document.addEventListener("DOMContentLoaded", function() {
 });
 
 
+
 <!-- Additional Button Handling Script -->
 document.addEventListener("DOMContentLoaded", function() {
   // --- Main Tabs Switching ---
@@ -376,6 +377,7 @@ document.addEventListener("DOMContentLoaded", function() {
       }
     });
   });
+  
 
   // --- Handle Class Buttons (Class 10 vs. Class 11) ---
   const btnClass10 = document.getElementById("btnClass10");
@@ -514,4 +516,25 @@ document.addEventListener("DOMContentLoaded", function () {
 
   // Initialize: Show Commerce by default
   document.getElementById("btnCommerce").click();
+});
+document.addEventListener("DOMContentLoaded", function() {
+  // Additional Function: Floating Bubble Animation
+  const bubbleContainer = document.querySelector(".bubble-container");
+  if (bubbleContainer) {
+    const bubbleCount = 30; // Adjust this value as needed
+    for (let i = 0; i < bubbleCount; i++) {
+      const bubble = document.createElement("div");
+      bubble.classList.add("bubble");
+      // Set a random size between 20px and 60px
+      const size = Math.random() * 40 + 20;
+      bubble.style.width = `${size}px`;
+      bubble.style.height = `${size}px`;
+      // Random position within the viewport
+      bubble.style.left = `${Math.random() * 100}%`;
+      bubble.style.top = `${Math.random() * 100}%`;
+      // Random animation duration between 5s and 15s
+      bubble.style.animationDuration = `${Math.random() * 10 + 5}s`;
+      bubbleContainer.appendChild(bubble);
+    }
+  }
 });
