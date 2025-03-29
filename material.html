@@ -18,6 +18,9 @@
   <!-- Additional inline styles (if needed) are included in the CSS block below -->
 </head>
 <body>
+  
+  <div class="bubble-container"></div>
+
   <!-- Header (common header) -->
   <header class="news-header">
     <div class="header-logo">
@@ -49,7 +52,7 @@
     <div id="searchBarContainer">
       <input type="text" id="searchInput" placeholder="Search PDFs or content...">
       <button id="searchButton">🔍</button>
-      <button id="clearSearch" title="Clear search">❌</button>
+      <button id="clearSearch" title="Clear search">❌ </button>
     </div>
   </nav>
 
@@ -863,7 +866,7 @@
     </section>
 
     <!-- NEWS TAB CONTENT (Hidden when not active) -->
-    <section id="news" class="tab-content" style="display: none;">
+    <section id="news" class="tab-content" style="display: none;" >
       <h2>Latest News</h2>
       <div class="news-items">
         <div class="news-item">
@@ -879,14 +882,18 @@
       </div>
     </section>
 
-    <!-- QUIZ TAB CONTENT (Hidden when not active) -->
-    <section id="quiz" class="tab-content" style="display: none;">
-      <h2>Available Quizzes</h2>
-      <p>Test your knowledge with our quizzes! More quizzes will be added soon.</p>
-      <ul>
-        <li><a href="https://forms.gle/guUa6uE1TFKw6ZYs8" target="_blank">Maha Quiz: Physics, Chemistry, Mathematics</a></li>
-      </ul>
-    </section>
+    
+   <!-- QUIZ TAB CONTENT (Hidden when not active) -->
+<section id="quiz" class="tab-content" style="display: none;">
+  <h2>Available Quizzes</h2>
+  <p>Test your knowledge with our quizzes! More quizzes will be added soon.</p>
+  <ul>
+    <li>
+      <a href="https://forms.gle/guUa6uE1TFKw6ZYs8" target="_blank">Maha Quiz: Physics, Chemistry, Mathematics</a>
+    </li>
+  </ul>
+</section>
+
   </main>
 
   <!-- Popup Notification & Announcement (unchanged) -->
@@ -895,12 +902,16 @@
     <button class="close-popup">&times;</button>
   </div>
   <section id="announcement" class="announcement">
-    <h2>🌟 Support Quality Content!</h2>
-    <p>Your small contribution can make a big difference! Help us bring you premium, ad‑free resources by donating just <strong>₹10</strong>.</p>
-    <p>Every little support helps us create better, high‑quality content for you! 🎯</p>
-    <p><a href="https://t.me/dearestwall" target="_blank" class="cta-button">💖 Donate ₹10 & Support Us</a></p>
-    <p><strong>Together, we can build a better learning experience! 🚀</strong></p>
-  </section>
+  <h2>🌟Support Quality Content!</h2>
+  <p>Your small contribution can make a big difference! Help us bring you premium, ad‑free resources by donating just <strong>₹10</strong>.</p>
+  <p>Every little support helps us create better, high‑quality content for you! 🎯</p>
+  <p>
+    <a href="upi://pay?pa=thrillysingh@fam&pn=ThrillySingh&am=10&cu=INR" target="_blank" class="cta-button">
+      💖 Donate ₹10 & Support Us
+    </a>
+  </p>
+  <p><strong>Together, we can build a better learning experience! 🚀</strong></p>
+</section>
 
   <!-- Footer (common footer) -->
   <footer class="site-footer" role="contentinfo">
