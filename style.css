@@ -162,20 +162,23 @@ header p {
 .announcement {
   background: var(--accent-color);
   color: #000;
-  padding: 15px;
+  padding: 0px;
   text-align: center;
-  font-size: 1.2rem;
+  font-size: 0.7rem;
   font-weight: bold;
-  box-shadow: 0 4px 6px rgba(0,0,0,0.2);
-  margin: 10px 20px;
-  border-radius: 5px;
+  box-shadow: 0 2px 1px rgba(0,0,0,0.15);
+  margin: 2px 5px;
+  border-radius: 2px;
   transform: translateX(-100%);
   opacity: 0;
-  animation: slideInHorizontal 1s ease-out forwards;
+  animation: slideInHorizontal 0.6s ease-out forwards;
+  transition: opacity 0.3s ease-in-out;
 }
+
 @keyframes slideInHorizontal {
   to { transform: translateX(0); opacity: 1; }
 }
+
 
 /*------------------------------------------------------
   MAIN Content Styling
@@ -532,95 +535,177 @@ h3 {
 /*------------------------------------------------------
   NEWS Section (News Page)
 ------------------------------------------------------*/
-#news {
-  display: none;
-  padding: 20px;
+/* ================================
+   NEWS TAB CONTENT Styling
+================================*/
+#news.tab-content {
+  display: none; /* Hidden by default; JS toggles display */
+  padding: 2rem 1rem;
+  animation: fadeInNews 0.8s ease-out forwards;
 }
+
+#news h2 {
+  font-size: 2.5rem;
+  margin-bottom: 1rem;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: var(--text-color);
+  position: relative;
+}
+
+#news h2::after {
+  content: '';
+  position: absolute;
+  bottom: -5px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 80px;
+  height: 3px;
+  background: var(--accent-color);
+}
+
 .news-items {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
-  padding: 0 20px;
-}
-.news-card {
-  display: flex;
-  align-items: center;
-  background: #fff;
-  color: #333;
-  padding: 10px;
-  border-radius: 5px;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-  transition: transform 0.3s ease, background 0.3s ease;
-  cursor: pointer;
-}
-.news-card:hover {
-  transform: scale(1.02);
-  background: rgba(255,255,255,0.9);
-}
-.news-thumb {
-  flex-shrink: 0;
-  margin-right: 10px;
-}
-.news-thumb img {
-  width: 60px;
-  height: 60px;
-  border-radius: 50%;
-  object-fit: cover;
-}
-.news-content {
-  text-align: left;
-}
-.news-content h2 {
-  font-size: 1.5rem;
-  margin-bottom: 0.25rem;
-  color: var(--accent-color);
-}
-.news-content p {
-  font-size: 0.95rem;
-  color: #555;
+  gap: 1.5rem;
+  padding: 1rem 2rem;
 }
 
-/*------------------------------------------------------
-  QUIZ Section
-------------------------------------------------------*/
-#quiz {
-  display: none;
-  background-color: #f9f9f9;
-  padding: 20px;
-  border-radius: 8px;
-  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+.news-item {
+  background: rgba(255, 255, 255, 0.1);
+  padding: 1.5rem;
+  border-radius: 10px;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+}
+
+.news-item:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+}
+
+.news-item h3 {
+  font-size: 1.8rem;
+  color: var(--accent-color);
+  margin-bottom: 0.5rem;
+}
+
+.news-item p {
+  font-size: 1rem;
+  color: #ddd;
+  line-height: 1.4;
+  margin-bottom: 1rem;
+}
+
+.news-item .read-more {
+  font-size: 1rem;
+  color: var(--black-color);
+  text-decoration: none;
+  font-weight: bold;
+  padding: 0.5rem 1rem;
+  border: 1px solid var(--secondary-color);
+  border-radius: 25px;
+  transition: background 0.3s ease, color 0.3s ease, transform 0.3s ease;
+}
+
+.news-item .read-more:hover {
+  background: var(--secondary-color);
+  color: #111;
+  transform: translateY(-2px);
+}
+
+/* Keyframe for fade-in animation */
+@keyframes fadeInNews {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+
+/* ================================
+   Quiz Tab Content Styling
+================================*/
+#quiz.tab-content {
+  display: none; /* Hidden by default, shown via JS when active */
+  padding: 2rem 1rem;
   margin: 20px;
-  color: #333;
-  font-size: 0.9rem;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.05);
+  animation: fadeInQuiz 0.8s ease-out forwards;
 }
+
 #quiz h2 {
-  font-size: 1.5rem;
-  color: #333;
-  margin-bottom: 10px;
+  font-size: 2.2rem;
+  margin-bottom: 1rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--accent-color);
+  position: relative;
 }
+
+#quiz h2::after {
+  content: '';
+  position: absolute;
+  bottom: -5px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 60px;
+  height: 3px;
+  background: var(--accent-color);
+}
+
 #quiz p {
   font-size: 1rem;
-  color: #555;
-  margin-bottom: 20px;
+  color: #ddd;
+  margin-bottom: 1.5rem;
 }
+
 #quiz ul {
-  list-style-type: none;
+  list-style: none;
   padding: 0;
 }
+
 #quiz ul li {
-  background-color: #fff;
-  margin: 10px 0;
-  padding: 10px;
-  border-radius: 6px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  background: rgba(255, 255, 255, 0.1);
+  margin: 1rem 0;
+  padding: 1rem;
+  border-radius: 8px;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  cursor: pointer;
 }
+
+#quiz ul li:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+}
+
 #quiz ul li a {
-  font-size: 1rem;
-  color: #007BFF;
+  font-size: 1.1rem;
+  color: var(--white-color);
   text-decoration: none;
+  display: inline-block;
+  padding: 0.5rem 1rem;
+  border: 1px solid var(--secondary-color);
+  border-radius: 25px;
+  transition: background 0.3s ease, color 0.3s ease, transform 0.3s ease;
 }
+
 #quiz ul li a:hover {
-  text-decoration: underline;
+  background: var(--secondary-color);
+  color: #111;
+  transform: translateY(-2px);
+}
+
+@keyframes fadeInQuiz {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /*------------------------------------------------------
@@ -946,3 +1031,38 @@ h3 {
         padding: 0.5rem 1rem;
       }
     }
+/* Floating Bubble Background */
+.bubble-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none; /* Bubbles won't interfere with clicks */
+  z-index: -1; /* Place behind all content */
+  overflow: hidden;
+}
+
+.bubble {
+  position: absolute;
+  background: rgba(255, 255, 255, 0.2); /* Semi-transparent bubble color */
+  border-radius: 50%;
+  opacity: 0.6;
+  animation: floatBubble 10s infinite ease-in-out;
+}
+
+/* Keyframes for bubble floating animation */
+@keyframes floatBubble {
+  0% {
+    transform: translateY(0) scale(0.8);
+    opacity: 0.8;
+  }
+  50% {
+    transform: translateY(-100vh) scale(1.2);
+    opacity: 0.3;
+  }
+  100% {
+    transform: translateY(0) scale(0.8);
+    opacity: 0.8;
+  }
+}
