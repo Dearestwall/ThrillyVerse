@@ -164,7 +164,7 @@ header p {
   color: #000;
   padding: 0px;
   text-align: center;
-  font-size: 0.7rem;
+  font-size: 1.0rem;
   font-weight: bold;
   box-shadow: 0 2px 1px rgba(0,0,0,0.15);
   margin: 2px 5px;
@@ -613,6 +613,19 @@ h3 {
 .news-item .read-more:hover {
   background: var(--secondary-color);
   color: #111;
+  transform: translateY(-2px);
+}
+/* Styling links within the News modal content */
+.modal-content a {
+  color: var(--accent-color);
+  text-decoration: none;
+  border-bottom: 2px solid transparent;
+  transition: color 0.3s ease, border-bottom 0.3s ease, transform 0.3s ease;
+}
+
+.modal-content a:hover {
+  color: var(--secondary-color);
+  border-bottom: 2px solid var(--secondary-color);
   transform: translateY(-2px);
 }
 
@@ -1065,4 +1078,25 @@ h3 {
     transform: translateY(0) scale(0.8);
     opacity: 0.8;
   }
+}
+/* Donate Error Popup Styles */
+#donateError {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(255, 77, 77, 0.9);
+  color: #fff;
+  padding: 1rem 2rem;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+  z-index: 2000;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.5s ease, transform 0.5s ease;
+}
+
+#donateError.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
 }
