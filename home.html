@@ -172,11 +172,10 @@
 
     <button id="backToTop" title="Back to Top">▲</button>
   </main>
+  
 <!-- Review Section -->
 <section class="review-section">
-  <h3 class="reviews-heading">Reviews from Users</h3>
-  
-  <!-- Reviews Display: Shown by default -->
+  <!-- Reviews Display -->
   <div id="reviewsDisplay" class="reviews-display">
     <ul id="reviewsList"></ul>
   </div>
@@ -184,7 +183,7 @@
   <!-- Button to open the review input form -->
   <button id="openReviewForm" class="open-review">Write a Review</button>
 
-  <!-- Review Input Form (initially hidden) -->
+  <!-- Review Input Form -->
   <div id="reviewForm" class="review-form">
     <input type="text" id="usernameInput" placeholder="Username" />
     <textarea id="reviewInput" placeholder="Write your review..."></textarea>
@@ -201,7 +200,6 @@
   </div>
 </section>
 
-
 <!-- Modal for Full Review Display -->
 <div id="reviewModal" class="modal">
   <div class="modal-content">
@@ -209,6 +207,28 @@
     <div id="modalReviewContent"></div>
   </div>
 </div>
+  <script type="module">
+  // Import Firebase modules
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-app.js";
+  import { getFirestore, collection, addDoc, getDocs, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore.js";
+
+  // Firebase configuration
+  // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+const firebaseConfig = {
+  apiKey: "AIzaSyAlu-_JJ166H8G2DpkxrifriiBHHdiCtcg",
+  authDomain: "thrillyverse-review.firebaseapp.com",
+  projectId: "thrillyverse-review",
+  storageBucket: "thrillyverse-review.firebasestorage.app",
+  messagingSenderId: "175411773546",
+  appId: "1:175411773546:web:f9ce1e2ab181f962604a13",
+  measurementId: "G-DWD0X1C2HY"
+};
+
+  // Initialize Firebase
+
+::contentReference[oaicite:0]{index=0}
+ 
+
 
   <!-- FOOTER -->
  <footer class="site-footer" role="contentinfo">
