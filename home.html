@@ -12,7 +12,13 @@
 </head>
 <body>
   <div class="bubble-container"></div>
- <!-- HEADER -->
+ 
+  
+<!-- Desktop View Notice (Only for small screens) -->
+<div id="desktopNotice">
+  <span class="marquee"></span>
+</div>
+  <!-- HEADER -->
   <header class="news-header">
   <div class="header-logo">
     <img src="https://i.ibb.co/0pjPXpZy/thrillyverse.png" alt="ThrillyVerse Logo" class="site-logo" />
@@ -32,12 +38,13 @@
   </nav>
 </header>
 
+
+
   
-  <!-- Announcement Section -->
-  <div class="announcement" role="region" aria-label="Important Announcement">
-    <p>Content for Class X ICSE Students Is Out Now on the ICSE Material Page!</p>
-    <p>View this site in Desktop Mode on Chrome for a better experience.</p>
-  </div>
+  <!-- Announcement Section (Home Page) -->
+<div class="announcement" role="region" aria-label="Important Announcement">
+  <p id="homeAnnouncementText"></p>
+</div>
 
   <!-- MAIN CONTENT -->
   <main role="main">
@@ -165,6 +172,43 @@
 
     <button id="backToTop" title="Back to Top">▲</button>
   </main>
+<!-- Review Section -->
+<section class="review-section">
+  <h3 class="reviews-heading">Reviews from Users</h3>
+  
+  <!-- Reviews Display: Shown by default -->
+  <div id="reviewsDisplay" class="reviews-display">
+    <ul id="reviewsList"></ul>
+  </div>
+
+  <!-- Button to open the review input form -->
+  <button id="openReviewForm" class="open-review">Write a Review</button>
+
+  <!-- Review Input Form (initially hidden) -->
+  <div id="reviewForm" class="review-form">
+    <input type="text" id="usernameInput" placeholder="Username" />
+    <textarea id="reviewInput" placeholder="Write your review..."></textarea>
+    <div class="form-buttons">
+      <button id="sendReview">Send</button>
+      <button id="cancelReview">Cancel</button>
+    </div>
+    <div id="reviewError" class="review-message error">
+      Please provide your username and review!
+    </div>
+    <div id="reviewThanks" class="review-message thanks">
+      Thanks for your feedback!
+    </div>
+  </div>
+</section>
+
+
+<!-- Modal for Full Review Display -->
+<div id="reviewModal" class="modal">
+  <div class="modal-content">
+    <span class="close-modal">&times;</span>
+    <div id="modalReviewContent"></div>
+  </div>
+</div>
 
   <!-- FOOTER -->
  <footer class="site-footer" role="contentinfo">
