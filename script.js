@@ -642,3 +642,164 @@ document.addEventListener("DOMContentLoaded", function() {
     }, 5000);
   }
 });
+document.addEventListener("DOMContentLoaded", function() {
+  const homeAnnouncement = document.getElementById("homeAnnouncementText");
+  if (homeAnnouncement) {
+    // Define the array of announcements for the home page
+    const homeAnnouncements = [
+      "Welcome to ThrillyVerse! Explore dynamic updates and premium study resources.",
+      "New study materials are live—check out our latest updates!",
+      "Join our quizzes and test your knowledge every day!"
+    ];
+    
+    let currentIndex = 0;
+    // Initialize with the first announcement
+    homeAnnouncement.textContent = homeAnnouncements[currentIndex];
+    
+    // Rotate announcements every 5 seconds
+    setInterval(() => {
+      currentIndex = (currentIndex + 1) % homeAnnouncements.length;
+      homeAnnouncement.style.opacity = 0;
+      setTimeout(() => {
+        homeAnnouncement.textContent = homeAnnouncements[currentIndex];
+        homeAnnouncement.style.opacity = 1;
+      }, 500);
+    }, 5000);
+  }
+});
+document.addEventListener("DOMContentLoaded", function() {
+  const desktopNotice = document.getElementById("desktopNotice");
+  const marqueeText = desktopNotice.querySelector('.marquee');
+
+  function updateDesktopNotice() {
+    // Check if the viewport width is less than 768px (adjust threshold if needed)
+    if (window.innerWidth < 768) {
+      marqueeText.textContent = "View This Site On Desktop View For Better Experience!";
+      desktopNotice.style.display = "block";
+    } else {
+      desktopNotice.style.display = "none";
+    }
+  }
+
+  // Initial check
+  updateDesktopNotice();
+
+  // Update on window resize
+  window.addEventListener("resize", updateDesktopNotice);
+});
+
+const openReviewBtn = document.getElementById('openReviewForm');
+const reviewForm = document.getElementById('reviewForm');
+const cancelReviewBtn = document.getElementById('cancelReview');
+const sendReviewBtn = document.getElementById('sendReview');
+const usernameInput = document.getElementById('usernameInput');
+const reviewInput = document.getElementById('reviewInput');
+const reviewError = document.getElementById('reviewError');
+const reviewThanks = document.getElementById('reviewThanks');
+const reviewsDisplay = document.getElementById('reviewsDisplay');
+const reviewsList = document.getElementById('reviewsList');
+
+const reviewModal = document.getElementById('reviewModal');
+const modalReviewContent = document.getElementById('modalReviewContent');
+const closeModal = document.querySelector('.close-modal');
+
+// Open the review form when the "Write a Review" button is clicked
+openReviewBtn.addEventListener('click', () => {
+  reviewForm.style.display = 'block';
+  reviewError.style.display = 'none';
+  reviewThanks.style.display = 'none';
+});
+
+// Cancel button hides the review form and resets inputs
+cancelReviewBtn.addEventListener('click', () => {
+  reviewForm.style.display = 'none';
+  usernameInput.value = '';
+  reviewInput.value = '';
+  reviewInput.style.height = 'auto';
+});
+
+// Auto-resize the textarea as the user types
+reviewInput.addEventListener('input', function() {
+  this.style.height = 'auto';
+  this.style.height = this.scrollHeight + 'px';
+});
+
+// Send review button: validate input, store review, update display, then hide form
+sendReviewBtn.addEventListener('click', () => {
+  const username = usernameInput.value.trim();
+  const text = reviewInput.value.trim();
+  reviewError.style.display = 'none';
+  reviewThanks.style.display = 'none';
+
+  if (!username || !text) {
+    reviewError.style.display = 'block';
+    return;
+  }
+
+  let reviews = JSON.parse(localStorage.getItem('reviews')) || [];
+  // Limit to 10 reviews by removing the oldest if needed
+  if (reviews.length >= 10) {
+    reviews.shift();
+  }
+
+  const review = {
+    username: username,
+    text: text,
+    timestamp: new Date().toISOString()
+  };
+
+  reviews.push(review);
+  localStorage.setItem('reviews', JSON.stringify(reviews));
+
+  reviewThanks.style.display = 'block';
+  displayReviews();
+
+  // Auto-close the review form after submission
+  setTimeout(() => {
+    reviewForm.style.display = 'none';
+    usernameInput.value = '';
+    reviewInput.value = '';
+    reviewInput.style.height = 'auto';
+    reviewThanks.style.display = 'none';
+  }, 1500);
+});
+
+// Function to display reviews (newest first)
+function displayReviews() {
+  reviewsList.innerHTML = '';
+  let reviews = JSON.parse(localStorage.getItem('reviews')) || [];
+  if (reviews.length === 0) {
+    reviewsDisplay.style.display = 'none';
+    return;
+  }
+  reviewsDisplay.style.display = 'block';
+  reviews.slice().reverse().forEach(review => {
+    const li = document.createElement('li');
+    li.innerHTML = `<strong>${review.username}</strong><br>
+                    <div class="review-text-container">${review.text}</div>
+                    <small>${new Date(review.timestamp).toLocaleDateString()}</small>`;
+    // Add click event to open modal with full review content
+    li.addEventListener('click', () => {
+      modalReviewContent.innerHTML = `<h3>${review.username}</h3>
+                                      <p>${review.text}</p>
+                                      <small>${new Date(review.timestamp).toLocaleString()}</small>`;
+      reviewModal.style.display = 'block';
+    });
+    reviewsList.appendChild(li);
+  });
+}
+
+// Close modal when the close button is clicked
+closeModal.addEventListener('click', () => {
+  reviewModal.style.display = 'none';
+});
+
+// Also close modal if user clicks outside the modal content
+window.addEventListener('click', (event) => {
+  if (event.target === reviewModal) {
+    reviewModal.style.display = 'none';
+  }
+});
+
+// On page load, display any stored reviews
+document.addEventListener('DOMContentLoaded', displayReviews);
