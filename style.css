@@ -178,6 +178,34 @@ header p {
 @keyframes slideInHorizontal {
   to { transform: translateX(0); opacity: 1; }
 }
+/*------------------------------------------------------
+ Desktop view announcement
+------------------------------------------------------*/
+#desktopNotice {
+  background: #ffab00;            /* Accent background */
+  color: #000;                     /* Contrast text color */
+  padding: 10px;
+  text-align: center;
+  font-size: 1rem;
+  display: none;                   /* Hidden by default */
+  margin: 10px 0;                  
+  overflow: hidden;                /* Hide overflow for the sliding text */
+}
+
+.marquee {
+  display: inline-block;
+  white-space: nowrap;
+  animation: marquee 10s linear infinite;
+}
+
+@keyframes marquee {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
 
 
 /*------------------------------------------------------
@@ -1099,4 +1127,175 @@ h3 {
 #donateError.show {
   opacity: 1;
   transform: translateX(-50%) translateY(0);
+}
+
+/* Container Styling */
+.review-section {
+  max-width: 600px;
+  margin: 1rem auto;
+  background-color: #000;
+  color: #fff;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  padding: 1rem;
+}
+
+/* Reviews Display (Horizontal, no scrollbar) */
+.reviews-display {
+  overflow-x: auto;
+  white-space: nowrap;
+  padding: 0.5rem;
+  margin-bottom: 1rem;
+}
+.reviews-display ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  gap: 1rem;
+}
+.reviews-display li {
+  flex: 0 0 auto;
+  background-color: #fff;
+  color: #000;
+  border: 1px solid #000;
+  border-radius: 8px;
+  padding: 0.5rem;
+  max-width: 150px;
+  transition: transform 0.3s;
+  position: relative;
+  cursor: pointer;
+}
+.reviews-display li:hover {
+  transform: scale(1.05);
+}
+/* Hide scrollbar */
+.reviews-display::-webkit-scrollbar {
+  display: none;
+}
+.reviews-display {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Review text container (truncated by default; expands on hover) */
+.review-text-container {
+  max-height: 40px;
+  overflow: hidden;
+  transition: max-height 0.3s ease-in-out;
+}
+.reviews-display li:hover .review-text-container {
+  max-height: 500px;
+}
+
+/* "Write a Review" Button */
+.open-review {
+  display: block;
+  margin: 0 auto 1rem;
+  padding: 0.5rem 1rem;
+  background-color: #fff;
+  color: #000;
+  border: 1px solid #000;
+  border-radius: 6px;
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+/* Review Form Styling */
+.review-form {
+  display: none;
+  background-color: #fff;
+  color: #000;
+  border: 1px solid #000;
+  border-radius: 8px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+.review-form input,
+.review-form textarea {
+  width: 100%;
+  padding: 0.5rem;
+  margin-bottom: 0.5rem;
+  border: 1px solid #000;
+  border-radius: 4px;
+  font-size: 1rem;
+  color: #000;
+}
+.review-form textarea {
+  resize: vertical;
+  min-height: 60px;
+  overflow-y: hidden;
+}
+.form-buttons {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+}
+.review-form button {
+  padding: 0.5rem 1rem;
+  border: 1px solid #000;
+  border-radius: 4px;
+  font-size: 1rem;
+  cursor: pointer;
+  background-color: #000;
+  color: #fff;
+}
+#cancelReview {
+  background-color: #fff;
+  color: #000;
+}
+.review-message {
+  font-size: 0.9rem;
+  text-align: center;
+  margin-top: 0.5rem;
+}
+.review-message.error {
+  color: #ff6b6b;
+}
+.review-message.thanks {
+  color: #55efc4;
+}
+
+/* Responsive Adjustments */
+
+/* For small screens (up to 600px) */
+@media (max-width: 600px) {
+  .review-section {
+    max-width: 90%;
+    padding: 0.5rem;
+  }
+  .reviews-display li {
+    max-width: 120px;
+  }
+  .open-review {
+    font-size: 0.9rem;
+    padding: 0.4rem 0.8rem;
+  }
+  .review-form input,
+  .review-form textarea,
+  .review-form button {
+    font-size: 0.9rem;
+  }
+}
+
+/* For medium screens (601px to 1024px) */
+@media (min-width: 601px) and (max-width: 1024px) {
+  .review-section {
+    max-width: 80%;
+    padding: 0.75rem;
+  }
+  .reviews-display li {
+    max-width: 140px;
+  }
+}
+
+/* For large screens (1025px and above) */
+@media (min-width: 1025px) {
+  .review-section {
+    max-width: 600px;
+    padding: 1rem;
+  }
+  .reviews-display li {
+    max-width: 150px;
+  }
 }
