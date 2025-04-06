@@ -803,37 +803,3 @@ window.addEventListener('click', (event) => {
 
 // On page load, display any stored reviews
 document.addEventListener('DOMContentLoaded', displayReviews);
-document.getElementById("sendReview").addEventListener("click", async () => {
-  const username = document.getElementById("usernameInput").value.trim();
-  const reviewText = document.getElementById("reviewInput").value.trim();
-  if (username && reviewText) {
-    await addReview(username, reviewText);
-    displayReviews();
-  } else {
-    alert("Please enter both a username and a review.");
-  }
-});
-
-// Initial call to display existing reviews
-displayReviews();
-<script type="module">
-  // Import Firebase modules
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-app.js";
-  import { getFirestore, collection, addDoc, getDocs, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore.js";
-
-  // Firebase configuration
-  // For Firebase JS SDK v7.20.0 and later, measurementId is optional
-const firebaseConfig = {
-  apiKey: "AIzaSyAlu-_JJ166H8G2DpkxrifriiBHHdiCtcg",
-  authDomain: "thrillyverse-review.firebaseapp.com",
-  projectId: "thrillyverse-review",
-  storageBucket: "thrillyverse-review.firebasestorage.app",
-  messagingSenderId: "175411773546",
-  appId: "1:175411773546:web:f9ce1e2ab181f962604a13",
-  measurementId: "G-DWD0X1C2HY"
-};
-
-  // Initialize Firebase
-
-::contentReference[oaicite:0]{index=0}
- 
