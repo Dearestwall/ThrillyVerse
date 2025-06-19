@@ -1,15 +1,31 @@
-/* Basic Reset */
+/*------------------------------------------------------
+  CSS Variables & Global Reset
+------------------------------------------------------*/
+:root {
+  --primary-color: #6a11cb;
+  --secondary-color: #2575fc;
+  --accent-color: #ffab00;
+  --text-color: #fff;
+  --background-gradient: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+}
+
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
 }
 
-/* Global & Body Styling */
+html {
+  scroll-behavior: smooth;
+}
+
+/*------------------------------------------------------
+  Global & Body Styling
+------------------------------------------------------*/
 body {
   font-family: Arial, sans-serif;
-  background: linear-gradient(to right, #6a11cb, #2575fc);
-  color: #fff;
+  background: var(--background-gradient);
+  color: var(--text-color);
   line-height: 1.6;
   display: flex;
   flex-direction: column;
@@ -17,38 +33,127 @@ body {
   overflow-x: hidden;
 }
 
-/* HEADER */
+/*------------------------------------------------------
+  HEADER & Navigation
+------------------------------------------------------*/
 header {
-  text-align: center;
   padding: 1.5rem 1rem;
-  background: rgba(0, 0, 0, 0.8);
+  background: rgba(0, 0, 0, 0.85);
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  text-align: left;
+  position: relative;
+  z-index: 100; /* Ensure header is above other content */
 }
+
+.header-logo {
+  width: 80px;
+  flex-shrink: 0;
+}
+
+.news-header .header-logo {
+  width: 50px; /* Smaller logo for news page */
+}
+
+.site-logo {
+  width: 100%;
+  height: auto;
+  border-radius: 50%; /* Circular logo */
+}
+
+.header-content {
+  display: flex;
+  flex-direction: column;
+}
+
 header h1 {
-  font-size: 3rem;
-  margin-bottom: 0.5rem;
+  font-size: 2.5rem;
+  margin-bottom: 0.25rem;
 }
+
+.header-content p,
 header p {
-  font-size: 1.5rem;
+  font-size: 1.2rem;
   color: #ccc;
 }
 
-/* Main Navigation */
+/* Tagline styling */
+.header-content .tagline {
+  font-size: 1.2rem;
+  color: #ccc;
+  margin-top: 0.25rem;
+  font-style: italic;
+}
+
+/* Navigation */
+.main-nav {
+  margin-left: auto;
+  position: relative;
+  z-index: 110; /* Place nav above announcement */
+}
+
 .main-nav ul {
   list-style: none;
   display: flex;
-  justify-content: center;
   gap: 1rem;
-  margin-top: 0.5rem;
+  align-items: center;
 }
+
+/* Mobile Hamburger Toggle Button */
+.menu-toggle {
+  display: none;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 2.5rem; /* Larger icon */
+  color: var(--text-color);
+  transition: transform 0.3s ease;
+  position: absolute;
+  top: 1.5rem;
+  right: 1rem;
+  z-index: 120;
+}
+
+.menu-toggle.active {
+  transform: rotate(90deg);
+  /* You may change color if desired */
+}
+
 .main-nav a {
   text-decoration: none;
-  color: #fff;
-  transition: color 0.3s ease;
+  color: var(--text-color);
+  transition: color 0.3s ease, transform 0.3s ease;
 }
+
 .main-nav a:hover,
 .main-nav a.active {
-  color: #2575fc;
+  color: var(--accent-color);
+  transform: translateY(-3px);
+}
+
+/* Responsive Navigation: show hamburger and vertical menu */
+@media (max-width: 768px) {
+  .main-nav ul {
+    display: none;
+    flex-direction: column;
+    background: rgba(0, 0, 0, 0.9);
+    position: absolute;
+    top: 100%;
+    right: 0;
+    width: 200px;
+    padding: 1rem;
+    border-radius: 0 0 5px 5px;
+    animation: slideDownMenu 0.3s ease-out;
+  }
+  .menu-toggle {
+    display: block;
+  }
+}
+@keyframes slideDownMenu {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 /* MAIN TABS AND SEARCH BAR */
