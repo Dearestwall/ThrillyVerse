@@ -430,28 +430,27 @@ body {
 }
 
 /* Modal Styling */
+/* Ensure modal uses flex centering on all viewports */
 .modal {
-    display: none;  /* Initially hidden */
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: rgba(0, 0, 0, 0.7);
-    justify-content: center;
-    align-items: center;
-    z-index: 9999;
+  display: flex !important;
+  justify-content: center;
+  align-items: center;
 }
 
-.modal-content {
-    background-color: black;
-    padding: 20px;
-    border-radius: 10px;
-    width: 80%;
-    max-width: 500px;
-    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
-    text-align: center;
+/* Make the modal‐content shrink on mobile */
+@media (max-width: 768px) {
+  .modal-content {
+    width: 90vw !important;
+    max-width: 90vw !important;
+    max-height: 80vh;          /* prevent it from growing taller than viewport */
+    overflow-y: auto;          /* allow internal scrolling if content is long */
+    padding: 15px;             /* reduce padding for small screens */
+  }
 }
+
+/* Optional: if you also need to adjust the inline styles in your moviePageContent,
+   update the <style> block there to include the same @media rules. */
+
 
 .home-btn {
     background-color: #00ffcc;
