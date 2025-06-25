@@ -279,5 +279,19 @@
 
 
   <script src="movies.js"></script>
+  <!-- Deferred Google Tag Manager Loading -->
+  <script>
+    window.addEventListener('load', function() {
+      var gtmScript = document.createElement('script');
+      gtmScript.src = 'https://www.googletagmanager.com/gtag/js?id=G-DR54STFG33';
+      gtmScript.async = true;
+      document.head.appendChild(gtmScript);
+
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){ dataLayer.push(arguments); }
+      gtag('js', new Date());
+      gtag('config', 'G-DR54STFG33');
+    });
+  </script>
 </body>
 </html>
