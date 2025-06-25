@@ -196,31 +196,131 @@ function openMoviePage(movieId, movieTitle, movieImage) {
       <meta name="description" content="RMG Movies - Stream latest Hindi, Punjabi, Hollywood movies in HD quality">
       <title>${movieTitle}</title>
       <style>
-        body { font-family: Arial, sans-serif; text-align: center; padding: 20px; background: #111; color: white; }
-        .container { max-width: 600px; margin: auto; padding: 20px; border-radius: 10px; background: #222; box-shadow: 0px 0px 10px rgba(255,255,255,0.2); }
-        img { max-width: 100%; height: auto; border-radius: 10px; }
-        .description { font-size: 18px; margin-top: 10px; color: #ccc; }
-        .buttons { margin-top: 20px; }
-        .btn { display: block; width: 100%; padding: 12px; margin: 10px 0; font-size: 16px; text-decoration: none; color: white; background: linear-gradient(45deg, #007BFF, #00D4FF); border: none; border-radius: 8px; cursor: pointer; transition: 0.3s; }
-        .btn:hover { background: linear-gradient(45deg, #00D4FF, #007BFF); }
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.8); }
-        .modal-content { background: #fff; padding: 20px; margin: 10% auto; width: 80%; max-width: 400px; border-radius: 5px; color: black; text-align: left; }
-        .close-modal { font-size: 20px; cursor: pointer; float: right; }
-        .download-links { display: flex; flex-direction: column; align-items: center; }
-        .download-links a { display: block; width: 80%; padding: 12px; margin-top: 8px; font-size: 16px; text-align: center; text-decoration: none; color: white; background: linear-gradient(45deg, #FF416C, #FF4B2B); border-radius: 8px; transition: 0.3s; }
-        .download-links a:hover { background: linear-gradient(45deg, #FF4B2B, #FF416C); }
-       
-@media (max-width: 600px) {
-  .modal-content {
-    width: 95vw !important;
-    max-width: none !important;
-    max-height: 90vh;
-    overflow-y: auto;
-    padding: 1rem;
+  body {
+    font-family: Arial, sans-serif;
+    text-align: center;
+    padding: 20px;
+    background: #111;
+    color: white;
   }
+  .container {
+    max-width: 600px;
+    margin: auto;
+    padding: 20px;
+    border-radius: 10px;
+    background: #222;
+    box-shadow: 0px 0px 10px rgba(255,255,255,0.2);
+  }
+  img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 10px;
+  }
+  .description {
+    font-size: 18px;
+    margin-top: 10px;
+    color: #ccc;
+  }
+  .buttons {
+    margin-top: 20px;
+  }
+  .btn {
+    display: block;
+    width: 100%;
+    padding: 12px;
+    margin: 10px 0;
+    font-size: 16px;
+    text-decoration: none;
+    color: white;
+    background: linear-gradient(45deg, #007BFF, #00D4FF);
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: 0.3s;
+  }
+  .btn:hover {
+    background: linear-gradient(45deg, #00D4FF, #007BFF);
+  }
+
+  /* Modal overlay */
+  .modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+  }
+
+  /* Default modal box */
+  .modal-content {
+    background: #fff;
+    padding: 20px;
+    margin: 10% auto;
+    width: 80%;
+    max-width: 400px;
+    border-radius: 5px;
+    color: #000;
+    text-align: left;
+    position: relative;
+  }
+  .close-modal {
+    font-size: 20px;
+    cursor: pointer;
+    float: right;
+  }
+
+  .download-links {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .download-links a {
+    display: block;
+    width: 80%;
+    padding: 12px;
+    margin-top: 8px;
+    font-size: 16px;
+    text-align: center;
+    text-decoration: none;
+    color: white;
+    background: linear-gradient(45deg, #FF416C, #FF4B2B);
+    border-radius: 8px;
+    transition: 0.3s;
+  }
+  .download-links a:hover {
+    background: linear-gradient(45deg, #FF4B2B, #FF416C);
+  }
+
+  /* Responsive: make modal fill most of small screens */
+  @media (max-width: 600px) {
+    .modal-content {
+      width: 95vw !important;
+      max-width: none !important;
+      max-height: 90vh;
+      overflow-y: auto;
+      margin: 5vh auto;
+      padding: 1rem;
+    }
+  }
+  /* add to your <style> block */
+.warning-message {
+  color: #e74c3c;                /* bold red text */
+  background-color: #fdecea;     /* pale red background */
+  border: 1px solid #e74c3c;     /* red border */
+  border-radius: 5px;
+  padding: 12px;
+  margin-top: 16px;
+  text-align: center;
+  font-weight: bold;
 }
 
-      </style>
+</style>
+
     </head>
     <body>
       <div class="container">
@@ -266,10 +366,15 @@ function openMoviePage(movieId, movieTitle, movieImage) {
           const categoryKey = category.toLowerCase().includes("movie") ? "movieLinks" : "seriesLinks";
           document.getElementById("modalTitle").innerText = category;
           const linksContainer = document.getElementById("modalLinks");
-          if (!movieData[categoryKey]) {
-            alert("Links not available for this category.");
-            return;
-          }
+        if (!movieData[categoryKey]) {
+  // set up a styled warning inside the modal
+  const linksModal = document.getElementById("linksModal");
+  document.getElementById("modalTitle").innerText = category;
+  document.getElementById("modalLinks").innerHTML =
+    '<p class="warning-message">No links available for this category.</p>';
+  linksModal.style.display = "flex";   // or "block" depending on your centering
+  return;
+}
           linksContainer.innerHTML = Object.keys(movieData[categoryKey]).map(resolution => {
             const link = movieData[categoryKey][resolution];
             return \`
