@@ -174,15 +174,15 @@ function openMoviePage(movieId, movieTitle, movieImage) {
     alert("Movie details not available!");
     return;
   }
-
   const moviePageContent = `
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>${movieTitle}</title>
-  <style>
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="description" content="RMG Movies - Stream latest Hindi, Punjabi, Hollywood movies in HD quality">
+      <title>${movieTitle}</title>
+      <style>
   body {
     font-family: Arial, sans-serif;
     text-align: center;
@@ -196,7 +196,7 @@ function openMoviePage(movieId, movieTitle, movieImage) {
     padding: 20px;
     border-radius: 10px;
     background: #222;
-    box-shadow: 0 0 10px rgba(255,255,255,0.2);
+    box-shadow: 0px 0px 10px rgba(255,255,255,0.2);
   }
   img {
     max-width: 100%;
@@ -217,6 +217,7 @@ function openMoviePage(movieId, movieTitle, movieImage) {
     padding: 12px;
     margin: 10px 0;
     font-size: 16px;
+    text-decoration: none;
     color: white;
     background: linear-gradient(45deg, #007BFF, #00D4FF);
     border: none;
@@ -228,22 +229,25 @@ function openMoviePage(movieId, movieTitle, movieImage) {
     background: linear-gradient(45deg, #00D4FF, #007BFF);
   }
 
-  /* Modal overlay as true flex container */
+  /* Modal overlay */
   .modal {
     display: none;
     position: fixed;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
     background: rgba(0, 0, 0, 0.8);
     justify-content: center;
     align-items: center;
     z-index: 1000;
   }
 
-  /* Modal content box */
+  /* Default modal box */
   .modal-content {
     background: #fff;
     padding: 20px;
+    margin: 10% auto;
     width: 80%;
     max-width: 400px;
     border-radius: 5px;
@@ -279,135 +283,170 @@ function openMoviePage(movieId, movieTitle, movieImage) {
     background: linear-gradient(45deg, #FF4B2B, #FF416C);
   }
 
-  /* Inline warning message */
-  .warning-message {
-    color: #e74c3c;
-    background-color: #fdecea;
-    border: 1px solid #e74c3c;
-    border-radius: 5px;
-    padding: 12px;
-    margin-top: 16px;
-    text-align: center;
-    font-weight: bold;
-  }
-
-  /* Responsive tweaks for small screens */
+  /* Responsive: make modal fill most of small screens */
   @media (max-width: 600px) {
     .modal-content {
       width: 95vw !important;
-      height: 95vh !important;
       max-width: none !important;
-      max-height: none !important;
+      max-height: 90vh;
       overflow-y: auto;
-      margin: 0;
+      margin: 5vh auto;
       padding: 1rem;
-      border-radius: 5px;
     }
   }
+  /* add to your <style> block */
+.warning-message {
+  color: #e74c3c;                /* bold red text */
+  background-color: #fdecea;     /* pale red background */
+  border: 1px solid #e74c3c;     /* red border */
+  border-radius: 5px;
+  padding: 12px;
+  margin-top: 16px;
+  text-align: center;
+  font-weight: bold;
+}
+
 </style>
 
-</head>
-<body>
-  <div class="container">
-    <h1>${movieTitle}</h1>
-    <img src="${movieImage}" alt="${movieTitle}">
-    <p class="description">${movieData.description}</p>
-    <div class="buttons">
-      <button class="btn" onclick="openLinks('Movie Links')">🎬 Movie Links</button>
-      <button class="btn" onclick="openLinks('Series Links')">📺 Series Links</button>
-    </div>
-    <button id="homeBtn" class="btn">🏠 Go to Home</button>
-  </div>
+    </head>
+    <body>
+      <div class="container">
+        <h1>${movieTitle}</h1>
+        <img src="${movieImage}" alt="${movieTitle}">
+        <p class="description">${movieData.description}</p>
+        <div class="buttons">
+          <button class="btn" onclick="openLinks('Movie Links')">🎬 Movie Links</button>
+          <button class="btn" onclick="openLinks('Series Links')">📺 Series Links</button>
+         
+        </div>
+        <button id="homeBtn" class="btn">🏠 Go to Home</button>
+      </div>
 
-  <div id="linksModal" class="modal">
-    <div class="modal-content">
-      <span class="close-modal" onclick="closeModal()">×</span>
-      <h2 id="modalTitle"></h2>
-      <div class="download-links" id="modalLinks"></div>
-    </div>
-  </div>
+      <div id="linksModal" class="modal">
+        <div class="modal-content">
+          <span class="close-modal" onclick="closeModal()">×</span>
+          <h2 id="modalTitle"></h2>
+          <div class="download-links" id="modalLinks"></div>
+        </div>
+      </div>
 
-  <div id="tutorialModal" class="modal">
-    <div class="modal-content">
-      <span class="close-modal" onclick="closeModal()">×</span>
-      <h2>Tutorial for ${movieTitle}</h2>
-      <h3>🎬 Tutorial for Movies</h3>
-      <a href="#">Movie Tutorial Link 1</a>
-      <a href="#">Movie Tutorial Link 2</a>
-      <h3>📺 Tutorial for Series</h3>
-      <a href="#">Series Tutorial Link 1</a>
-      <a href="#">Series Tutorial Link 2</a>
-    </div>
-  </div>
+      <div id="tutorialModal" class="modal">
+        <div class="modal-content">
+          <span class="close-modal" onclick="closeModal()">×</span>
+          <h2>Tutorial for ${movieTitle}</h2>
+          <h3>🎬 Tutorial for Movies</h3>
+          <a href="#">Movie Tutorial Link 1</a>
+          <a href="#">Movie Tutorial Link 2</a>
+          <h3>📺 Tutorial for Series</h3>
+          <a href="#">Series Tutorial Link 1</a>
+          <a href="#">Series Tutorial Link 2</a>
+        </div>
+      </div>
 
-  <script>
-    const movieData = ${JSON.stringify(movieData)};
-    document.getElementById("homeBtn").addEventListener("click", () => {
-      window.location.href = "https://dearestwall.github.io/ThrillyVerse/movies.html";
-    });
-
-    function openLinks(category) {
-      const key = category.toLowerCase().includes("movie") ? "movieLinks" : "seriesLinks";
-      document.getElementById("modalTitle").innerText = category;
-      const linksContainer = document.getElementById("modalLinks");
-
-      if (!movieData[key]) {
-        linksContainer.innerHTML = '<p class="warning-message">No links available for this category.</p>';
-        document.getElementById("linksModal").style.display = "flex";
-        return;
-      }
-
-      linksContainer.innerHTML = Object.entries(movieData[key])
-        .map(([res, url]) => 
-          \`<h3>\${res}</h3><a href="\${url}" target="_blank">Download Now</a>\`
-        ).join("");
-      document.getElementById("linksModal").style.display = "flex";
-    }
-
-    function closeModal() {
-      document.getElementById("linksModal").style.display = "none";
-      document.getElementById("tutorialModal").style.display = "none";
-    }
-
-    window.onclick = (e) => {
-      if (e.target.classList.contains("modal")) closeModal();
-    };
-  </script>
-</body>
-</html>
-`;
-
+      <script>
+        const movieData = ${JSON.stringify(movieData)};
+        // Updated Home Button event: Explicitly redirect to the homepage URL.
+        document.getElementById("homeBtn").addEventListener("click", function() {
+     window.location.href="https://dearestwall.github.io/ThrillyVerse/movies.html";  // Replace with your actual homepage URL
+        });
+        function openLinks(category) {
+          const categoryKey = category.toLowerCase().includes("movie") ? "movieLinks" : "seriesLinks";
+          document.getElementById("modalTitle").innerText = category;
+          const linksContainer = document.getElementById("modalLinks");
+        if (!movieData[categoryKey]) {
+  // set up a styled warning inside the modal
+  const linksModal = document.getElementById("linksModal");
+  document.getElementById("modalTitle").innerText = category;
+  document.getElementById("modalLinks").innerHTML =
+    '<p class="warning-message">No links available for this category.</p>';
+  linksModal.style.display = "flex";   // or "block" depending on your centering
+  return;
+}
+          linksContainer.innerHTML = Object.keys(movieData[categoryKey]).map(resolution => {
+            const link = movieData[categoryKey][resolution];
+            return \`
+              <h3>\${resolution}</h3>
+              <a href="\${link}" target="_blank">Download Now</a>
+            \`;
+          }).join("");
+          document.getElementById("linksModal").style.display = "block";
+        }
+        function openTutorial() {
+          document.getElementById("tutorialModal").style.display = "block";
+        }
+        function closeModal() {
+          document.getElementById("linksModal").style.display = "none";
+          document.getElementById("tutorialModal").style.display = "none";
+        }
+        window.onclick = function(event) {
+          if (event.target.classList.contains("modal")) {
+            closeModal();
+          }
+        };
+      </script>
+    </body>
+    </html>
+  `;
   const movieWindow = window.open("", "_blank");
   movieWindow.document.write(moviePageContent);
   movieWindow.document.close();
 }
 
-// --- Mobile Nav Toggle (unchanged) ---
+// --- In-Page Modal Functions (if needed) ---
+function closeMovieModal() {
+  document.getElementById("movieModal").style.display = "none";
+}
+
+function closeLinksModal() {
+  document.getElementById("linksModal").style.display = "none";
+}
+
+function closeTutorialModal() {
+  document.getElementById("tutorialModal").style.display = "none";
+}
+
+// Close modals on Escape key press
+document.addEventListener("keydown", function(event) {
+  if (event.key === "Escape") {
+    closeLinksModal();
+    closeTutorialModal();
+  }
+});
+
+/* MOBILE NAVIGATION TOGGLE (Hamburger Menu) */
 const menuToggle = document.getElementById("menuToggle");
 if (menuToggle) {
-  menuToggle.addEventListener("click", (e) => {
+  menuToggle.addEventListener("click", function(e) {
     e.stopPropagation();
     if (window.innerWidth < 768) {
       const navMenu = document.querySelector(".main-nav ul");
-      const isOpen = getComputedStyle(navMenu).display === "flex";
-      navMenu.style.display = isOpen ? "none" : "flex";
-      menuToggle.classList.toggle("active", !isOpen);
-      menuToggle.innerHTML = isOpen ? "&#9776;" : "&times;";
+      if (navMenu) {
+        const isOpen = navMenu.style.display === "flex";
+        navMenu.style.display = isOpen ? "none" : "flex";
+        menuToggle.classList.toggle("active", !isOpen);
+        menuToggle.innerHTML = isOpen ? "&#9776;" : "&times;";
+      }
     }
   });
-  document.addEventListener("click", (e) => {
+
+  document.addEventListener("click", function(e) {
     if (window.innerWidth < 768) {
       const navMenu = document.querySelector(".main-nav ul");
-      if (navMenu && !navMenu.contains(e.target) && e.target !== menuToggle) {
+      if (
+        navMenu &&
+        !navMenu.contains(e.target) &&
+        e.target.id !== "menuToggle"
+      ) {
         navMenu.style.display = "none";
         menuToggle.classList.remove("active");
         menuToggle.innerHTML = "&#9776;";
       }
     }
   });
-  window.addEventListener("resize", () => {
+
+  window.addEventListener("resize", function() {
     const navMenu = document.querySelector(".main-nav ul");
-    if (window.innerWidth >= 768) {
+    if (window.innerWidth >= 768 && navMenu) {
       navMenu.style.display = "flex";
       menuToggle.classList.remove("active");
       menuToggle.innerHTML = "&#9776;";
