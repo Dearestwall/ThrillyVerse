@@ -1,4 +1,5 @@
 // --- Utility: Debounce Function ---
+// This function delays the execution of a callback until a specified wait time has passed.
 function debounce(func, wait) {
   let timeout;
   return function (...args) {
@@ -10,6 +11,7 @@ function debounce(func, wait) {
 
 // --- Movie Card Click & Search Functionality ---
 document.addEventListener("DOMContentLoaded", function () {
+  // Event delegation for movie card clicks.
   document.body.addEventListener("click", function (event) {
     const card = event.target.closest(".movie-card");
     if (card) {
@@ -20,6 +22,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   });
 
+  // Search functionality
   const searchInput = document.getElementById("searchInput");
   const searchBtn = document.getElementById("searchBtn");
   const movieSections = document.querySelectorAll(".movie-section");
@@ -27,37 +30,43 @@ document.addEventListener("DOMContentLoaded", function () {
   const errorMessage = document.getElementById("noResultsMessage");
   const fuzzySearchThreshold = 0.6;
 
-  function filterMovies(searchTerm) {
-    let foundMovie = false;
-    movieSections.forEach((section) => (section.style.display = "none"));
-    movieCards.forEach((card) => {
-      const title = card.querySelector("h3").innerText.toLowerCase();
-      const section = card.closest(".movie-section");
-      const similarity = jaccardSimilarity(title, searchTerm.toLowerCase());
-      if (
-        similarity >= fuzzySearchThreshold ||
-        title.includes(searchTerm.toLowerCase())
-      ) {
-        card.style.display = "block";
-        section.style.display = "block";
-        foundMovie = true;
-      } else {
-        card.style.display = "none";
-      }
-    });
-
-    if (!foundMovie && searchTerm.trim() !== "") {
-      errorMessage.style.display = "block";
-      errorMessage.innerHTML = `
-        No matches found for "<strong>${searchTerm}</strong>".<br>
-        Movie not available? Request it on Instagram DM:
-        <a href="https://instagram.com/thrillyverse" target="_blank">@thrillyverse</a>
-      `;
+  // Filter movies based on search term using Jaccard Similarity
+function filterMovies(searchTerm) {
+  let foundMovie = false;
+  // Hide all movie sections initially
+  movieSections.forEach((section) => {
+    section.style.display = "none";
+  });
+  movieCards.forEach((card) => {
+    const title = card.querySelector("h3").innerText.toLowerCase();
+    const section = card.closest(".movie-section");
+    const similarity = jaccardSimilarity(title, searchTerm.toLowerCase());
+    if (
+      similarity >= fuzzySearchThreshold ||
+      title.includes(searchTerm.toLowerCase())
+    ) {
+      card.style.display = "block";
+      section.style.display = "block";
+      foundMovie = true;
     } else {
-      errorMessage.style.display = "none";
+      card.style.display = "none";
     }
-  }
+  });
 
+  if (!foundMovie && searchTerm.trim() !== "") {
+    errorMessage.style.display = "block";
+    errorMessage.innerHTML = `
+      No matches found for "<strong>${searchTerm}</strong>".<br>
+      Movie not available? Request it on Instagram DM:
+      <a href="https://instagram.com/thrillyverse" target="_blank">@thrillyverse</a>
+    `;
+  } else {
+    errorMessage.style.display = "none";
+  }
+}
+
+
+  // Jaccard Similarity for fuzzy search
   function jaccardSimilarity(str1, str2) {
     const set1 = new Set(str1);
     const set2 = new Set(str2);
@@ -65,14 +74,18 @@ document.addEventListener("DOMContentLoaded", function () {
     return intersection.size / (set1.size + set2.size - intersection.size);
   }
 
+  // Create a debounced version of the filterMovies function to reduce main-thread blocking.
   const debouncedFilterMovies = debounce(() => {
     filterMovies(searchInput.value.toLowerCase());
   }, 300);
 
+  // Use the debounced function for input and keypress events.
   searchInput.addEventListener("input", debouncedFilterMovies);
   searchBtn.addEventListener("click", debouncedFilterMovies);
-  searchInput.addEventListener("keypress", (e) => {
-    if (e.key === "Enter") debouncedFilterMovies();
+  searchInput.addEventListener("keypress", function (event) {
+    if (event.key === "Enter") {
+      debouncedFilterMovies();
+    }
   });
 });
 
@@ -347,7 +360,7 @@ function openMoviePage(movieId, movieTitle, movieImage) {
         const movieData = ${JSON.stringify(movieData)};
         // Updated Home Button event: Explicitly redirect to the homepage URL.
         document.getElementById("homeBtn").addEventListener("click", function() {
-     window.location.href="https://dearestwall.github.io/ThrillyVerse/movies.html";  // Replace with your actual homepage URL
+     window.location.href="https://dearestwall.github.io/Thrillyverse/movies.html";  // Replace with your actual homepage URL
         });
         function openLinks(category) {
           const categoryKey = category.toLowerCase().includes("movie") ? "movieLinks" : "seriesLinks";
