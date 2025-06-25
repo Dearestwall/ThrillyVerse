@@ -1,29 +1,33 @@
-<!DOCTYPE html>
-<html lang="en">
-
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="thrillyverse Movies - Stream latest Hindi, Punjabi, and Hollywood movies in HD quality">
   <meta name="keywords" content="online movies, Hindi movies, Punjabi movies, Hollywood movies, free movie streaming">
   <title>thrillyVerse Movies | HD Movie Streaming Platform</title>
+  
+  <!-- Favicon & social sharing -->
+  <link rel="icon" href="assets/favicon-32x32.png" sizes="32x32" type="image/png">
+  <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+  <meta property="og:image" content="https://yourdomain.com/assets/og-image.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+
   <link rel="stylesheet" href="movies.css">
+  
   <!-- Schema.org markup -->
   <script type="application/ld+json">
-    {
-      "@context": "https://schema.org",
-      "@type": "WebSite",
-      "name": "RMG Movies",
-      "url": "https://rmgmovies.com",
-      "potentialAction": {
-        "@type": "SearchAction",
-        "target": "{search_term_string}",
-        "query-input": "required name=search_term_string"
-      }
+  {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "name": "RMG Movies",
+    "url": "https://rmgmovies.com",
+    "potentialAction": {
+      "@type": "SearchAction",
+      "target": "https://rmgmovies.com/search?query={search_term_string}",
+      "query-input": "required name=search_term_string"
     }
+  }
   </script>
-  
-  
 </head>
 
 <body>
