@@ -209,6 +209,17 @@ function openMoviePage(movieId, movieTitle, movieImage) {
         .download-links { display: flex; flex-direction: column; align-items: center; }
         .download-links a { display: block; width: 80%; padding: 12px; margin-top: 8px; font-size: 16px; text-align: center; text-decoration: none; color: white; background: linear-gradient(45deg, #FF416C, #FF4B2B); border-radius: 8px; transition: 0.3s; }
         .download-links a:hover { background: linear-gradient(45deg, #FF4B2B, #FF416C); }
+       
+@media (max-width: 600px) {
+  .modal-content {
+    width: 95vw !important;
+    max-width: none !important;
+    max-height: 90vh;
+    overflow-y: auto;
+    padding: 1rem;
+  }
+}
+
       </style>
     </head>
     <body>
@@ -249,7 +260,7 @@ function openMoviePage(movieId, movieTitle, movieImage) {
         const movieData = ${JSON.stringify(movieData)};
         // Updated Home Button event: Explicitly redirect to the homepage URL.
         document.getElementById("homeBtn").addEventListener("click", function() {
-     window.location.href="https://dearestwall.github.io/ThrillyverseMovies/";  // Replace with your actual homepage URL
+     window.location.href="https://dearestwall.github.io/Thrillyverse/movies.html";  // Replace with your actual homepage URL
         });
         function openLinks(category) {
           const categoryKey = category.toLowerCase().includes("movie") ? "movieLinks" : "seriesLinks";
