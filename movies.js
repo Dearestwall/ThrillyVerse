@@ -183,123 +183,129 @@ function openMoviePage(movieId, movieTitle, movieImage) {
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>${movieTitle}</title>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      text-align: center;
-      padding: 20px;
-      background: #111;
-      color: white;
-    }
-    .container {
-      max-width: 600px;
-      margin: auto;
-      padding: 20px;
-      border-radius: 10px;
-      background: #222;
-      box-shadow: 0 0 10px rgba(255,255,255,0.2);
-    }
-    img {
-      max-width: 100%;
-      height: auto;
-      border-radius: 10px;
-    }
-    .description {
-      font-size: 18px;
-      margin-top: 10px;
-      color: #ccc;
-    }
-    .buttons { margin-top: 20px; }
-    .btn {
-      display: block;
-      width: 100%;
-      padding: 12px;
-      margin: 10px 0;
-      font-size: 16px;
-      color: white;
-      background: linear-gradient(45deg,#007BFF,#00D4FF);
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      transition: 0.3s;
-    }
-    .btn:hover { background: linear-gradient(45deg,#00D4FF,#007BFF); }
+  body {
+    font-family: Arial, sans-serif;
+    text-align: center;
+    padding: 20px;
+    background: #111;
+    color: white;
+  }
+  .container {
+    max-width: 600px;
+    margin: auto;
+    padding: 20px;
+    border-radius: 10px;
+    background: #222;
+    box-shadow: 0 0 10px rgba(255,255,255,0.2);
+  }
+  img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 10px;
+  }
+  .description {
+    font-size: 18px;
+    margin-top: 10px;
+    color: #ccc;
+  }
+  .buttons {
+    margin-top: 20px;
+  }
+  .btn {
+    display: block;
+    width: 100%;
+    padding: 12px;
+    margin: 10px 0;
+    font-size: 16px;
+    color: white;
+    background: linear-gradient(45deg, #007BFF, #00D4FF);
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: 0.3s;
+  }
+  .btn:hover {
+    background: linear-gradient(45deg, #00D4FF, #007BFF);
+  }
 
-    /* Modal overlay */
-    .modal {
-      display: none;
-      position: fixed;
-      top: 0; left: 0;
-      width: 100%; height: 100%;
-      background: rgba(0,0,0,0.8);
-      justify-content: center;
-      align-items: center;
-      z-index: 1000;
-    }
+  /* Modal overlay as true flex container */
+  .modal {
+    display: none;
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+  }
 
-    /* Modal box */
+  /* Modal content box */
+  .modal-content {
+    background: #fff;
+    padding: 20px;
+    width: 80%;
+    max-width: 400px;
+    border-radius: 5px;
+    color: #000;
+    text-align: left;
+    position: relative;
+  }
+  .close-modal {
+    font-size: 20px;
+    cursor: pointer;
+    float: right;
+  }
+
+  .download-links {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .download-links a {
+    display: block;
+    width: 80%;
+    padding: 12px;
+    margin-top: 8px;
+    font-size: 16px;
+    text-align: center;
+    text-decoration: none;
+    color: white;
+    background: linear-gradient(45deg, #FF416C, #FF4B2B);
+    border-radius: 8px;
+    transition: 0.3s;
+  }
+  .download-links a:hover {
+    background: linear-gradient(45deg, #FF4B2B, #FF416C);
+  }
+
+  /* Inline warning message */
+  .warning-message {
+    color: #e74c3c;
+    background-color: #fdecea;
+    border: 1px solid #e74c3c;
+    border-radius: 5px;
+    padding: 12px;
+    margin-top: 16px;
+    text-align: center;
+    font-weight: bold;
+  }
+
+  /* Responsive tweaks for small screens */
+  @media (max-width: 600px) {
     .modal-content {
-      background: #fff;
-      padding: 20px;
-      margin: 10% auto;
-      width: 80%;
-      max-width: 400px;
+      width: 95vw !important;
+      height: 95vh !important;
+      max-width: none !important;
+      max-height: none !important;
+      overflow-y: auto;
+      margin: 0;
+      padding: 1rem;
       border-radius: 5px;
-      color: #000;
-      text-align: left;
-      position: relative;
     }
-    .close-modal {
-      font-size: 20px;
-      cursor: pointer;
-      float: right;
-    }
+  }
+</style>
 
-    .download-links {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-    }
-    .download-links a {
-      display: block;
-      width: 80%;
-      padding: 12px;
-      margin-top: 8px;
-      font-size: 16px;
-      text-align: center;
-      text-decoration: none;
-      color: white;
-      background: linear-gradient(45deg,#FF416C,#FF4B2B);
-      border-radius: 8px;
-      transition: 0.3s;
-    }
-    .download-links a:hover {
-      background: linear-gradient(45deg,#FF4B2B,#FF416C);
-    }
-
-    /* Styled warning */
-    .warning-message {
-      color: #e74c3c;
-      background-color: #fdecea;
-      border: 1px solid #e74c3c;
-      border-radius: 5px;
-      padding: 12px;
-      margin-top: 16px;
-      text-align: center;
-      font-weight: bold;
-    }
-
-    /* Responsive modal */
-    @media (max-width:600px) {
-      .modal-content {
-        width: 95vw !important;
-        max-width: none !important;
-        max-height: 90vh;
-        overflow-y: auto;
-        margin: 5vh auto;
-        padding: 1rem;
-      }
-    }
-  </style>
 </head>
 <body>
   <div class="container">
@@ -337,7 +343,7 @@ function openMoviePage(movieId, movieTitle, movieImage) {
   <script>
     const movieData = ${JSON.stringify(movieData)};
     document.getElementById("homeBtn").addEventListener("click", () => {
-      window.location.href = "https://dearestwall.github.io/Thrillyverse/movies.html";
+      window.location.href = "https://dearestwall.github.io/ThrillyVerse/movies.html";
     });
 
     function openLinks(category) {
