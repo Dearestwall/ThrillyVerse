@@ -220,6 +220,19 @@ function openMoviePage(movieId, movieTitle, movieImage) {
   text-align: center;
   font-weight: bold;
 }
+/* On small screens, make modal-content fill almost entire screen */
+@media (max-width: 600px) {
+    .modal-content {
+        width: 95vw !important;
+        height: 95vh !important;
+        max-width: none !important;
+        max-height: none !important;
+        margin: 0;            /* no auto margins */
+        border-radius: 0;     /* square corners for full-screen look */
+        padding: 1rem;
+        overflow-y: auto;     /* scroll if content overflows */
+    }
+}
       </style>
     </head>
     <body>
