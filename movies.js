@@ -166,7 +166,7 @@ function openMoviePage(movieId, movieTitle, movieImage) {
    
  
     
-    /*Anime's starts Here copy from "Anime1" till }; to add new movies*/ 
+    /*Webseries starts Here copy from "Webseries" till }; to add new movies*/ 
       /*change movie name,description,links in MovieLinks replacing # if series then in series link*/
     
    PanchayatS04: {
@@ -178,8 +178,37 @@ function openMoviePage(movieId, movieTitle, movieImage) {
         "S06Complete 720p": "https://www.filmyzilla13.com/downloads/30704/1/server_1/",
         "S06Complete 1080p": "https://www.filmyzilla13.com/downloads/30703/1/server_1/"
       }
-    }
-   
+    },
+   Ironheart: {
+  description: "A Marvel Studios web series following Riri Williams, a young engineering genius who builds her own suit of armor inspired by Iron Man, navigating challenges of tech, identity, and heroism.",
+
+  seriesLinks: {
+    "Episode 01 (480p)": "https://www.filmyzilla13.com/downloads/30789/1/server_1/",
+    "Episode 01 (720p)": "https://www.filmyzilla13.com/downloads/30789/1/server_1/",
+    "Episode 01 (1080p)": "https://www.filmyzilla13.com/downloads/30788/1/server_1/",
+
+    "Episode 02 (480p)": "https://www.filmyzilla13.com/downloads/30791/1/server_1/",
+    "Episode 02 (720p)": "https://www.filmyzilla13.com/downloads/30791/1/server_1/",
+    "Episode 02 (1080p)": "https://www.filmyzilla13.com/downloads/30790/1/server_1/",
+
+    "Episode 03 (480p)": "https://www.filmyzilla13.com/downloads/30793/1/server_1/",
+    "Episode 03 (720p)": "https://www.filmyzilla13.com/downloads/30793/1/server_1/",
+    "Episode 03 (1080p)": "https://www.filmyzilla13.com/downloads/30792/1/server_1/",
+
+   /* "Episode 04 (480p)": "https://www.filmyzilla13.com/downloads/30910/1/server_1/",
+    "Episode 04 (720p)": "https://www.filmyzilla13.com/downloads/30911/1/server_1/",
+    "Episode 04 (1080p)": "https://www.filmyzilla13.com/downloads/30912/1/server_1/",
+
+    "Episode 05 (480p)": "https://www.filmyzilla13.com/downloads/30913/1/server_1/",
+    "Episode 05 (720p)": "https://www.filmyzilla13.com/downloads/30914/1/server_1/",
+    "Episode 05 (1080p)": "https://www.filmyzilla13.com/downloads/30915/1/server_1/",
+
+    "Episode 06 (480p)": "https://www.filmyzilla13.com/downloads/30916/1/server_1/",
+    "Episode 06 (720p)": "https://www.filmyzilla13.com/downloads/30917/1/server_1/",
+    "Episode 06 (1080p)": "https://www.filmyzilla13.com/downloads/30918/1/server_1/" */
+  }
+}
+
   };
   
   const movieData = movieLinks[movieId];
@@ -196,23 +225,114 @@ function openMoviePage(movieId, movieTitle, movieImage) {
       <meta name="description" content="RMG Movies - Stream latest Hindi, Punjabi, Hollywood movies in HD quality">
       <title>${movieTitle}</title>
       <style>
-        body { font-family: Arial, sans-serif; text-align: center; padding: 20px; background: #111; color: white; }
-        .container { max-width: 600px; margin: auto; padding: 20px; border-radius: 10px; background: #222; box-shadow: 0px 0px 10px rgba(255,255,255,0.2); }
-        img { max-width: 100%; height: auto; border-radius: 10px; }
-        .description { font-size: 18px; margin-top: 10px; color: #ccc; }
-        .buttons { margin-top: 20px; }
-        .btn { display: block; width: 100%; padding: 12px; margin: 10px 0; font-size: 16px; text-decoration: none; color: white; background: linear-gradient(45deg, #007BFF, #00D4FF); border: none; border-radius: 8px; cursor: pointer; transition: 0.3s; }
-        .btn:hover { background: linear-gradient(45deg, #00D4FF, #007BFF); }
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.8); }
-        .modal-content { background: #fff; padding: 20px; margin: 10% auto; width: 80%; max-width: 400px; border-radius: 5px; color: black; text-align: left; }
-        .close-modal { font-size: 20px; cursor: pointer; float: right; }
-        .download-links { display: flex; flex-direction: column; align-items: center; }
-        .download-links a { display: block; width: 80%; padding: 12px; margin-top: 8px; font-size: 16px; text-align: center; text-decoration: none; color: white; background: linear-gradient(45deg, #FF416C, #FF4B2B); border-radius: 8px; transition: 0.3s; }
-        .download-links a:hover { background: linear-gradient(45deg, #FF4B2B, #FF416C); }
+        body
+        {
+        font-family: Arial,
+        sans-serif; text-align: center; 
+        padding: 20px;
+        background: #111; color: white;
+        }
+        .container {
+        max-width: 600px; 
+        margin: auto; padding: 20px;
+        border-radius: 10px; 
+        background: #222; 
+        box-shadow: 0px 0px 10px rgba(255,255,255,0.2); 
+        }
+        img { 
+        max-width: 100%; 
+        height: auto; border-radius: 10px;
+        }
+        .description {
+        font-size: 18px;
+        margin-top: 10px; color: #ccc;
+        }
+        .buttons {
+        margin-top: 20px; 
+        }
+        .btn {
+        display: block;
+        width: 100%; padding: 12px; 
+        margin: 10px 0; 
+        font-size: 16px; 
+        text-decoration: none;
+        color: white; 
+        background: linear-gradient(45deg, #007BFF, #00D4FF); 
+        border: none; 
+        border-radius: 8px;
+        cursor: pointer; 
+        transition: 0.3s; 
+        }
+        .btn:hover { 
+        background: linear-gradient(45deg, #00D4FF, #007BFF);
+        }
+        .modal { 
+        display: none; 
+        position: fixed; top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%; 
+        background: rgba(0, 0, 0, 0.8);
+        }
+        /* Base modal content style */
+.modal-content {
+  background: #fff;
+  padding: 20px;
+  margin: 5% auto;
+  width: 80%;
+  max-width: 400px;
+  border-radius: 5px;
+  color: black;
+  text-align: left;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-sizing: border-box;
+}
+
+/* Mobile-first responsive styles */
+@media (max-width: 600px) {
+  .modal-content {
+    width: 95vw !important;
+    height: auto;
+    max-height: 95vh !important;
+    margin: 2vh auto !important;
+    padding: 1rem !important;
+    border-radius: 10px;
+    overflow-y: auto;
+    box-sizing: border-box;
+  }
+
+
+        
+        }
+        .close-modal { font-size: 20px; 
+        cursor: pointer; 
+        float: right;
+        }
+        .download-links { 
+        display: flex;
+        flex-direction: column; 
+        align-items: center;
+        }
+        .download-links a {
+        display: block; 
+        width: 80%; padding: 12px; 
+        margin-top: 8px; 
+        font-size: 16px; 
+        text-align: center; 
+        text-decoration: none; 
+        color: white;
+        background: linear-gradient(45deg, #FF416C, #FF4B2B); 
+        border-radius: 8px;
+        transition: 0.3s; 
+        }
+        .download-links a:hover { 
+        background: linear-gradient(45deg, #FF4B2B, #FF416C);
+        }
         /* add to your <style> block */
-.warning-message {
+      .warning-message {
   color: #e74c3c;                /* bold red text */
-  background-color: #fdecea;     /* pale red background */
+  background-color: #fdecea;   /* pale red background */
   border: 1px solid #e74c3c;     /* red border */
   border-radius: 5px;
   padding: 12px;
