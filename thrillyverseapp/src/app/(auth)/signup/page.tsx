@@ -69,6 +69,7 @@ export default function SignupPage() {
     try {
       await signupWithEmail(email, password, displayName);
       router.push('/dashboard');
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
       setError(err.message || 'Failed to sign up. Please try again.');
     } finally {
@@ -83,6 +84,7 @@ export default function SignupPage() {
     try {
       await signupWithGoogle();
       router.push('/dashboard');
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
       setError(err.message || 'Failed to sign up with Google.');
     } finally {

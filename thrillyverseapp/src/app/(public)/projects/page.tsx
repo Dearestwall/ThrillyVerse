@@ -3,8 +3,7 @@
 
 import React from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
-import { ExternalLink, Code2, Gamepad2, Calculator } from 'lucide-react';
+import { ExternalLink, Code2, Gamepad2 } from 'lucide-react';
 
 interface Project {
   id: string;
@@ -191,7 +190,7 @@ export default function ProjectsPage() {
         <div className="mt-16 bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 rounded-xl p-8 text-center text-white">
           <h3 className="text-2xl font-bold mb-4">Have an idea for a project?</h3>
           <p className="text-lg mb-6 opacity-90">
-            We're always looking for new and exciting projects to build. Share your ideas with us!
+            We&apos;re always looking for new and exciting projects to build. Share your ideas with us!
           </p>
           <Link
             href="/contact"

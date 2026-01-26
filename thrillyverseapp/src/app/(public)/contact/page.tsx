@@ -3,7 +3,6 @@
 
 import React, { useState } from 'react';
 import { Mail, Phone, MapPin, Send, MessageSquare } from 'lucide-react';
-import Link from 'next/link';
 
 export default function ContactPage() {
   const [formData, setFormData] = useState({
@@ -49,6 +48,7 @@ export default function ContactPage() {
       } else {
         throw new Error('Failed to send message');
       }
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (err) {
       setError('Failed to send message. Please try again later.');
     } finally {
@@ -84,7 +84,7 @@ export default function ContactPage() {
         <div className="text-center mb-12">
           <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">Get In Touch</h1>
           <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-            Have questions or suggestions? We'd love to hear from you. Reach out to us using
+            Have questions or suggestions? We&apos;d love to hear from you. Reach out to us using
             any of the methods below.
           </p>
         </div>
@@ -119,7 +119,7 @@ export default function ContactPage() {
 
           {success && (
             <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg mb-6">
-              ✓ Thank you for your message! We'll get back to you soon.
+              ✓ Thank you for your message! We&apos;ll get back to you soon.
             </div>
           )}
 

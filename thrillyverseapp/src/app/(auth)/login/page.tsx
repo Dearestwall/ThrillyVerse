@@ -1,4 +1,4 @@
-// src/app/(auth)/login/page.tsx
+// src/app/(auth)/login/page.tsx - FIXED VERSION
 'use client';
 
 import React, { useState } from 'react';
@@ -32,8 +32,9 @@ export default function LoginPage() {
     try {
       await loginWithEmail(email, password);
       router.push('/dashboard');
-    } catch (err: any) {
-      setError(err.message || 'Failed to login. Please try again.');
+    } catch (err) {
+      const error = err as Error;
+      setError(error.message || 'Failed to login. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -46,8 +47,9 @@ export default function LoginPage() {
     try {
       await loginWithGoogle();
       router.push('/dashboard');
-    } catch (err: any) {
-      setError(err.message || 'Failed to login with Google.');
+    } catch (err) {
+      const error = err as Error;
+      setError(error.message || 'Failed to login with Google.');
     } finally {
       setLoading(false);
     }
@@ -185,7 +187,7 @@ export default function LoginPage() {
 
         {/* Sign Up Link */}
         <p className="text-center text-gray-600 mt-6">
-          Don't have an account?{' '}
+          Don&apos;t have an account?{' '}
           <Link href="/signup" className="text-indigo-600 hover:text-indigo-700 font-semibold">
             Sign Up
           </Link>

@@ -1,12 +1,12 @@
-// src/lib/firebase/auth.ts
-import {
-  createUserWithEmailAndPassword,
+// src/lib/firebase/auth.ts - FIXED VERSION
+import { 
   signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  signInWithPopup,
   signOut as firebaseSignOut,
   GoogleAuthProvider,
-  signInWithPopup,
   updateProfile,
-  User as FirebaseUser,
+  User as FirebaseUser
 } from 'firebase/auth';
 import { doc, setDoc, getDoc } from 'firebase/firestore';
 import { auth, db } from './config';
@@ -14,7 +14,12 @@ import { User } from '@/types';
 
 const googleProvider = new GoogleAuthProvider();
 
-export async function signUp(email: string, password: string, displayName: string) {
+// Sign up with email and password
+export async function signupWithEmail(
+  email: string,
+  password: string,
+  displayName: string
+): Promise<FirebaseUser> {
   try {
     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
     const user = userCredential.user;
@@ -23,33 +28,38 @@ export async function signUp(email: string, password: string, displayName: strin
     await updateProfile(user, { displayName });
 
     // Create user document in Firestore
-    const userData: Omit<User, 'uid'> = {
-      email: user.email!,
+    await setDoc(doc(db, 'users', user.uid), {
+      uid: user.uid,
+      email: user.email,
       displayName,
-      photoURL: user.photoURL || '',
-      role: 'user',
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
+      photoURL: user.photoURL || null,
+      isAdmin: false,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    });
 
-    await setDoc(doc(db, 'users', user.uid), userData);
-
-    return { user, error: null };
-  } catch (error: any) {
-    return { user: null, error: error.message };
+    return user;
+  } catch (error) {
+    const err = error as { code?: string; message?: string };
+    console.error('Signup error:', err);
+    throw new Error(err.message || 'Failed to sign up');
   }
 }
 
-export async function signIn(email: string, password: string) {
+// Login with email and password
+export async function loginWithEmail(email: string, password: string): Promise<FirebaseUser> {
   try {
     const userCredential = await signInWithEmailAndPassword(auth, email, password);
-    return { user: userCredential.user, error: null };
-  } catch (error: any) {
-    return { user: null, error: error.message };
+    return userCredential.user;
+  } catch (error) {
+    const err = error as { code?: string; message?: string };
+    console.error('Login error:', err);
+    throw new Error(err.message || 'Failed to login');
   }
 }
 
-export async function signInWithGoogle() {
+// Sign up with Google
+export async function signupWithGoogle(): Promise<FirebaseUser> {
   try {
     const result = await signInWithPopup(auth, googleProvider);
     const user = result.user;
@@ -58,54 +68,77 @@ export async function signInWithGoogle() {
     const userDoc = await getDoc(doc(db, 'users', user.uid));
 
     if (!userDoc.exists()) {
-      // Create new user document
-      const userData: Omit<User, 'uid'> = {
-        email: user.email!,
-        displayName: user.displayName || 'User',
-        photoURL: user.photoURL || '',
-        role: 'user',
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      };
-
-      await setDoc(doc(db, 'users', user.uid), userData);
+      // Create user document
+      await setDoc(doc(db, 'users', user.uid), {
+        uid: user.uid,
+        email: user.email,
+        displayName: user.displayName,
+        photoURL: user.photoURL,
+        isAdmin: false,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      });
     }
 
-    return { user, error: null };
-  } catch (error: any) {
-    return { user: null, error: error.message };
+    return user;
+  } catch (error) {
+    const err = error as { code?: string; message?: string };
+    console.error('Google signup error:', err);
+    throw new Error(err.message || 'Failed to sign up with Google');
   }
 }
 
-export async function signOut() {
+// Login with Google
+export async function loginWithGoogle(): Promise<FirebaseUser> {
+  try {
+    const result = await signInWithPopup(auth, googleProvider);
+    return result.user;
+  } catch (error) {
+    const err = error as { code?: string; message?: string };
+    console.error('Google login error:', err);
+    throw new Error(err.message || 'Failed to login with Google');
+  }
+}
+
+// Sign out
+export async function signOut(): Promise<void> {
   try {
     await firebaseSignOut(auth);
-    return { error: null };
-  } catch (error: any) {
-    return { error: error.message };
+  } catch (error) {
+    const err = error as { message?: string };
+    console.error('Sign out error:', err);
+    throw new Error(err.message || 'Failed to sign out');
   }
 }
 
+// Get user data from Firestore
 export async function getUserData(uid: string): Promise<User | null> {
   try {
     const userDoc = await getDoc(doc(db, 'users', uid));
     if (userDoc.exists()) {
-      return { uid, ...userDoc.data() } as User;
+      return userDoc.data() as User;
     }
     return null;
   } catch (error) {
-    console.error('Error fetching user data:', error);
+    console.error('Get user data error:', error);
     return null;
   }
 }
 
-export async function isAdmin(user: FirebaseUser | null): Promise<boolean> {
-  if (!user) return false;
+// Check if user is admin
+export async function isAdmin(user: FirebaseUser): Promise<boolean> {
+  try {
+    const userDoc = await getDoc(doc(db, 'users', user.uid));
+    if (userDoc.exists()) {
+      const userData = userDoc.data();
+      return userData.isAdmin === true;
+    }
 
-  const userData = await getUserData(user.uid);
-  if (userData?.role === 'admin') return true;
-
-  // Check if email is in admin list
-  const adminEmails = process.env.ADMIN_EMAILS?.split(',') || [];
-  return adminEmails.includes(user.email || '');
+    // Check environment variable for admin emails
+    const adminEmails = process.env.NEXT_PUBLIC_ADMIN_EMAILS?.split(',') || [];
+    return adminEmails.includes(user.email || '');
+  } catch (error) {
+    console.error('Admin check error:', error);
+    return false;
+  }
 }

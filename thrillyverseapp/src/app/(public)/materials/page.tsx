@@ -68,10 +68,10 @@ const mockMaterials: Material[] = [
 const subjects = ['All', 'Biology', 'Chemistry', 'Physics', 'Mathematics', 'English', 'History'];
 
 export default function MaterialsPage() {
-  const { user, isAdmin } = useAuth();
+  const { isAdmin } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedSubject, setSelectedSubject] = useState('All');
-  const [materials, setMaterials] = useState<Material[]>(mockMaterials);
+  const [materials] = useState<Material[]>(mockMaterials);
 
   const filteredMaterials = materials.filter((material) => {
     const matchesSearch =
@@ -218,7 +218,7 @@ export default function MaterialsPage() {
           <div className="bg-gradient-to-r from-indigo-600 to-purple-600 rounded-xl p-8 text-center text-white">
             <h3 className="text-2xl font-bold mb-4">Want to share your materials?</h3>
             <p className="text-lg mb-6 opacity-90">
-              If you're an educator, you can upload materials to help other students learn.
+              If you&apos;re an educator, you can upload materials to help other students learn.
             </p>
             <Link
               href="/contact"
