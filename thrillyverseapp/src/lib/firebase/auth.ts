@@ -1,144 +1,128 @@
-// src/lib/firebase/auth.ts - FIXED VERSION
-import { 
+// src/lib/firebase/auth.ts - WITH GOOGLE SIGN-IN
+import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
-  signInWithPopup,
   signOut as firebaseSignOut,
-  GoogleAuthProvider,
+  sendPasswordResetEmail,
+  sendEmailVerification,
   updateProfile,
-  User as FirebaseUser
+  signInWithPopup,
+  GoogleAuthProvider,
+  User,
+  AuthError,
 } from 'firebase/auth';
-import { doc, setDoc, getDoc } from 'firebase/firestore';
-import { auth, db } from './config';
-import { User } from '@/types';
+import { auth } from './config';
 
-const googleProvider = new GoogleAuthProvider();
+interface AuthResult {
+  user: User | null;
+  error: string | null;
+}
 
-// Sign up with email and password
-export async function signupWithEmail(
+const getErrorMessage = (error: AuthError): string => {
+  const errorMessages: Record<string, string> = {
+    'auth/user-not-found': 'No account found with this email',
+    'auth/wrong-password': 'Incorrect password',
+    'auth/email-already-in-use': 'An account with this email already exists',
+    'auth/weak-password': 'Password should be at least 6 characters',
+    'auth/invalid-email': 'Invalid email address',
+    'auth/invalid-credential': 'Invalid email or password',
+    'auth/too-many-requests': 'Too many attempts. Please try again later',
+    'auth/network-request-failed': 'Network error. Please check your connection',
+    'auth/popup-closed-by-user': 'Sign-in cancelled',
+    'auth/cancelled-popup-request': 'Sign-in cancelled',
+  };
+
+  return errorMessages[error.code] || 'An error occurred. Please try again';
+};
+
+export const signInWithEmail = async (
+  email: string,
+  password: string
+): Promise<AuthResult> => {
+  try {
+    const userCredential = await signInWithEmailAndPassword(auth, email, password);
+    return { user: userCredential.user, error: null };
+  } catch (error) {
+    console.error('Sign in error:', error);
+    return { user: null, error: getErrorMessage(error as AuthError) };
+  }
+};
+
+export const signUpWithEmail = async (
   email: string,
   password: string,
   displayName: string
-): Promise<FirebaseUser> {
+): Promise<AuthResult> => {
   try {
     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-    const user = userCredential.user;
 
-    // Update profile
-    await updateProfile(user, { displayName });
-
-    // Create user document in Firestore
-    await setDoc(doc(db, 'users', user.uid), {
-      uid: user.uid,
-      email: user.email,
+    await updateProfile(userCredential.user, {
       displayName,
-      photoURL: user.photoURL || null,
-      isAdmin: false,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
     });
 
-    return user;
+    await sendEmailVerification(userCredential.user);
+
+    return { user: userCredential.user, error: null };
   } catch (error) {
-    const err = error as { code?: string; message?: string };
-    console.error('Signup error:', err);
-    throw new Error(err.message || 'Failed to sign up');
+    console.error('Sign up error:', error);
+    return { user: null, error: getErrorMessage(error as AuthError) };
   }
-}
+};
 
-// Login with email and password
-export async function loginWithEmail(email: string, password: string): Promise<FirebaseUser> {
+export const signInWithGoogle = async (): Promise<AuthResult> => {
   try {
-    const userCredential = await signInWithEmailAndPassword(auth, email, password);
-    return userCredential.user;
-  } catch (error) {
-    const err = error as { code?: string; message?: string };
-    console.error('Login error:', err);
-    throw new Error(err.message || 'Failed to login');
-  }
-}
+    const provider = new GoogleAuthProvider();
+    // Optional: Add scopes
+    provider.addScope('profile');
+    provider.addScope('email');
 
-// Sign up with Google
-export async function signupWithGoogle(): Promise<FirebaseUser> {
-  try {
-    const result = await signInWithPopup(auth, googleProvider);
-    const user = result.user;
+    const result = await signInWithPopup(auth, provider);
 
-    // Check if user document exists
-    const userDoc = await getDoc(doc(db, 'users', user.uid));
-
-    if (!userDoc.exists()) {
-      // Create user document
-      await setDoc(doc(db, 'users', user.uid), {
-        uid: user.uid,
-        email: user.email,
-        displayName: user.displayName,
-        photoURL: user.photoURL,
-        isAdmin: false,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      });
+    if (!result || !result.user) {
+      return { user: null, error: 'Google sign-in failed' };
     }
 
-    return user;
+    return { user: result.user, error: null };
   } catch (error) {
-    const err = error as { code?: string; message?: string };
-    console.error('Google signup error:', err);
-    throw new Error(err.message || 'Failed to sign up with Google');
+    console.error('Google sign-in error:', error);
+    return { user: null, error: getErrorMessage(error as AuthError) };
   }
-}
+};
 
-// Login with Google
-export async function loginWithGoogle(): Promise<FirebaseUser> {
-  try {
-    const result = await signInWithPopup(auth, googleProvider);
-    return result.user;
-  } catch (error) {
-    const err = error as { code?: string; message?: string };
-    console.error('Google login error:', err);
-    throw new Error(err.message || 'Failed to login with Google');
-  }
-}
-
-// Sign out
-export async function signOut(): Promise<void> {
+export const signOut = async (): Promise<{ error: string | null }> => {
   try {
     await firebaseSignOut(auth);
+    return { error: null };
   } catch (error) {
-    const err = error as { message?: string };
-    console.error('Sign out error:', err);
-    throw new Error(err.message || 'Failed to sign out');
+    console.error('Sign out error:', error);
+    return { error: getErrorMessage(error as AuthError) };
   }
-}
+};
 
-// Get user data from Firestore
-export async function getUserData(uid: string): Promise<User | null> {
+export const logOut = signOut;
+
+export const resetPassword = async (email: string): Promise<{ error: string | null }> => {
   try {
-    const userDoc = await getDoc(doc(db, 'users', uid));
-    if (userDoc.exists()) {
-      return userDoc.data() as User;
-    }
-    return null;
+    await sendPasswordResetEmail(auth, email);
+    return { error: null };
   } catch (error) {
-    console.error('Get user data error:', error);
-    return null;
+    console.error('Reset password error:', error);
+    return { error: getErrorMessage(error as AuthError) };
   }
-}
+};
 
-// Check if user is admin
-export async function isAdmin(user: FirebaseUser): Promise<boolean> {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export const resendVerificationEmail = async (user: User): Promise<{ error: string | null }> => {
   try {
-    const userDoc = await getDoc(doc(db, 'users', user.uid));
-    if (userDoc.exists()) {
-      const userData = userDoc.data();
-      return userData.isAdmin === true;
+    const user = auth.currentUser;
+    if (!user) {
+      return { error: 'No user is currently signed in' };
     }
 
-    // Check environment variable for admin emails
-    const adminEmails = process.env.NEXT_PUBLIC_ADMIN_EMAILS?.split(',') || [];
-    return adminEmails.includes(user.email || '');
+    await sendEmailVerification(user);
+    return { error: null };
   } catch (error) {
-    console.error('Admin check error:', error);
-    return false;
+    console.error('Resend verification error:', error);
+    return { error: getErrorMessage(error as AuthError) };
   }
-}
+};

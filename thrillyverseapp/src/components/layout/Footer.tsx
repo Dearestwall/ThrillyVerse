@@ -1,132 +1,88 @@
-// src/components/layout/Footer.tsx
-import React from 'react';
+// src/components/layout/Footer.tsx - SIMPLIFIED FOOTER
 import Link from 'next/link';
-import { Youtube, Send, Instagram } from 'lucide-react';
+import { Instagram, Youtube, Send } from 'lucide-react';
 
 export function Footer() {
-  const currentYear = new Date().getFullYear();
-
-  const socialLinks = [
-    {
-      name: 'Telegram - Movies',
-      href: 'https://t.me/thrillmoviesverse',
-      icon: Send,
-    },
-    {
-      name: 'Telegram - Materials',
-      href: 'https://t.me/icseverse',
-      icon: Send,
-    },
-    {
-      name: 'YouTube - Gaming',
-      href: 'https://youtube.com/channel/UCGSsWtRJ5ciemRsuFfixmvQ',
-      icon: Youtube,
-    },
-    {
-      name: 'YouTube - ThrillyVerse',
-      href: 'https://www.youtube.com/@ThrillyVerse',
-      icon: Youtube,
-    },
-    {
-      name: 'Instagram',
-      href: 'https://www.instagram.com/thrillyverse/',
-      icon: Instagram,
-    },
-  ];
-
-  const tools = [
-    { name: 'Percentage Calculator', href: '/projects/percentage-calculator' },
-    { name: 'Tic Tac Toe', href: '/projects/tic-tac-toe' },
-    { name: 'Calculator', href: '/projects/calculator' },
-    { name: 'URL Shortener', href: 'https://urls.thrillyverse.workers.dev/' },
-  ];
-
   return (
-    <footer className="bg-gray-900 text-white mt-20">
+    <footer className="bg-gray-900 text-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {/* Tools Section */}
+        <div className="grid md:grid-cols-4 gap-8">
+          {/* Brand */}
           <div>
-            <h3 className="text-lg font-bold mb-4 flex items-center space-x-2">
-              <span>🛠️</span>
-              <span>Tools</span>
+            <h3 className="text-2xl font-bold bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent mb-4">
+              ThrillyVerse
             </h3>
-            <ul className="space-y-2">
-              {tools.map((tool) => (
-                <li key={tool.name}>
-                  <Link
-                    href={tool.href}
-                    className="text-gray-400 hover:text-white transition-colors"
-                    target={tool.href.startsWith('http') ? '_blank' : undefined}
-                    rel={tool.href.startsWith('http') ? 'noopener noreferrer' : undefined}
-                  >
-                    {tool.name}
-                  </Link>
-                </li>
-              ))}
-            </ul>
+            <p className="text-gray-400">
+              Think Beyond The Verse
+            </p>
           </div>
 
-          {/* Social Media Section */}
+          {/* Quick Links */}
           <div>
-            <h3 className="text-lg font-bold mb-4 flex items-center space-x-2">
-              <span>🌐</span>
-              <span>Social Media</span>
-            </h3>
-            <ul className="space-y-2">
-              {socialLinks.map((link) => (
-                <li key={link.name}>
-                  <a
-                    href={link.href}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center space-x-2 text-gray-400 hover:text-white transition-colors"
-                  >
-                    <link.icon className="w-4 h-4" />
-                    <span>{link.name}</span>
-                  </a>
-                </li>
-              ))}
-            </ul>
+            <h4 className="font-semibold mb-4">Quick Links</h4>
+            <div className="space-y-2">
+              <Link href="/materials" className="block text-gray-400 hover:text-white transition-colors">
+                Materials
+              </Link>
+              <Link href="/quizzes" className="block text-gray-400 hover:text-white transition-colors">
+                Quizzes
+              </Link>
+              <Link href="/community" className="block text-gray-400 hover:text-white transition-colors">
+                Community
+              </Link>
+            </div>
           </div>
 
-          {/* Contact Section */}
+          {/* Support */}
           <div>
-            <h3 className="text-lg font-bold mb-4 flex items-center space-x-2">
-              <span>📧</span>
-              <span>Contact Us</span>
-            </h3>
-            <ul className="space-y-2">
-              <li>
-                <a
-                  href="mailto:thrillyverse@gmail.com"
-                  className="text-gray-400 hover:text-white transition-colors"
-                >
-                  Email: thrillyverse@gmail.com
-                </a>
-              </li>
-              <li>
-                <a
-                  href="https://t.me/+LniQHT_ltBsyNmE1"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-gray-400 hover:text-white transition-colors"
-                >
-                  Telegram: Contact Support
-                </a>
-              </li>
-            </ul>
+            <h4 className="font-semibold mb-4">Support</h4>
+            <div className="space-y-2">
+              <Link href="/about" className="block text-gray-400 hover:text-white transition-colors">
+                About Us
+              </Link>
+              <Link href="/contact" className="block text-gray-400 hover:text-white transition-colors">
+                Contact
+              </Link>
+              <Link href="/privacy" className="block text-gray-400 hover:text-white transition-colors">
+                Privacy Policy
+              </Link>
+            </div>
+          </div>
+
+          {/* Social */}
+          <div>
+            <h4 className="font-semibold mb-4">Connect</h4>
+            <div className="flex space-x-4">
+              <a
+                href="https://www.instagram.com/thrillyverse"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="p-2 bg-gray-800 rounded-lg hover:bg-indigo-600 transition-colors"
+              >
+                <Instagram className="w-5 h-5" />
+              </a>
+              <a
+                href="https://www.youtube.com/@ThrillyVerse"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="p-2 bg-gray-800 rounded-lg hover:bg-indigo-600 transition-colors"
+              >
+                <Youtube className="w-5 h-5" />
+              </a>
+              <a
+                href="https://t.me/icseverse"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="p-2 bg-gray-800 rounded-lg hover:bg-indigo-600 transition-colors"
+              >
+                <Send className="w-5 h-5" />
+              </a>
+            </div>
           </div>
         </div>
 
-        {/* Copyright */}
-        <div className="border-t border-gray-800 mt-8 pt-8 text-center">
-          <p className="text-gray-400">
-            © {currentYear} ThrillyVerse. All rights reserved.
-          </p>
-          <p className="text-gray-500 text-sm mt-2">
-            Made with ❤️ by ThrillyVerse Team
-          </p>
+        <div className="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
+          <p>&copy; {new Date().getFullYear()} ThrillyVerse. All rights reserved.</p>
         </div>
       </div>
     </footer>

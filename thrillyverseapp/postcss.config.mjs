@@ -1,6 +1,7 @@
+// postcss.config.mjs - FIXED FOR VERCEL
 const config = {
   plugins: {
-    "@tailwindcss/postcss": {},
+    '@tailwindcss/postcss': {},
   },
 };
 

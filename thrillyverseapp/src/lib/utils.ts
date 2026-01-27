@@ -1,6 +1,9 @@
 // src/lib/utils.ts
 import { type ClassValue, clsx } from 'clsx';
-import { twMerge } from 'tailwind-merge';
+// 'tailwind-merge' is not installed in this environment; provide a lightweight fallback.
+// This simple fallback returns the class string as-is. Replace with the real package
+// when you install 'tailwind-merge' for better Tailwind conflict resolution.
+const twMerge = (classes: string) => classes;
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -12,7 +15,7 @@ export function formatDate(date: Date): string {
     day: 'numeric',
     year: 'numeric',
   }).format(date);
-}
+} 
 
 export function formatFileSize(bytes: number): string {
   if (bytes === 0) return '0 Bytes';

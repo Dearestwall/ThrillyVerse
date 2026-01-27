@@ -1,7 +1,16 @@
-import type { NextConfig } from "next";
+// next.config.ts - FIXED CONFIG
+import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: '**',
+      },
+    ],
+  },
+  // Remove experimental.optimizeCss to fix critters error
 };
 
 export default nextConfig;

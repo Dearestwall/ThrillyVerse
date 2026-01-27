@@ -2,10 +2,10 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useAuth } from '@/hooks/useAuth';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Plus, Edit, Trash2, Download, Search, Filter, Loader } from 'lucide-react';
+import { useAuth } from '@/context/AuthContext';
 
 interface Material {
   id: string;

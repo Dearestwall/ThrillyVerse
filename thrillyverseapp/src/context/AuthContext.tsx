@@ -1,47 +1,89 @@
-// src/context/AuthContext.tsx
+// src/context/AuthContext.tsx - COMPLETE & ERROR-FREE
 'use client';
 
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { User as FirebaseUser, onAuthStateChanged } from 'firebase/auth';
 import { auth } from '@/lib/firebase/config';
-import { getUserData, isAdmin } from '@/lib/firebase/auth';
-import { User } from '@/types';
+import { getDocument, updateDocument } from '@/lib/firebase/firestore';
 
-interface AuthContextType {
-  user: FirebaseUser | null;
-  userData: User | null;
-  isAdmin: boolean;
-  loading: boolean;
+// Define User type inline to avoid import errors
+interface UserStats {
+  materialsDownloaded: number;
+  quizzesTaken: number;
+  materialsUploaded: number;
+  totalPoints: number;
+  streak: number;
 }
 
-const AuthContext = createContext<AuthContextType>({
-  user: null,
-  userData: null,
-  isAdmin: false,
-  loading: true,
-});
+interface User {
+  uid: string;
+  email: string;
+  displayName: string;
+  role: 'user' | 'moderator' | 'admin' | 'superadmin';
+  avatar?: string;
+  bio?: string;
+  class?: string;
+  subjects?: string[];
+  createdAt: Date;
+  lastLogin: Date;
+  isVerified: boolean;
+  isBanned: boolean;
+  stats: UserStats;
+  phoneNumber?: string;
+  school?: string;
+}
 
-export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<FirebaseUser | null>(null);
-  const [userData, setUserData] = useState<User | null>(null);
-  const [isAdminUser, setIsAdminUser] = useState(false);
+interface AuthContextType {
+  user: User | null;
+  firebaseUser: FirebaseUser | null;
+  loading: boolean;
+  isAdmin: boolean;
+  isSuperAdmin: boolean;
+  refreshUser: () => Promise<void>;
+}
+
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
+export function AuthProvider({ children }: { children: ReactNode }) {
+  const [firebaseUser, setFirebaseUser] = useState<FirebaseUser | null>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
+  // Fetch user data from Firestore
+  const fetchUserData = async (uid: string): Promise<User | null> => {
+    try {
+      const userData = await getDocument<User>('users', uid);
+      return userData;
+    } catch (error) {
+      console.error('Error fetching user data:', error);
+      return null;
+    }
+  };
+
+  // Refresh user data
+  const refreshUser = async () => {
+    if (firebaseUser) {
+      const userData = await fetchUserData(firebaseUser.uid);
+      setUser(userData);
+    }
+  };
+
+  // Listen to auth state changes
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-      setUser(firebaseUser);
+      setFirebaseUser(firebaseUser);
 
       if (firebaseUser) {
-        // Fetch user data
-        const data = await getUserData(firebaseUser.uid);
-        setUserData(data);
+        // Update last login
+        await updateDocument('users', firebaseUser.uid, {
+          lastLogin: new Date(),
+        });
 
-        // Check admin status
-        const adminStatus = await isAdmin(firebaseUser);
-        setIsAdminUser(adminStatus);
+        // Fetch full user data from Firestore
+        const userData = await fetchUserData(firebaseUser.uid);
+        setUser(userData);
       } else {
-        setUserData(null);
-        setIsAdminUser(false);
+        setUser(null);
       }
 
       setLoading(false);
@@ -50,13 +92,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => unsubscribe();
   }, []);
 
+  const isAdmin = user?.role === 'admin' || user?.role === 'superadmin';
+  const isSuperAdmin = user?.role === 'superadmin';
+
   return (
     <AuthContext.Provider
-      value={{ user, userData, isAdmin: isAdminUser, loading }}
+      value={{
+        user,
+        firebaseUser,
+        loading,
+        isAdmin,
+        isSuperAdmin,
+        refreshUser,
+      }}
     >
       {children}
     </AuthContext.Provider>
   );
 }
 
-export const useAuthContext = () => useContext(AuthContext);
+export function useAuth() {
+  const context = useContext(AuthContext);
+  if (context === undefined) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
+}

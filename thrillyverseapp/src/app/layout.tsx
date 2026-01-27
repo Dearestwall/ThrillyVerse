@@ -1,15 +1,12 @@
+// src/app/layout.tsx - ROOT LAYOUT
 import type { Metadata } from 'next';
-import { Inter } from 'next/font/google';
-import './globals.css';
 import { AuthProvider } from '@/context/AuthContext';
-import { Navbar } from '@/components/layout/Navbar';
-import { Footer } from '@/components/layout/Footer';
-
-const inter = Inter({ subsets: ['latin'] });
+import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'ThrillyVerse - Think Beyond The Verse',
-  description: 'Educational platform with ICSE materials, projects, and more',
+  title: 'ThrillyVerse - Web Development & Learning Platform',
+  description: 'Professional web development services and educational platform for students',
+  keywords: ['web development', 'content creation', 'education', 'study materials', 'Next.js'],
 };
 
 export default function RootLayout({
@@ -19,11 +16,9 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={inter.className}>
+      <body className="antialiased">
         <AuthProvider>
-          <Navbar />
-          <main className="min-h-screen">{children}</main>
-          <Footer />
+          {children}
         </AuthProvider>
       </body>
     </html>
