@@ -1,94 +1,93 @@
 'use client'
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import type { Material } from '@/lib/types'
 
-const CLASS10_SUBJECTS = ['language','literature','maths','physics','chemistry','biology','history','geography','computer applications','commercial applications','secondlanguage','hindi','physical education','economics','papers','oswaal']
-const CLASS11_SUBJECTS = ['english','maths','physics','chemistry','biology','accountancy','business studies','economics','history','geography','computer science','physical education']
+const CLASSES = ['class10','class11']
+const SUBJECTS = ['literature','language','maths','physics','chemistry','biology','history','geography','computer applications','commercial applications','physical education','economics','hindi','papers','accounts','business studies','computer science']
 
-export default function AdminMaterialsPage() {
+export default function AdminMaterials() {
   const supabase = createClient()
-  const [materials, setMaterials] = useState<Material[]>([])
-  const [classLevel, setClassLevel] = useState<'class10' | 'class11'>('class10')
-  const [form, setForm] = useState({ title: '', description: '', class_level: 'class10', subject: 'literature', drive_url: '', thumbnail_url: '', is_featured: false })
-  const [message, setMessage] = useState('')
+  const [items, setItems] = useState<any[]>([])
+  const [form, setForm] = useState({ title:'', description:'', class_level:'class10', subject:'literature', drive_url:'', thumbnail_url:'', is_featured:false })
+  const [saving, setSaving] = useState(false)
+  const [msg, setMsg] = useState('')
+  const [editId, setEditId] = useState<string|null>(null)
 
-  const fetchMaterials = async () => {
-    const { data } = await supabase.from('materials').select('*').eq('class_level', classLevel).order('created_at', { ascending: false }).limit(50)
-    setMaterials((data as Material[]) ?? [])
+  const load = async () => {
+    const { data } = await supabase.from('materials').select('*').order('created_at', { ascending: false })
+    setItems(data || [])
+  }
+  useEffect(() => { load() }, [])
+
+  const reset = () => { setForm({ title:'', description:'', class_level:'class10', subject:'literature', drive_url:'', thumbnail_url:'', is_featured:false }); setEditId(null) }
+
+  const save = async (e: React.FormEvent) => {
+    e.preventDefault(); setSaving(true)
+    const { error } = editId
+      ? await supabase.from('materials').update(form).eq('id', editId)
+      : await supabase.from('materials').insert(form)
+    if (error) setMsg('❌ ' + error.message)
+    else { setMsg(editId ? '✅ Updated!' : '✅ Added!'); reset(); load() }
+    setSaving(false)
   }
 
-  useEffect(() => { fetchMaterials() }, [classLevel])
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    const { error } = await supabase.from('materials').insert({ ...form, class_level: form.class_level, thumbnail_url: form.thumbnail_url || null })
-    if (error) { setMessage(`❌ ${error.message}`) } else {
-      setMessage(`✅ "${form.title}" added!`)
-      setForm({ title: '', description: '', class_level: 'class10', subject: 'literature', drive_url: '', thumbnail_url: '', is_featured: false })
-      await fetch('/api/revalidate', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ secret: process.env.NEXT_PUBLIC_ADMIN_SECRET, path: '/material' }) })
-      fetchMaterials()
-    }
+  const startEdit = (m: any) => {
+    setForm({ title:m.title||'', description:m.description||'', class_level:m.class_level||'class10', subject:m.subject||'literature', drive_url:m.drive_url||'', thumbnail_url:m.thumbnail_url||'', is_featured:m.is_featured||false })
+    setEditId(m.id); window.scrollTo({ top:0, behavior:'smooth' })
   }
 
-  const subjects = form.class_level === 'class10' ? CLASS10_SUBJECTS : CLASS11_SUBJECTS
+  const del = async (id: string) => {
+    if (!confirm('Delete?')) return
+    await supabase.from('materials').delete().eq('id', id); load()
+  }
+
+  const inp = 'w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-2.5 text-white text-sm focus:outline-none focus:border-purple-500'
 
   return (
-    <div>
-      <h1 className="text-2xl font-bold mb-6">Manage Materials</h1>
-      <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6 mb-8">
-        <h2 className="text-lg font-semibold mb-4">Add Material</h2>
-        <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <input required placeholder="Material Title" value={form.title} onChange={e => setForm(p => ({ ...p, title: e.target.value }))} className="input-field" />
-          <select value={form.class_level} onChange={e => setForm(p => ({ ...p, class_level: e.target.value as 'class10' | 'class11', subject: 'literature' }))} className="input-field">
-            <option value="class10">Class 10</option>
-            <option value="class11">Class 11</option>
-          </select>
-          <select value={form.subject} onChange={e => setForm(p => ({ ...p, subject: e.target.value }))} className="input-field">
-            {subjects.map(s => <option key={s} value={s}>{s.charAt(0).toUpperCase() + s.slice(1)}</option>)}
-          </select>
-          <input required placeholder="Google Drive URL" value={form.drive_url} onChange={e => setForm(p => ({ ...p, drive_url: e.target.value }))} className="input-field" />
-          <input placeholder="Thumbnail URL (optional)" value={form.thumbnail_url} onChange={e => setForm(p => ({ ...p, thumbnail_url: e.target.value }))} className="input-field" />
-          <textarea placeholder="Description" value={form.description} onChange={e => setForm(p => ({ ...p, description: e.target.value }))} rows={2} className="input-field md:col-span-2" />
-          <button type="submit" className="px-6 py-2.5 bg-brand hover:bg-brand-dark text-white rounded-xl font-semibold">+ Add Material</button>
-          {message && <p className="text-sm text-green-400">{message}</p>}
-        </form>
-      </div>
-
-      {/* Filter */}
-      <div className="flex gap-2 mb-4">
-        {(['class10', 'class11'] as const).map(c => (
-          <button key={c} onClick={() => setClassLevel(c)} className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${classLevel === c ? 'bg-brand text-white' : 'bg-gray-800 text-gray-300'}`}>
-            {c === 'class10' ? 'Class 10' : 'Class 11'}
-          </button>
+    <div className="max-w-3xl">
+      <h1 className="text-2xl font-bold text-white mb-6">{editId ? '✏️ Edit Material' : '➕ Add Material'}</h1>
+      {msg && <div className="mb-4 bg-gray-800 rounded-xl px-4 py-3 text-sm text-white">{msg}</div>}
+      <form onSubmit={save} className="bg-gray-900 border border-gray-800 rounded-2xl p-6 mb-8 space-y-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div><label className="text-gray-400 text-xs block mb-1">Title *</label>
+            <input value={form.title} onChange={e=>setForm({...form,title:e.target.value})} required className={inp} /></div>
+          <div><label className="text-gray-400 text-xs block mb-1">Drive URL *</label>
+            <input value={form.drive_url} onChange={e=>setForm({...form,drive_url:e.target.value})} required className={inp} placeholder="https://drive.google.com/..." /></div>
+          <div><label className="text-gray-400 text-xs block mb-1">Class</label>
+            <select value={form.class_level} onChange={e=>setForm({...form,class_level:e.target.value})} className={inp}>
+              {CLASSES.map(c=><option key={c}>{c}</option>)}</select></div>
+          <div><label className="text-gray-400 text-xs block mb-1">Subject</label>
+            <select value={form.subject} onChange={e=>setForm({...form,subject:e.target.value})} className={inp}>
+              {SUBJECTS.map(s=><option key={s}>{s}</option>)}</select></div>
+          <div><label className="text-gray-400 text-xs block mb-1">Thumbnail URL</label>
+            <input value={form.thumbnail_url} onChange={e=>setForm({...form,thumbnail_url:e.target.value})} className={inp} placeholder="https://..." /></div>
+          <div className="flex items-center gap-3 pt-5">
+            <input type="checkbox" id="mfeat" checked={form.is_featured} onChange={e=>setForm({...form,is_featured:e.target.checked})} className="w-4 h-4 accent-purple-600" />
+            <label htmlFor="mfeat" className="text-gray-300 text-sm">Featured</label></div>
+        </div>
+        <div><label className="text-gray-400 text-xs block mb-1">Description</label>
+          <textarea value={form.description} onChange={e=>setForm({...form,description:e.target.value})} rows={2} className={inp} /></div>
+        <div className="flex gap-3">
+          <button type="submit" disabled={saving} className="bg-purple-700 hover:bg-purple-600 disabled:bg-gray-700 text-white px-6 py-2.5 rounded-xl text-sm font-medium transition-colors">
+            {saving ? 'Saving...' : editId ? 'Update' : 'Add Material'}</button>
+          {editId && <button type="button" onClick={reset} className="bg-gray-700 text-white px-6 py-2.5 rounded-xl text-sm">Cancel</button>}
+        </div>
+      </form>
+      <h2 className="text-lg font-bold text-white mb-4">All Materials ({items.length})</h2>
+      <div className="space-y-2">
+        {items.map(m=>(
+          <div key={m.id} className="bg-gray-900 border border-gray-800 rounded-xl px-4 py-3 flex items-center gap-3">
+            <div className="flex-1 min-w-0">
+              <p className="text-white text-sm font-medium truncate">{m.title}</p>
+              <p className="text-gray-500 text-xs">{m.class_level} · {m.subject}</p>
+            </div>
+            <div className="flex gap-2">
+              <button onClick={()=>startEdit(m)} className="text-blue-400 text-xs px-3 py-1.5 bg-blue-900/30 rounded-lg">Edit</button>
+              <button onClick={()=>del(m.id)} className="text-red-400 text-xs px-3 py-1.5 bg-red-900/30 rounded-lg">Delete</button>
+            </div>
+          </div>
         ))}
       </div>
-
-      <div className="bg-gray-900 border border-gray-800 rounded-2xl overflow-hidden">
-        <table className="w-full text-sm">
-          <thead className="bg-gray-800 text-gray-400">
-            <tr>
-              <th className="text-left px-4 py-3">Title</th>
-              <th className="text-left px-4 py-3">Subject</th>
-              <th className="text-left px-4 py-3">Class</th>
-              <th className="px-4 py-3">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {materials.map(m => (
-              <tr key={m.id} className="border-t border-gray-800 hover:bg-gray-800/50">
-                <td className="px-4 py-3 font-medium">{m.title}</td>
-                <td className="px-4 py-3 text-gray-400 capitalize">{m.subject}</td>
-                <td className="px-4 py-3 text-gray-400">{m.class_level}</td>
-                <td className="px-4 py-3 text-center">
-                  <button onClick={async () => { if (confirm(`Delete "${m.title}"?`)) { await supabase.from('materials').delete().eq('id', m.id); fetchMaterials() } }} className="text-red-400 hover:text-red-300 text-xs">Delete</button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-      <style>{`.input-field { width: 100%; background: #111827; border: 1px solid #374151; border-radius: 0.75rem; padding: 0.75rem 1rem; color: white; outline: none; } .input-field:focus { border-color: #6d28d9; }`}</style>
     </div>
   )
 }

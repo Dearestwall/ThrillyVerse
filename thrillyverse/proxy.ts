@@ -17,7 +17,7 @@ export async function proxy(req: NextRequest) {
     {
       cookies: {
         getAll: () => req.cookies.getAll(),
-        setAll: (all) =>
+        setAll: (all: { name: any; value: any; options: any }[]) =>
           all.forEach(({ name, value, options }) =>
             res.cookies.set(name, value, options)
           ),
