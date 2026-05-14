@@ -1,4 +1,5 @@
 import { FormEvent, useEffect, useState } from 'react'
+
 import { useAuth } from '../contexts/AuthContext'
 
 export function LoginPage() {
@@ -37,8 +38,8 @@ export function LoginPage() {
     <section className="section narrow-section">
       <div className="container narrow-container">
         <div className="card login-card">
-          <p className="eyebrow">Admin access</p>
-          <h1>Sign in to the ThrillyVerse dashboard</h1>
+          <p className="eyebrow">Private access</p>
+          <h1>Sign in to the ThrillyVerse control room</h1>
           <p>
             {previewMode
               ? 'Supabase is not connected yet, so admin pages currently open in preview mode.'
@@ -57,7 +58,7 @@ export function LoginPage() {
             </label>
 
             <button className="button button-primary" disabled={pending} type="submit">
-              {pending ? 'Signing in...' : 'Sign in'}
+              {pending ? 'Signing in...' : 'Enter dashboard'}
             </button>
 
             {error && <p className="status-text error-text">{error}</p>}

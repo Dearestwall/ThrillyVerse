@@ -1,6 +1,7 @@
 import { Route, Routes } from 'react-router-dom'
 import { Layout } from './components/layout/Layout'
 import { AdminGuard } from './components/admin/AdminGuard'
+import { ADMIN_LOGIN_PATH } from './lib/config'
 import { HomePage } from './pages/HomePage'
 import { MaterialsPage } from './pages/MaterialsPage'
 import { MoviesPage } from './pages/MoviesPage'
@@ -27,7 +28,7 @@ export default function App() {
         <Route path="/blogs" element={<BlogsPage />} />
         <Route path="/blogs/:slug" element={<BlogDetailPage />} />
         <Route path="/contact" element={<ContactPage />} />
-        <Route path="/login" element={<LoginPage />} />
+        <Route path={ADMIN_LOGIN_PATH} element={<LoginPage />} />
 
         <Route
           path="/admin"

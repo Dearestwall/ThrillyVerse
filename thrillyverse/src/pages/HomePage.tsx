@@ -45,13 +45,13 @@ export function HomePage() {
             <p className="hero-text">{settings.hero_subtitle}</p>
 
             <div className="hero-actions">
-              <Link to={settings.hero_cta_url || '/materials'} className="button button-primary">
-                {settings.hero_cta_text || 'Explore now'}
-              </Link>
-              <Link to="/admin" className="button button-ghost">
-                Open admin
-              </Link>
-            </div>
+  <Link to={settings.hero_cta_url || '/materials'} className="button button-primary">
+    {settings.hero_cta_text || 'Explore now'}
+  </Link>
+  <Link to="/blogs" className="button button-ghost">
+    Read blogs
+  </Link>
+</div>
 
             {settings.announcement && <div className="announcement-pill">{settings.announcement}</div>}
           </motion.div>
@@ -96,6 +96,27 @@ export function HomePage() {
           </motion.div>
         </div>
       </section>
+
+      <section className="section stats-strip-section">
+  <div className="container public-stats-grid">
+    <article className="card public-stat-card">
+      <strong>{projects.length}</strong>
+      <span>Projects</span>
+    </article>
+    <article className="card public-stat-card">
+      <strong>{materials.length}</strong>
+      <span>Materials</span>
+    </article>
+    <article className="card public-stat-card">
+      <strong>{movies.length}</strong>
+      <span>Movies & series</span>
+    </article>
+    <article className="card public-stat-card">
+      <strong>{blogs.filter(item => item.published).length}</strong>
+      <span>Published blogs</span>
+    </article>
+  </div>
+</section>
 
       <section className="section">
         <div className="container feature-strip">
