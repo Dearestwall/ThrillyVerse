@@ -55,6 +55,10 @@ export interface ContactSubmission {
 }
 
 export interface HomepageSettings {
+  hero_badge: any
+  hero_image_url: any
+  secondary_cta_text: any
+  secondary_cta_url: any
   id: string
   hero_title: string
   hero_subtitle: string

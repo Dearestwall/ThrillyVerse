@@ -9,6 +9,7 @@ import { BlogsPage } from './pages/BlogsPage'
 import { BlogDetailPage } from './pages/BlogDetailPage'
 import { ContactPage } from './pages/ContactPage'
 import { LoginPage } from './pages/LoginPage'
+import { ResetPasswordPage } from './pages/ResetPasswordPage'
 import { NotFoundPage } from './pages/NotFoundPage'
 import { AdminDashboard } from './pages/admin/AdminDashboard'
 import { AdminProjects } from './pages/admin/AdminProjects'
@@ -17,8 +18,12 @@ import { AdminMovies } from './pages/admin/AdminMovies'
 import { AdminBlogs } from './pages/admin/AdminBlogs'
 import { AdminContacts } from './pages/admin/AdminContacts'
 import { AdminHomepage } from './pages/admin/AdminHomepage'
+import { AdminAnalytics } from './pages/admin/AdminAnalytics'
+import { usePageTracking } from './hooks/usePageTracking'
 
 export default function App() {
+  usePageTracking()
+
   return (
     <Layout>
       <Routes>
@@ -29,6 +34,7 @@ export default function App() {
         <Route path="/blogs/:slug" element={<BlogDetailPage />} />
         <Route path="/contact" element={<ContactPage />} />
         <Route path={ADMIN_LOGIN_PATH} element={<LoginPage />} />
+        <Route path="/reset-password" element={<ResetPasswordPage />} />
 
         <Route
           path="/admin"
@@ -83,6 +89,14 @@ export default function App() {
           element={
             <AdminGuard>
               <AdminHomepage />
+            </AdminGuard>
+          }
+        />
+        <Route
+          path="/admin/analytics"
+          element={
+            <AdminGuard>
+              <AdminAnalytics />
             </AdminGuard>
           }
         />

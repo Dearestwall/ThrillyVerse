@@ -1,10 +1,29 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { isSupabaseConfigured, supabase } from '../lib/supabase'
 
-export function useCollection<T extends { id: string }>(table: string, demoData: T[]) {
+type ResourceRecord = {
+  id: string
+  created_at?: string
+}
+
+type UseCollectionOptions<T> = {
+  table: string
+  demoData: T[]
+  orderBy?: string
+  ascending?: boolean
+}
+
+export function useCollection<T extends ResourceRecord>({
+  table,
+  demoData,
+  orderBy = 'created_at',
+  ascending = false
+}: UseCollectionOptions<T>) {
   const [items, setItems] = useState<T[]>(demoData)
   const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [query, setQuery] = useState('')
 
   const refresh = useCallback(async () => {
     setLoading(true)
@@ -16,69 +35,132 @@ export function useCollection<T extends { id: string }>(table: string, demoData:
       return
     }
 
-    const tableRef: any = supabase.from(table)
-    const { data, error } = await tableRef.select('*').order('created_at', { ascending: false })
+    const response = await supabase.from(table).select('*').order(orderBy, { ascending })
 
-    if (error) {
-      setError(error.message)
-    } else {
-      setItems((data ?? []) as T[])
+    if (response.error) {
+      setError(response.error.message)
+      setLoading(false)
+      return
     }
 
+    setItems((response.data ?? []) as T[])
     setLoading(false)
-  }, [demoData, table])
+  }, [ascending, demoData, orderBy, table])
 
   useEffect(() => {
-    refresh()
+    void refresh()
   }, [refresh])
 
-  const createItem = async (payload: Partial<T>) => {
-    if (!isSupabaseConfigured) {
-      const next = {
-        id: crypto.randomUUID(),
-        ...payload
-      } as T
+  const createItem = useCallback(
+    async (payload: Partial<T>) => {
+      setSaving(true)
+      setError(null)
 
-      setItems(prev => [next, ...prev])
-      return next
-    }
+      try {
+        if (!isSupabaseConfigured) {
+          const next = {
+            id: crypto.randomUUID(),
+            ...payload,
+            created_at: new Date().toISOString()
+          } as T
 
-    const tableRef: any = supabase.from(table)
-    const { data, error } = await tableRef.insert(payload).select().single()
+          setItems((prev) => [next, ...prev])
+          return next
+        }
 
-    if (error) throw new Error(error.message)
+        const response = await supabase
+          .from(table)
+          .insert([payload as any])
+          .select()
+          .single()
 
-    setItems(prev => [data as T, ...prev])
-    return data as T
+        if (response.error) throw new Error(response.error.message)
+
+        const record = response.data as T
+        setItems((prev) => [record, ...prev])
+        return record
+      } finally {
+        setSaving(false)
+      }
+    },
+    [table]
+  )
+
+  const updateItem = useCallback(
+    async (id: string, payload: Partial<T>) => {
+      setSaving(true)
+      setError(null)
+
+      try {
+        if (!isSupabaseConfigured) {
+          setItems((prev) =>
+            prev.map((item) => (item.id === id ? ({ ...item, ...payload } as T) : item))
+          )
+          return
+        }
+
+        const response = await supabase
+          .from(table)
+          .update(payload as any)
+          .eq('id', id)
+          .select()
+          .single()
+
+        if (response.error) throw new Error(response.error.message)
+
+        const updated = response.data as T
+        setItems((prev) => prev.map((item) => (item.id === id ? updated : item)))
+      } finally {
+        setSaving(false)
+      }
+    },
+    [table]
+  )
+
+  const deleteItem = useCallback(
+    async (id: string) => {
+      setSaving(true)
+      setError(null)
+
+      try {
+        if (!isSupabaseConfigured) {
+          setItems((prev) => prev.filter((item) => item.id !== id))
+          return
+        }
+
+        const response = await supabase.from(table).delete().eq('id', id)
+
+        if (response.error) throw new Error(response.error.message)
+
+        setItems((prev) => prev.filter((item) => item.id !== id))
+      } finally {
+        setSaving(false)
+      }
+    },
+    [table]
+  )
+
+  const filteredItems = useMemo(() => {
+    const normalized = query.trim().toLowerCase()
+    if (!normalized) return items
+
+    return items.filter((item) =>
+      JSON.stringify(item).toLowerCase().includes(normalized)
+    )
+  }, [items, query])
+
+  return {
+    items,
+    filteredItems,
+    loading,
+    saving,
+    error,
+    query,
+    setQuery,
+    refresh,
+    createItem,
+    updateItem,
+    deleteItem,
+    total: items.length
   }
-
-  const updateItem = async (id: string, payload: Partial<T>) => {
-    if (!isSupabaseConfigured) {
-      setItems(prev => prev.map(item => (item.id === id ? ({ ...item, ...payload } as T) : item)))
-      return
-    }
-
-    const tableRef: any = supabase.from(table)
-    const { data, error } = await tableRef.update(payload).eq('id', id).select().single()
-
-    if (error) throw new Error(error.message)
-
-    setItems(prev => prev.map(item => (item.id === id ? (data as T) : item)))
-  }
-
-  const deleteItem = async (id: string) => {
-    if (!isSupabaseConfigured) {
-      setItems(prev => prev.filter(item => item.id !== id))
-      return
-    }
-
-    const tableRef: any = supabase.from(table)
-    const { error } = await tableRef.delete().eq('id', id)
-
-    if (error) throw new Error(error.message)
-
-    setItems(prev => prev.filter(item => item.id !== id))
-  }
-
-  return { items, loading, error, refresh, createItem, updateItem, deleteItem }
 }

@@ -1,82 +1,342 @@
-import { createContext, useContext, useEffect, useMemo, useState } from 'react'
-import type { User } from '@supabase/supabase-js'
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ReactNode
+} from 'react'
+import type { Session, User } from '@supabase/supabase-js'
 import { isSupabaseConfigured, supabase } from '../lib/supabase'
 
-interface AuthValue {
-  user: User | null
+type Role = 'guest' | 'admin'
+
+type ProfileRow = {
+  id: string
+  email: string | null
+  full_name: string | null
+  avatar_url: string | null
   role: string | null
-  loading: boolean
-  previewMode: boolean
-  signIn: (email: string, password: string) => Promise<{ error?: string }>
-  signOut: () => Promise<void>
+  is_active: boolean | null
+  created_at: string | null
+  updated_at: string | null
 }
 
-const AuthContext = createContext<AuthValue>({
-  user: null,
-  role: null,
-  loading: true,
-  previewMode: true,
-  signIn: async () => ({}),
-  signOut: async () => {}
-})
+type ActionResult = {
+  error: string | null
+}
 
-export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<User | null>(null)
-  const [role, setRole] = useState<string | null>(null)
-  const [loading, setLoading] = useState(true)
+type AuthContextValue = {
+  user: User | null
+  session: Session | null
+  profile: ProfileRow | null
+  role: Role
+  loading: boolean
+  initialized: boolean
+  signIn: (email: string, password: string) => Promise<ActionResult>
+  signOut: () => Promise<void>
+  sendPasswordReset: (email: string) => Promise<ActionResult>
+  updatePassword: (password: string) => Promise<ActionResult>
+  refreshProfile: () => Promise<void>
+}
 
-  useEffect(() => {
-    if (!isSupabaseConfigured) {
-      setLoading(false)
-      setRole('admin')
-      return
+const AuthContext = createContext<AuthContextValue | undefined>(undefined)
+
+function deriveRole(profile: ProfileRow | null): Role {
+  if (!profile) return 'guest'
+  if (profile.is_active === false) return 'guest'
+  return profile.role === 'admin' ? 'admin' : 'guest'
+}
+
+function withTimeout<T>(promise: Promise<T>, ms = 2500): Promise<T> {
+  return new Promise((resolve, reject) => {
+    const timer = window.setTimeout(() => {
+      reject(new Error(`Timed out after ${ms}ms`))
+    }, ms)
+
+    promise
+      .then((value) => {
+        window.clearTimeout(timer)
+        resolve(value)
+      })
+      .catch((error) => {
+        window.clearTimeout(timer)
+        reject(error)
+      })
+  })
+}
+
+async function fetchProfile(userId: string): Promise<ProfileRow | null> {
+  try {
+    const result = await withTimeout(
+      Promise.resolve(
+        supabase
+          .from('profiles')
+          .select('id,email,full_name,avatar_url,role,is_active,created_at,updated_at')
+          .eq('id', userId)
+          .single()
+      ),
+      2500
+    )
+
+    const { data, error } = result
+
+    if (error) {
+      console.error('[Auth] Profile fetch error:', error.message)
+      return null
     }
 
-    supabase.auth.getSession().then(async ({ data }) => {
-      const sessionUser = data.session?.user ?? null
-      setUser(sessionUser)
-      if (sessionUser) {
-        const { data: profile } = await supabase.from('profiles').select('role').eq('id', sessionUser.id).single()
-        setRole(profile?.role ?? 'user')
-      }
+    return data as ProfileRow
+  } catch (error) {
+    console.error('[Auth] Profile fetch failed:', error)
+    return null
+  }
+}
+
+export function AuthProvider({ children }: { children: ReactNode }) {
+  const mounted = useRef(true)
+
+  const [user, setUser] = useState<User | null>(null)
+  const [session, setSession] = useState<Session | null>(null)
+  const [profile, setProfile] = useState<ProfileRow | null>(null)
+  const [role, setRole] = useState<Role>('guest')
+  const [loading, setLoading] = useState(true)
+  const [initialized, setInitialized] = useState(false)
+
+  const applySession = useCallback(async (nextSession: Session | null) => {
+    const nextUser = nextSession?.user ?? null
+
+    setSession(nextSession)
+    setUser(nextUser)
+
+    if (!nextUser) {
+      setProfile(null)
+      setRole('guest')
+      return 'guest'
+    }
+
+    const nextProfile = await fetchProfile(nextUser.id)
+    const nextRole = deriveRole(nextProfile)
+
+    setProfile(nextProfile)
+    setRole(nextRole)
+
+    return nextRole
+  }, [])
+
+  const refreshProfile = useCallback(async () => {
+    if (!user?.id) return
+
+    const nextProfile = await fetchProfile(user.id)
+    const nextRole = deriveRole(nextProfile)
+    setProfile(nextProfile)
+    setRole(nextRole)
+  }, [user])
+
+  useEffect(() => {
+    mounted.current = true
+
+    if (!isSupabaseConfigured) {
+      setUser(null)
+      setSession(null)
+      setProfile(null)
+      setRole('guest')
       setLoading(false)
-    })
+      setInitialized(true)
+      return () => {
+        mounted.current = false
+      }
+    }
+
+    const hardRelease = window.setTimeout(() => {
+      if (!mounted.current) return
+      console.warn('[Auth] Hard release fired')
+      setLoading(false)
+      setInitialized(true)
+    }, 3000)
+
+    const boot = async () => {
+      try {
+        const {
+          data: { session: currentSession },
+          error
+        } = await withTimeout(supabase.auth.getSession(), 2500)
+
+        if (error) {
+          console.error('[Auth] getSession error:', error.message)
+          setUser(null)
+          setSession(null)
+          setProfile(null)
+          setRole('guest')
+        } else {
+          await applySession(currentSession ?? null)
+        }
+
+        if (window.location.hash.includes('access_token=')) {
+          window.history.replaceState({}, document.title, window.location.pathname + window.location.search)
+        }
+      } catch (error) {
+        console.error('[Auth] Boot failed:', error)
+        setUser(null)
+        setSession(null)
+        setProfile(null)
+        setRole('guest')
+      } finally {
+        if (mounted.current) {
+          window.clearTimeout(hardRelease)
+          setLoading(false)
+          setInitialized(true)
+        }
+      }
+    }
+
+    boot()
 
     const {
       data: { subscription }
-    } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      const sessionUser = session?.user ?? null
-      setUser(sessionUser)
-      if (sessionUser) {
-        const { data: profile } = await supabase.from('profiles').select('role').eq('id', sessionUser.id).single()
-        setRole(profile?.role ?? 'user')
-      } else {
-        setRole(null)
+    } = supabase.auth.onAuthStateChange(async (_event, nextSession) => {
+      if (!mounted.current) return
+
+      try {
+        setLoading(true)
+        await applySession(nextSession ?? null)
+
+        if (window.location.hash.includes('access_token=')) {
+          window.history.replaceState({}, document.title, window.location.pathname + window.location.search)
+        }
+      } catch (error) {
+        console.error('[Auth] onAuthStateChange failed:', error)
+        setUser(null)
+        setSession(null)
+        setProfile(null)
+        setRole('guest')
+      } finally {
+        if (mounted.current) {
+          setLoading(false)
+          setInitialized(true)
+        }
       }
     })
 
-    return () => subscription.unsubscribe()
-  }, [])
-
-  const signIn = async (email: string, password: string) => {
-    if (!isSupabaseConfigured) {
-      return {}
+    return () => {
+      mounted.current = false
+      window.clearTimeout(hardRelease)
+      subscription.unsubscribe()
     }
-    const { error } = await supabase.auth.signInWithPassword({ email, password })
-    return error ? { error: error.message } : {}
-  }
+  }, [applySession])
 
-  const signOut = async () => {
-    if (!isSupabaseConfigured) return
-    await supabase.auth.signOut()
-  }
+  const value = useMemo<AuthContextValue>(
+    () => ({
+      user,
+      session,
+      profile,
+      role,
+      loading,
+      initialized,
 
-  const value = useMemo(
-    () => ({ user, role, loading, previewMode: !isSupabaseConfigured, signIn, signOut }),
-    [user, role, loading]
+      signIn: async (email: string, password: string) => {
+        try {
+          setLoading(true)
+
+          const { data, error } = await withTimeout(
+            supabase.auth.signInWithPassword({
+              email: email.trim(),
+              password
+            }),
+            5000
+          )
+
+          if (error) {
+            setLoading(false)
+            return { error: error.message }
+          }
+
+          const nextRole = await applySession(data.session ?? null)
+
+          if (nextRole !== 'admin') {
+            await supabase.auth.signOut()
+            setUser(null)
+            setSession(null)
+            setProfile(null)
+            setRole('guest')
+            setLoading(false)
+            return { error: 'This account does not have admin access.' }
+          }
+
+          setLoading(false)
+          return { error: null }
+        } catch (error) {
+          console.error('[Auth] signIn failed:', error)
+          setLoading(false)
+          return {
+            error: error instanceof Error ? error.message : 'Unable to sign in.'
+          }
+        }
+      },
+
+      signOut: async () => {
+        try {
+          await supabase.auth.signOut()
+        } catch (error) {
+          console.error('[Auth] signOut failed:', error)
+        } finally {
+          setUser(null)
+          setSession(null)
+          setProfile(null)
+          setRole('guest')
+          setLoading(false)
+          setInitialized(true)
+        }
+      },
+
+      sendPasswordReset: async (email: string) => {
+        try {
+          const { error } = await withTimeout(
+            supabase.auth.resetPasswordForEmail(email.trim(), {
+              redirectTo: `${window.location.origin}/reset-password`
+            }),
+            5000
+          )
+
+          return { error: error?.message ?? null }
+        } catch (error) {
+          return {
+            error: error instanceof Error ? error.message : 'Could not send reset email.'
+          }
+        }
+      },
+
+      updatePassword: async (password: string) => {
+        try {
+          const { error } = await withTimeout(
+            supabase.auth.updateUser({ password }),
+            5000
+          )
+
+          return { error: error?.message ?? null }
+        } catch (error) {
+          return {
+            error: error instanceof Error ? error.message : 'Could not update password.'
+          }
+        }
+      },
+
+      refreshProfile
+    }),
+    [user, session, profile, role, loading, initialized, applySession, refreshProfile]
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }
 
-export const useAuth = () => useContext(AuthContext)
+export function useAuth() {
+  const ctx = useContext(AuthContext)
+
+  if (!ctx) {
+    throw new Error('useAuth must be used inside AuthProvider')
+  }
+
+  return ctx
+}

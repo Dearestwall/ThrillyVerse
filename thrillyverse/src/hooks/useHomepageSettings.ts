@@ -3,32 +3,74 @@ import { demoHomepageSettings } from '../data/demo'
 import { isSupabaseConfigured, supabase } from '../lib/supabase'
 import type { HomepageSettings } from '../types'
 
+const SETTINGS_ID = 'home-default'
+
 export function useHomepageSettings() {
-  const [settings, setSettings] = useState<HomepageSettings>(demoHomepageSettings)
+  const [settings, setSettings] = useState<HomepageSettings>({
+    ...demoHomepageSettings,
+    id: SETTINGS_ID
+  } as HomepageSettings)
   const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     async function load() {
+      setLoading(true)
+      setError(null)
+
       if (!isSupabaseConfigured) {
         setLoading(false)
         return
       }
 
-      const { data } = await supabase.from('homepage_settings').select('*').limit(1).maybeSingle()
-      if (data) setSettings(data as HomepageSettings)
+      const response = await supabase
+        .from('homepage_settings')
+        .select('*')
+        .eq('id', SETTINGS_ID)
+        .maybeSingle()
+
+      if (response.error) {
+        setError(response.error.message)
+      } else if (response.data) {
+        setSettings(response.data as HomepageSettings)
+      }
+
       setLoading(false)
     }
 
-    load()
+    void load()
   }, [])
 
   const save = async (payload: HomepageSettings) => {
-    setSettings(payload)
-    if (!isSupabaseConfigured) return
+    const normalized = { ...payload, id: SETTINGS_ID } as HomepageSettings
 
-    const { error } = await supabase.from('homepage_settings').upsert(payload)
-    if (error) throw new Error(error.message)
+    setSaving(true)
+    setError(null)
+    setSettings(normalized)
+
+    try {
+      if (!isSupabaseConfigured) return
+
+      const response = await supabase
+        .from('homepage_settings')
+        .upsert(normalized, { onConflict: 'id' })
+        .select()
+        .single()
+
+      if (response.error) throw new Error(response.error.message)
+
+      if (response.data) {
+        setSettings(response.data as HomepageSettings)
+      }
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Could not save homepage settings.'
+      setError(message)
+      throw new Error(message)
+    } finally {
+      setSaving(false)
+    }
   }
 
-  return { settings, loading, save }
+  return { settings, loading, saving, error, save }
 }
