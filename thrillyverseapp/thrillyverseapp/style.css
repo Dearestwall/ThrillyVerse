@@ -1,0 +1,1296 @@
+/*------------------------------------------------------
+  CSS Variables & Global Reset
+------------------------------------------------------*/
+:root {
+  --primary-color: #6a11cb;
+  --secondary-color: #2575fc;
+  --accent-color: #ffab00;
+  --text-color: #fff;
+  --background-gradient: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+/*------------------------------------------------------
+  Global & Body Styling
+------------------------------------------------------*/
+body {
+  font-family: Arial, sans-serif;
+  background: var(--background-gradient);
+  color: var(--text-color);
+  line-height: 1.6;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/*------------------------------------------------------
+  HEADER & Navigation
+------------------------------------------------------*/
+header {
+  padding: 1.5rem 1rem;
+  background: rgba(0, 0, 0, 0.85);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  text-align: left;
+  position: relative;
+  z-index: 100; /* Ensure header is above other content */
+}
+
+.header-logo {
+  width: 80px;
+  flex-shrink: 0;
+}
+
+.news-header .header-logo {
+  width: 50px; /* Smaller logo for news page */
+}
+
+.site-logo {
+  width: 100%;
+  height: auto;
+  border-radius: 50%; /* Circular logo */
+}
+
+.header-content {
+  display: flex;
+  flex-direction: column;
+}
+
+header h1 {
+  font-size: 2.5rem;
+  margin-bottom: 0.25rem;
+}
+
+.header-content p,
+header p {
+  font-size: 1.2rem;
+  color: #ccc;
+}
+
+/* Tagline styling */
+.header-content .tagline {
+  font-size: 1.2rem;
+  color: #ccc;
+  margin-top: 0.25rem;
+  font-style: italic;
+}
+
+/* Navigation */
+.main-nav {
+  margin-left: auto;
+  position: relative;
+  z-index: 110; /* Place nav above announcement */
+}
+
+.main-nav ul {
+  list-style: none;
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+
+/* Mobile Hamburger Toggle Button */
+.menu-toggle {
+  display: none;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 2.5rem; /* Larger icon */
+  color: var(--text-color);
+  transition: transform 0.3s ease;
+  position: absolute;
+  top: 1.5rem;
+  right: 1rem;
+  z-index: 120;
+}
+
+.menu-toggle.active {
+  transform: rotate(90deg);
+  /* You may change color if desired */
+}
+
+.main-nav a {
+  text-decoration: none;
+  color: var(--text-color);
+  transition: color 0.3s ease, transform 0.3s ease;
+}
+
+.main-nav a:hover,
+.main-nav a.active {
+  color: var(--accent-color);
+  transform: translateY(-3px);
+}
+
+/* Responsive Navigation: show hamburger and vertical menu */
+@media (max-width: 768px) {
+  .main-nav ul {
+    display: none;
+    flex-direction: column;
+    background: rgba(0, 0, 0, 0.9);
+    position: absolute;
+    top: 100%;
+    right: 0;
+    width: 200px;
+    padding: 1rem;
+    border-radius: 0 0 5px 5px;
+    animation: slideDownMenu 0.3s ease-out;
+  }
+  .menu-toggle {
+    display: block;
+  }
+}
+@keyframes slideDownMenu {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/*------------------------------------------------------
+  Announcement Section
+------------------------------------------------------*/
+.announcement {
+  background: var(--accent-color);
+  color: #000;
+  padding: 0px;
+  text-align: center;
+  font-size: 1.0rem;
+  font-weight: bold;
+  box-shadow: 0 2px 1px rgba(0,0,0,0.15);
+  margin: 2px 5px;
+  border-radius: 2px;
+  transform: translateX(-100%);
+  opacity: 0;
+  animation: slideInHorizontal 0.6s ease-out forwards;
+  transition: opacity 0.3s ease-in-out;
+}
+
+@keyframes slideInHorizontal {
+  to { transform: translateX(0); opacity: 1; }
+}
+/*------------------------------------------------------
+ Desktop view announcement
+------------------------------------------------------*/
+#desktopNotice {
+  background: #ffab00;            /* Accent background */
+  color: #000;                     /* Contrast text color */
+  padding: 10px;
+  text-align: center;
+  font-size: 1rem;
+  display: none;                   /* Hidden by default */
+  margin: 10px 0;                  
+  overflow: hidden;                /* Hide overflow for the sliding text */
+}
+
+.marquee {
+  display: inline-block;
+  white-space: nowrap;
+  animation: marquee 10s linear infinite;
+}
+
+@keyframes marquee {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+
+/*------------------------------------------------------
+  MAIN Content Styling
+------------------------------------------------------*/
+main {
+  padding: 2rem;
+  text-align: center;
+  flex-grow: 1;
+}
+
+h2 {
+  font-size: 2.5rem;
+  color: var(--text-color);
+  margin-bottom: 1rem;
+  animation: slideUp 1s ease-out;
+}
+
+h3 {
+  font-size: 2rem;
+  margin-top: 2rem;
+  color: var(--accent-color);
+  animation: fadeInUp 1s ease-out;
+}
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/*------------------------------------------------------
+  Projects Section (Home Page)
+------------------------------------------------------*/
+.projects {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 2rem;
+}
+
+/* Responsive Slider for Screenshots */
+.slider {
+  position: relative;
+  overflow: hidden;
+  max-width: 100%;
+  height: 300px;
+}
+@media (min-width: 1200px) {
+  .slider {
+    height: 50vh;
+    max-height: 500px;
+  }
+}
+.slides {
+  display: flex;
+  transition: transform 0.5s ease-in-out;
+  height: 100%;
+}
+.slides img {
+  width: 100%;
+  flex-shrink: 0;
+  object-fit: contain;
+}
+.slider-prev,
+.slider-next {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(0,0,0,0.7);
+  color: #fff;
+  border: none;
+  font-size: 2rem;
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  border-radius: 4px;
+}
+.slider-prev { left: 10px; }
+.slider-next { right: 10px; }
+.project-image img:not(.slides img) {
+  width: 100%;
+  height: auto;
+  object-fit: cover;
+  cursor: pointer;
+}
+.project-card {
+  background: rgba(255,255,255,0.1);
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  overflow: hidden;
+  transition: transform 0.3s ease;
+  margin-bottom: 1.5rem;
+}
+.project-card:hover { transform: scale(1.02); }
+.project-header {
+  display: flex;
+  align-items: center;
+  padding: 1rem;
+  background: rgba(0,0,0,0.2);
+}
+.project-logo {
+  width: 50px;
+  height: 50px;
+  object-fit: cover;
+  border-radius: 50%;
+  margin-right: 1rem;
+}
+.project-header h3.project-title {
+  font-size: 1.8rem;
+  color: var(--accent-color);
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.project-button {
+  padding: 1rem;
+}
+.project-button button {
+  background-color: var(--accent-color);
+  border: none;
+  padding: 0.75rem 1.5rem;
+  color: #fff;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+.project-button button:hover { background-color: #e09b00; }
+
+/*------------------------------------------------------
+  Tabs, Search, and Subjects (Materials Page)
+------------------------------------------------------*/
+.main-tabs {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  background: var(--background-gradient);
+  padding: 0.5rem 1rem;
+  border-radius: 5px;
+  margin: 10px 20px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+.tabs-container ul {
+  list-style: none;
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+.tabs-container li {
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  background: rgba(255,255,255,0.7);
+  border-radius: 5px;
+  transition: background 0.3s ease, transform 0.3s ease;
+  color: #333;
+  white-space: nowrap;
+}
+.tabs-container li.active,
+.tabs-container li:hover {
+  background: #fff;
+  color: var(--secondary-color);
+  transform: translateY(-3px);
+}
+#searchBarContainer {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px;
+  border: 1px solid #000;
+  border-radius: 50px;
+  background: rgba(255,255,255,0.95);
+  max-width: 300px;
+  margin-top: 0.5rem;
+}
+#searchInput {
+  flex: 1;
+  padding: 5px 8px;
+  font-size: 0.8rem;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: #333;
+  text-align: center;
+}
+#searchButton, #clearSearch {
+  background-color: var(--accent-color);
+  border: none;
+  padding: 5px 8px;
+  cursor: pointer;
+  border-radius: 50px;
+  color: #fff;
+  font-size: 0.8rem;
+  font-weight: bold;
+  transition: background 0.3s ease;
+}
+#searchButton:hover { background-color: #e69500; }
+#clearSearch {
+  background-color: #ff4d4d;
+  width: 25px;
+  height: 25px;
+  display: none;
+  align-items: center;
+  justify-content: center;
+}
+#clearSearch:hover { background-color: #cc0000; }
+#errorMessage {
+  display: none;
+  text-align: center;
+  font-size: 0.9rem;
+  padding: 8px;
+  margin: 10px 20px;
+  color: #ff4d4d;
+  background: rgba(255,0,0,0.1);
+  border: 1px solid #ff4d4d;
+  border-radius: 5px;
+  font-weight: bold;
+}
+
+/* Subject Tabs & PDF Grid */
+.subject-tabs ul {
+  list-style: none;
+  display: flex;
+  overflow-x: auto;
+  gap: 10px;
+  margin-bottom: 1rem;
+  padding: 0 20px;
+  -webkit-overflow-scrolling: touch;
+}
+.subject-tabs ul::-webkit-scrollbar { display: none; }
+.subject-tabs li {
+  padding: 0.6rem 1rem;
+  cursor: pointer;
+  background: #ddd;
+  border-radius: 5px;
+  color: #333;
+  font-size: 0.8rem;
+  transition: background 0.3s ease;
+  text-align: center;
+  white-space: nowrap;
+}
+.subject-tabs li.active,
+.subject-tabs li:hover {
+  background: var(--secondary-color);
+  color: #fff;
+}
+.subjects-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  padding: 0 20px;
+}
+.subject-section {
+  display: none;
+  animation: fadeIn 0.5s ease-in;
+}
+.subject-section.active { display: block; }
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+.subject-section h2 {
+  text-align: center;
+  color: var(--text-color);
+  margin-bottom: 1rem;
+}
+.pdf-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 1rem;
+  padding: 1rem;
+}
+.pdf-item {
+  background: #fff;
+  color: #333;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  text-align: center;
+  transition: transform 0.3s ease;
+  padding: 0.8rem;
+}
+.pdf-item:hover { transform: scale(1.05); }
+.pdf-item a {
+  text-decoration: none;
+  color: inherit;
+  display: block;
+  padding: 0.5rem;
+}
+.pdf-item img {
+  max-width: 60px;
+  margin: 0 auto 0.5rem;
+  display: block;
+}
+.pdf-details h3 {
+  font-size: 0.9rem;
+  margin-bottom: 0.2rem;
+}
+.pdf-details p {
+  font-size: 0.75rem;
+  padding: 0 0.5rem;
+  color: #555;
+}
+
+/*------------------------------------------------------
+  NEWS Section (Materials Page)
+------------------------------------------------------*/
+.material-news {
+  background: rgba(0, 0, 0, 0.6);
+  padding: 20px;
+  border-radius: 10px;
+  margin: 20px auto;
+  max-width: 1100px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+}
+.material-news .news-card {
+  display: flex;
+  align-items: center;
+  background: #fff;
+  color: #333;
+  padding: 10px;
+  border-radius: 5px;
+  margin-bottom: 1rem;
+  transition: transform 0.3s ease, background 0.3s ease;
+  cursor: pointer;
+}
+.material-news .news-card:hover {
+  transform: scale(1.02);
+  background: rgba(255,255,255,0.9);
+}
+.material-news .news-thumb {
+  flex-shrink: 0;
+  margin-right: 10px;
+}
+.material-news .news-thumb img {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+.material-news .news-content {
+  text-align: left;
+}
+.material-news .news-content h2 {
+  font-size: 1.5rem;
+  margin-bottom: 0.25rem;
+  color: var(--accent-color);
+}
+.material-news .news-content p {
+  font-size: 0.95rem;
+  color: #555;
+}
+
+/*------------------------------------------------------
+  NEWS Section (News Page)
+------------------------------------------------------*/
+/* ================================
+   NEWS TAB CONTENT Styling
+================================*/
+#news.tab-content {
+  display: none; /* Hidden by default; JS toggles display */
+  padding: 2rem 1rem;
+  animation: fadeInNews 0.8s ease-out forwards;
+}
+
+#news h2 {
+  font-size: 2.5rem;
+  margin-bottom: 1rem;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: var(--text-color);
+  position: relative;
+}
+
+#news h2::after {
+  content: '';
+  position: absolute;
+  bottom: -5px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 80px;
+  height: 3px;
+  background: var(--accent-color);
+}
+
+.news-items {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  padding: 1rem 2rem;
+}
+
+.news-item {
+  background: rgba(255, 255, 255, 0.1);
+  padding: 1.5rem;
+  border-radius: 10px;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+}
+
+.news-item:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+}
+
+.news-item h3 {
+  font-size: 1.8rem;
+  color: var(--accent-color);
+  margin-bottom: 0.5rem;
+}
+
+.news-item p {
+  font-size: 1rem;
+  color: #ddd;
+  line-height: 1.4;
+  margin-bottom: 1rem;
+}
+
+.news-item .read-more {
+  font-size: 1rem;
+  color: var(--black-color);
+  text-decoration: none;
+  font-weight: bold;
+  padding: 0.5rem 1rem;
+  border: 1px solid var(--secondary-color);
+  border-radius: 25px;
+  transition: background 0.3s ease, color 0.3s ease, transform 0.3s ease;
+}
+
+.news-item .read-more:hover {
+  background: var(--secondary-color);
+  color: #111;
+  transform: translateY(-2px);
+}
+/* Styling links within the News modal content */
+.modal-content a {
+  color: var(--accent-color);
+  text-decoration: none;
+  border-bottom: 2px solid transparent;
+  transition: color 0.3s ease, border-bottom 0.3s ease, transform 0.3s ease;
+}
+
+.modal-content a:hover {
+  color: var(--secondary-color);
+  border-bottom: 2px solid var(--secondary-color);
+  transform: translateY(-2px);
+}
+
+/* Keyframe for fade-in animation */
+@keyframes fadeInNews {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+
+/* ================================
+   Quiz Tab Content Styling
+================================*/
+#quiz.tab-content {
+  display: none; /* Hidden by default, shown via JS when active */
+  padding: 2rem 1rem;
+  margin: 20px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.05);
+  animation: fadeInQuiz 0.8s ease-out forwards;
+}
+
+#quiz h2 {
+  font-size: 2.2rem;
+  margin-bottom: 1rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--accent-color);
+  position: relative;
+}
+
+#quiz h2::after {
+  content: '';
+  position: absolute;
+  bottom: -5px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 60px;
+  height: 3px;
+  background: var(--accent-color);
+}
+
+#quiz p {
+  font-size: 1rem;
+  color: #ddd;
+  margin-bottom: 1.5rem;
+}
+
+#quiz ul {
+  list-style: none;
+  padding: 0;
+}
+
+#quiz ul li {
+  background: rgba(255, 255, 255, 0.1);
+  margin: 1rem 0;
+  padding: 1rem;
+  border-radius: 8px;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  cursor: pointer;
+}
+
+#quiz ul li:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+}
+
+#quiz ul li a {
+  font-size: 1.1rem;
+  color: var(--white-color);
+  text-decoration: none;
+  display: inline-block;
+  padding: 0.5rem 1rem;
+  border: 1px solid var(--secondary-color);
+  border-radius: 25px;
+  transition: background 0.3s ease, color 0.3s ease, transform 0.3s ease;
+}
+
+#quiz ul li a:hover {
+  background: var(--secondary-color);
+  color: #111;
+  transform: translateY(-2px);
+}
+
+@keyframes fadeInQuiz {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/*------------------------------------------------------
+  Popup Notification
+------------------------------------------------------*/
+.popup-notification {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background: #323232;
+  color: #fff;
+  padding: 15px 20px;
+  border-radius: 5px;
+  display: none;
+  align-items: center;
+  gap: 10px;
+  animation: fadeInPopup 0.5s ease-in-out forwards;
+  z-index: 1100;
+}
+@keyframes fadeInPopup {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.popup-notification .popup-text a {
+  color: var(--accent-color);
+  text-decoration: underline;
+}
+.popup-notification .close-popup {
+  background: transparent;
+  border: none;
+  font-size: 1.2rem;
+  color: #fff;
+  cursor: pointer;
+}
+
+/*------------------------------------------------------
+  Footer Styling
+------------------------------------------------------*/
+/* Base Footer Styles */
+.site-footer {
+  background: #111;
+  color: #eee;
+  padding: 2rem 1rem;
+  font-family: Arial, sans-serif;
+}
+
+.footer-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.5rem;
+  max-width: 1200px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.footer-section {
+  padding: 1rem;
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.footer-icon {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  object-fit: cover;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.footer-icon:hover {
+  transform: scale(1.1);
+  box-shadow: 0 0 10px 3px rgba(255, 171, 0, 0.7);
+}
+
+.footer-section h3 {
+  font-size: 1.3rem;
+  color: #ffab00;
+  margin: 0;
+}
+
+.footer-section ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.footer-section li {
+  margin: 0.5rem 0;
+  font-size: 1rem;
+  transition: color 0.3s ease;
+}
+
+/* Link styling with hover effects */
+.footer-section li a {
+  display: inline-block;
+  color: #eee;
+  text-decoration: none;
+  padding: 0.4em 0.6em;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  transition: background 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+}
+
+.footer-section li a:hover {
+  background: #ffab00;
+  color: #111;
+  border-color: #ffab00;
+}
+
+/* Footer Bottom */
+.footer-bottom {
+  border-top: 1px solid #444;
+  padding-top: 1rem;
+  margin-top: 2rem;
+  font-size: 0.85rem;
+  color: #aaa;
+  text-align: center;
+}
+
+/* Responsive Adjustments for Small Screens */
+@media (max-width: 600px) {
+  /* Hide images on small screens */
+  .footer-icon {
+    display: none;
+  }
+  /* Reduce font size for list items */
+  .footer-section li {
+    font-size: 0.85rem;
+  }
+  /* Adjust section header */
+  .section-header {
+    justify-content: center;
+  }
+}
+
+/*------------------------------------------------------
+  Back To Top Button
+------------------------------------------------------*/
+#backToTop {
+  position: fixed;
+  bottom: 30px;
+  right: 30px;
+  background-color: var(--accent-color);
+  border: none;
+  border-radius: 50%;
+  width: 50px;
+  height: 50px;
+  color: var(--text-color);
+  font-size: 1.5rem;
+  cursor: pointer;
+  opacity: 0.7;
+  transition: opacity 0.3s ease;
+  display: none;
+  z-index: 1000;
+}
+#backToTop:hover { opacity: 1; }
+
+/*------------------------------------------------------
+  Modal (News) Styles
+------------------------------------------------------*/
+.modal {
+  display: none;
+  position: fixed;
+  z-index: 999;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.8);
+  animation: fadeIn 0.5s ease-out;
+}
+.modal-content {
+  background: rgba(0,0,0,0.9);
+  margin: 5% auto;
+  padding: 20px;
+  border-radius: 10px;
+  width: 90%;
+  max-width: 800px;
+  position: relative;
+  animation: slideDown 0.5s ease-out;
+  border: 2px solid var(--accent-color);
+  max-height: 80vh;
+  overflow-y: auto;
+}
+.close-modal {
+  position: absolute;
+  top: 10px;
+  right: 15px;
+  font-size: 3rem;
+  color: red;
+  font-weight: bold;
+  cursor: pointer;
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes slideDown {
+  from { transform: translateY(-20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+/*------------------------------------------------------
+  Call-to-Action Button
+------------------------------------------------------*/
+.cta-button {
+  display: inline-block;
+  background: linear-gradient(to right, var(--primary-color), var(--secondary-color));
+  color: var(--text-color);
+  font-size: 1.1rem;
+  font-weight: bold;
+  padding: 12px 24px;
+  border-radius: 50px;
+  border: none;
+  cursor: pointer;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  text-decoration: none;
+  text-align: center;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+  animation: pulse 1.5s infinite;
+}
+.cta-button:hover {
+  background: linear-gradient(to right, var(--secondary-color), var(--primary-color));
+  transform: translateY(-3px);
+  box-shadow: 0 6px 12px rgba(0,0,0,0.3);
+}
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+
+/*------------------------------------------------------
+  Responsive Design
+------------------------------------------------------*/
+@media (max-width: 768px) {
+  header h1 { font-size: 2.5rem; }
+  header p { font-size: 1.2rem; }
+  /* Hide standard nav and show hamburger */
+  .main-nav ul { display: none; }
+  .menu-toggle { display: block; }
+  #searchBarContainer { max-width: 100%; }
+  #searchInput { font-size: 0.75rem; padding: 4px 6px; }
+  #searchButton, #clearSearch { font-size: 0.7rem; padding: 4px 6px; }
+  .subject-tabs li { font-size: 0.75rem; }
+  .pdf-list { grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); }
+  #quiz { margin: 10px; padding: 15px; }
+  .announcement { font-size: 1rem; padding: 10px; }
+}
+
+@media (max-width: 480px) {
+  header h1 { font-size: 2rem; }
+  header p { font-size: 1rem; }
+  #searchBarContainer { max-width: 100%; }
+  .pdf-list { grid-template-columns: 1fr; }
+  .popup-notification { width: 90%; bottom: 10px; right: 5%; }
+  .announcement { font-size: 0.9rem; padding: 10px; margin: 5px 10px; }
+}
+/* ----- Additional Styles for Class and Stream Buttons ----- */
+/* Class Buttons */
+    .class-buttons {
+      display: flex;
+      justify-content: center;
+      gap: 1rem;
+      margin: 1rem 0;
+      flex-wrap: wrap;
+    }
+    .class-btn {
+      padding: 0.75rem 1.25rem;
+      font-size: 1rem;
+      border: 2px solid var(--accent-color);
+      border-radius: 25px;
+      background: transparent;
+      color: var(--text-color);
+      cursor: pointer;
+      transition: background 0.3s ease, color 0.3s ease, transform 0.3s ease;
+    }
+    .class-btn.active {
+      background: var(--accent-color);
+      color: #111;
+      transform: translateY(-2px);
+    }
+    /* Stream Buttons (Horizontally scrollable) */
+    .stream-buttons {
+      display: flex;
+      gap: 1rem;
+      overflow-x: auto;
+      padding-bottom: 0.5rem;
+      margin: 1rem 0;
+      -webkit-overflow-scrolling: touch;
+    }
+    .stream-buttons::-webkit-scrollbar {
+      display: none;
+    }
+    .stream-btn {
+      flex: 0 0 auto;
+      padding: 0.75rem 1.25rem;
+      font-size: 1rem;
+      border: 2px solid var(--accent-color);
+      border-radius: 25px;
+      background: transparent;
+      color: var(--text-color);
+      cursor: pointer;
+      transition: background 0.3s ease, color 0.3s ease, transform 0.3s ease;
+    }
+    .stream-btn.active {
+      background: var(--accent-color);
+      color: #111;
+      transform: translateY(-2px);
+    }
+    /* Utility: Hide element completely */
+    .hidden { display: none !important; }
+    /* Responsive adjustments for buttons */
+    @media (max-width: 600px) {
+      .class-btn, .stream-btn {
+        font-size: 0.9rem;
+        padding: 0.5rem 1rem;
+      }
+    }
+/* Floating Bubble Background */
+.bubble-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none; /* Bubbles won't interfere with clicks */
+  z-index: -1; /* Place behind all content */
+  overflow: hidden;
+}
+
+.bubble {
+  position: absolute;
+  background: rgba(255, 255, 255, 0.2); /* Semi-transparent bubble color */
+  border-radius: 50%;
+  opacity: 0.6;
+  animation: floatBubble 10s infinite ease-in-out;
+}
+
+/* Keyframes for bubble floating animation */
+@keyframes floatBubble {
+  0% {
+    transform: translateY(0) scale(0.8);
+    opacity: 0.8;
+  }
+  50% {
+    transform: translateY(-100vh) scale(1.2);
+    opacity: 0.3;
+  }
+  100% {
+    transform: translateY(0) scale(0.8);
+    opacity: 0.8;
+  }
+}
+/* Donate Error Popup Styles */
+#donateError {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(255, 77, 77, 0.9);
+  color: #fff;
+  padding: 1rem 2rem;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+  z-index: 2000;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.5s ease, transform 0.5s ease;
+}
+
+#donateError.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* Container Styling */
+.review-section {
+  max-width: 600px;
+  margin: 1rem auto;
+  background-color: #000;
+  color: #fff;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  padding: 1rem;
+}
+
+/* Reviews Display */
+.reviews-display {
+  overflow-x: auto;
+  white-space: nowrap;
+  padding: 0.5rem;
+  margin-bottom: 1rem;
+}
+.reviews-display ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  gap: 1rem;
+}
+.reviews-display li {
+  flex: 0 0 auto;
+  background-color: #fff;
+  color: #000;
+  border: 1px solid #000;
+  border-radius: 8px;
+  padding: 0.5rem;
+  max-width: 150px;
+  transition: transform 0.3s;
+  position: relative;
+  cursor: pointer;
+}
+.reviews-display li:hover {
+  transform: scale(1.05);
+}
+
+/* Hide scrollbar */
+.reviews-display::-webkit-scrollbar {
+  display: none;
+}
+.reviews-display {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Review text container */
+.review-text-container {
+  max-height: 40px;
+  overflow: hidden;
+  transition: max-height 0.3s ease-in-out;
+}
+.reviews-display li:hover .review-text-container {
+  max-height: 500px;
+}
+
+/* "Write a Review" Button */
+.open-review {
+  display: block;
+  margin: 0 auto 1rem;
+  padding: 0.5rem 1rem;
+  background-color: #fff;
+  color: #000;
+  border: 1px solid #000;
+  border-radius: 6px;
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+/* Review Form Styling */
+.review-form {
+  display: none;
+  background-color: #fff;
+  color: #000;
+  border: 1px solid #000;
+  border-radius: 8px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+.review-form input,
+.review-form textarea {
+  width: 100%;
+  padding: 0.5rem;
+  margin-bottom: 0.5rem;
+  border: 1px solid #000;
+  border-radius: 4px;
+  font-size: 1rem;
+  color: #000;
+}
+.review-form textarea {
+  resize: vertical;
+  min-height: 60px;
+  overflow-y: hidden;
+}
+.form-buttons {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+}
+.review-form button {
+  padding: 0.5rem 1rem;
+  border: 1px solid #000;
+  border-radius: 4px;
+  font-size: 1rem;
+  cursor: pointer;
+  background-color: #000;
+  color: #fff;
+}
+#cancelReview {
+  background-color: #fff;
+  color: #000;
+}
+.review-message {
+  font-size: 0.9rem;
+  text-align: center;
+  margin-top: 0.5rem;
+}
+.review-message.error {
+  color: #ff6b6b;
+}
+.review-message.thanks {
+  color: #55efc4;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 600px) {
+  .review-section {
+    max-width: 90%;
+    padding: 0.5rem;
+  }
+  .reviews-display li {
+    max-width: 120px;
+  }
+  .open-review {
+    font-size: 0.9rem;
+    padding: 0.4rem 0.8rem;
+  }
+  .review-form input,
+  .review-form textarea,
+  .review-form button {
+    font-size: 0.9rem;
+  }
+}
+@media (min-width: 601px) and (max-width: 1024px) {
+  .review-section {
+    max-width: 80%;
+    padding: 0.75rem;
+  }
+  .reviews-display li {
+    max-width: 140px;
+  }
+}
+@media (min-width: 1025px) {
+  .review-section {
+    max-width: 600px;
+    padding: 1rem;
+  }
+  .reviews-display li {
+    max-width: 150px;
+  }
+}
