@@ -13,7 +13,12 @@ createRoot(document.getElementById('root')!).render(
     <HelmetProvider>
       <ThemeProvider>
         <AuthProvider>
-          <BrowserRouter>
+          <BrowserRouter
+            future={{
+              v7_startTransition: true,
+              v7_relativeSplatPath: true
+            }}
+          >
             <App />
             <Toaster position="top-right" richColors />
           </BrowserRouter>

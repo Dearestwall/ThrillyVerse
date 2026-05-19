@@ -1,9 +1,8 @@
 {
+  "css.lint.unknownAtRules": "ignore",
   "css.validate": false,
-  "less.validate": false,
-  "scss.validate": false,
-  "tailwindCSS.emmetCompletions": true,
-  "editor.quickSuggestions": {
-    "strings": true
-  }
+  "editor.formatOnSave": true,
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "typescript.tsdk": "node_modules/typescript/lib",
+  "typescript.enablePromptUseWorkspaceTsdk": true
 }

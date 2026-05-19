@@ -55,6 +55,14 @@ export interface ContactSubmission {
 }
 
 export interface HomepageSettings {
+  announcement_enabled: undefined
+  seo_title: string
+  seo_description: string
+  seo_keywords: any
+  featured_projects_title: string
+  featured_materials_title: string
+  featured_movies_title: string
+  featured_blogs_title: string
   hero_badge: any
   hero_image_url: any
   secondary_cta_text: any

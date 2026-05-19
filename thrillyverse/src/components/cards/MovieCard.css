@@ -1,0 +1,25 @@
+/* src/components/cards/MovieCard.css */
+
+.movie-card {
+  overflow: hidden;
+}
+
+.movie-card__image {
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  object-fit: cover;
+  background: var(--color-surface-2);
+}
+
+.movie-card__body {
+  padding: 1.1rem;
+  display: grid;
+  gap: 0.85rem;
+}
+
+.movie-card__meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}

@@ -1,7 +1,9 @@
+// src/components/ContactForm.tsx
 import { useState, type FormEvent } from 'react'
 import { toast } from 'sonner'
 import { sendContactEmail } from '../lib/email'
 import { isSupabaseConfigured, supabase } from '../lib/supabase'
+import './ContactForm.css'
 
 const initialState = {
   name: '',
@@ -49,48 +51,54 @@ export function ContactForm() {
   }
 
   return (
-    <form className="field-grid card contact-form-card" onSubmit={handleSubmit}>
-      <label>
-        <span>Name</span>
-        <input
-          type="text"
-          value={form.name}
-          onChange={(e) => setForm((prev) => ({ ...prev, name: e.target.value }))}
-          required
-        />
-      </label>
+    <form className="contact-form-card card" onSubmit={handleSubmit}>
+      <div className="contact-form-grid">
+        <label className="contact-form-field">
+          <span>Name</span>
+          <input
+            type="text"
+            value={form.name}
+            onChange={(e) => setForm((prev) => ({ ...prev, name: e.target.value }))}
+            required
+            placeholder="Your name"
+          />
+        </label>
 
-      <label>
-        <span>Email</span>
-        <input
-          type="email"
-          value={form.email}
-          onChange={(e) => setForm((prev) => ({ ...prev, email: e.target.value }))}
-          required
-        />
-      </label>
+        <label className="contact-form-field">
+          <span>Email</span>
+          <input
+            type="email"
+            value={form.email}
+            onChange={(e) => setForm((prev) => ({ ...prev, email: e.target.value }))}
+            required
+            placeholder="you@example.com"
+          />
+        </label>
 
-      <label>
-        <span>Subject</span>
-        <input
-          type="text"
-          value={form.subject}
-          onChange={(e) => setForm((prev) => ({ ...prev, subject: e.target.value }))}
-          required
-        />
-      </label>
+        <label className="contact-form-field">
+          <span>Subject</span>
+          <input
+            type="text"
+            value={form.subject}
+            onChange={(e) => setForm((prev) => ({ ...prev, subject: e.target.value }))}
+            required
+            placeholder="What is this about?"
+          />
+        </label>
 
-      <label>
-        <span>Message</span>
-        <textarea
-          rows={5}
-          value={form.message}
-          onChange={(e) => setForm((prev) => ({ ...prev, message: e.target.value }))}
-          required
-        />
-      </label>
+        <label className="contact-form-field contact-form-field--full">
+          <span>Message</span>
+          <textarea
+            rows={6}
+            value={form.message}
+            onChange={(e) => setForm((prev) => ({ ...prev, message: e.target.value }))}
+            required
+            placeholder="Write your message"
+          />
+        </label>
+      </div>
 
-      <button type="submit" className="button button-primary" disabled={pending}>
+      <button type="submit" className="button button-primary contact-form-submit" disabled={pending}>
         {pending ? 'Sending...' : 'Send message'}
       </button>
     </form>

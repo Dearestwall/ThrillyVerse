@@ -1,14 +1,18 @@
 import emailjs from '@emailjs/browser'
-import type { ContactSubmission } from '../types'
 
-type ContactPayload = Omit<ContactSubmission, 'id' | 'created_at'>
+export type ContactPayload = {
+  name: string
+  email: string
+  subject: string
+  message: string
+}
 
 export async function sendContactEmail(payload: ContactPayload) {
-  const publicKey = import.meta.env.VITE_EMAILJS_PUBLIC_KEY
   const serviceId = import.meta.env.VITE_EMAILJS_SERVICE_ID
   const templateId = import.meta.env.VITE_EMAILJS_TEMPLATE_ID
+  const publicKey = import.meta.env.VITE_EMAILJS_PUBLIC_KEY
 
-  if (!publicKey || !serviceId || !templateId) {
+  if (!serviceId || !templateId || !publicKey) {
     return { ok: false as const, reason: 'missing_env' as const }
   }
 
@@ -21,11 +25,10 @@ export async function sendContactEmail(payload: ContactPayload) {
         from_email: payload.email,
         subject: payload.subject,
         message: payload.message,
-        to_email: 'thrillyverse@gmail.com'
+        reply_to: payload.email,
+        to_name: 'ThrillyVerse'
       },
-      {
-        publicKey
-      }
+      { publicKey }
     )
 
     return { ok: true as const }

@@ -1,3 +1,6 @@
+// src/components/ui/SectionTitle.tsx
+import './SectionTitle.css'
+
 export function SectionTitle({
   eyebrow,
   title,
@@ -9,9 +12,9 @@ export function SectionTitle({
 }) {
   return (
     <div className="section-title">
-      <p className="eyebrow">{eyebrow}</p>
-      <h2>{title}</h2>
-      <p>{text}</p>
+      <p className="section-title__eyebrow eyebrow">{eyebrow}</p>
+      <h2 className="section-title__heading">{title}</h2>
+      <p className="section-title__text">{text}</p>
     </div>
   )
 }
