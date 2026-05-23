@@ -170,5 +170,13 @@ export const demoHomepageSettings: HomepageSettings = {
   hero_badge: undefined,
   hero_image_url: undefined,
   secondary_cta_text: undefined,
-  secondary_cta_url: undefined
+  secondary_cta_url: undefined,
+  announcement_enabled: undefined,
+  seo_title: '',
+  seo_description: '',
+  seo_keywords: undefined,
+  featured_projects_title: '',
+  featured_materials_title: '',
+  featured_movies_title: '',
+  featured_blogs_title: ''
 }

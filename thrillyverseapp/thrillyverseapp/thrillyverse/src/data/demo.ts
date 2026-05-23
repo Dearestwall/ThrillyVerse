@@ -166,5 +166,9 @@ export const demoHomepageSettings: HomepageSettings = {
   hero_subtitle: 'A polished digital home for materials, movie updates, blogs, projects, and admin-managed publishing.',
   hero_cta_text: 'Explore the platform',
   hero_cta_url: '/materials',
-  announcement: 'Now building a Supabase-powered all-in-one ThrillyVerse web app.'
+  announcement: 'Now building a Supabase-powered all-in-one ThrillyVerse web app.',
+  hero_badge: undefined,
+  hero_image_url: undefined,
+  secondary_cta_text: undefined,
+  secondary_cta_url: undefined
 }

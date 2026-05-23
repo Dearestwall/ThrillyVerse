@@ -1,0 +1,18 @@
+/* ═══════════════════════════════════════════════════════════
+   contact.css  — ContactForm + ContactPage
+   ═══════════════════════════════════════════════════════════ */
+
+.contact-form-card {
+  padding:var(--space-6); display:grid; gap:var(--space-4);
+  position:relative; isolation:isolate;
+  background:var(--panel-gradient);
+  border:1px solid var(--panel-border);
+  border-radius:var(--radius-3xl);
+  box-shadow:var(--shadow-lg); overflow:hidden;
+}
+.contact-links {
+  padding:var(--space-6); display:grid; gap:var(--space-3);
+  margin-top:var(--space-4); background:var(--panel-gradient);
+  border:1px solid var(--panel-border); border-radius:var(--radius-3xl);
+  box-shadow:var(--shadow-md);
+}

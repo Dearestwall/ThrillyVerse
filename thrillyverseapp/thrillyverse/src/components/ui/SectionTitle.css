@@ -1,0 +1,21 @@
+/* src/components/ui/SectionTitle.css */
+
+.section-title {
+  display: grid;
+  gap: 0.35rem;
+  margin-bottom: 1.8rem;
+  max-width: 58rem;
+}
+
+.section-title__heading {
+  margin: 0;
+  font-size: clamp(2rem, 1.45rem + 2vw, 3.25rem);
+  line-height: 1.08;
+  letter-spacing: -0.04em;
+}
+
+.section-title__text {
+  margin: 0;
+  max-width: 62ch;
+  color: var(--color-text-muted);
+}

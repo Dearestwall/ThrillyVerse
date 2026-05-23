@@ -1,3 +1,4 @@
+import { LibraryBig } from 'lucide-react'
 import { AdminResourcePage } from '../../components/admin/AdminResourcePage'
 import { AdminShell } from '../../components/admin/AdminShell'
 import { useMaterials } from '../../hooks/resources'
@@ -6,12 +7,24 @@ export function AdminMaterials() {
   const resource = useMaterials()
 
   return (
-    <AdminShell title="Manage materials" text="Keep school resources, folders, and subject categories organized from one screen.">
+    <AdminShell
+      title="Manage materials"
+      text="Organize study resources, subject folders, and important academic links."
+    >
       <AdminResourcePage
+        icon={<LibraryBig size={18} />}
         title="Materials"
-        description="Every resource can carry a subject, title, category, and Drive link."
+        description="Each resource can include subject, description, Drive link, category, and featured status."
+        resourceName="material"
         items={resource.items}
+        filteredItems={resource.filteredItems}
         loading={resource.loading}
+        saving={resource.saving}
+        error={resource.error}
+        query={resource.query}
+        setQuery={resource.setQuery}
+        total={resource.total}
+        onRefresh={resource.refresh}
         onCreate={resource.createItem}
         onUpdate={resource.updateItem}
         onDelete={resource.deleteItem}
