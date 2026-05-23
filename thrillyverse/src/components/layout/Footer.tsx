@@ -1,129 +1,58 @@
-import { Link } from 'react-router-dom'
-import { ArrowUpRight, Mail, Send } from 'lucide-react'
-import { siteContent } from '../../data/siteContent'
+import Link from 'next/link';
+import Image from 'next/image';
+
+const socials = [
+  { label: 'Telegram Movies', href: 'https://t.me/thrillmoviesverse' },
+  { label: 'Telegram Materials', href: 'https://t.me/icseverse' },
+  { label: 'YouTube Gaming', href: 'https://youtube.com/channel/UCGSsWtRJ5ciemRsuFfixmvQ' },
+  { label: 'YouTube Main', href: 'https://www.youtube.com/@ThrillyVerse' },
+  { label: 'Instagram', href: 'https://www.instagram.com/thrillyverse/' },
+];
 
 export function Footer() {
-  const year = new Date().getFullYear()
-
   return (
-    <footer className="site-footer">
-      <div className="container footer-cta-strip">
-        <div>
-          <span className="footer-chip">ThrillyVerse network</span>
-          <h2>Study smarter, explore more, and publish faster.</h2>
-          <p>
-            ThrillyVerse brings together materials, movies, blogs, and creative tools in one cleaner platform.
-          </p>
-        </div>
+    <footer className="public-footer">
+      <div className="footer-inner">
+        <div className="grid gap-8 md:grid-cols-3 items-start">
+          <div className="space-y-4 max-w-md">
+            <div className="flex items-center gap-3">
+              <span className="logo-orb relative grid place-items-center w-11 h-11 rounded-full overflow-hidden shadow-lg pulse-glow">
+                <Image src="/logo-192.png" alt="ThrillyVerse" fill className="object-cover" />
+              </span>
+              <span className="font-display font-black text-lg tracking-tight leading-none">
+                <span style={{ color: 'var(--color-primary)' }}>Thrilly</span>
+                <span style={{ color: 'var(--color-gold)' }}>Verse</span>
+              </span>
+            </div>
+            <p className="text-sm text-text-muted leading-relaxed">
+              Think Beyond The Verse — movies, study materials, quizzes, blogs, and projects in one modern platform.
+            </p>
+            <p className="text-xs text-text-faint">
+              Updated by Admin. © {new Date().getFullYear()} ThrillyVerse. All rights reserved.
+            </p>
+          </div>
 
-        <div className="footer-cta-actions">
-          <Link to="/materials" className="button button-primary">
-            Explore materials
-          </Link>
-          <Link to="/blogs" className="button button-secondary">
-            Read blogs
-          </Link>
-        </div>
-      </div>
-
-      <div className="container footer-shell">
-        <div className="footer-brand-block">
-          <div className="footer-brand">
-            <img
-              src={siteContent.brand.logo}
-              alt={`${siteContent.brand.name} logo`}
-              className="brand-mark"
-            />
-
-            <div>
-              <h3>{siteContent.brand.name}</h3>
-              <p>{siteContent.brand.tagline}</p>
+          <div>
+            <h3 className="text-xs uppercase tracking-[0.24em] text-text-faint mb-4">Quick Links</h3>
+            <div className="footer-links">
+              <Link href="/">Home</Link>
+              <Link href="/movies">Movies</Link>
+              <Link href="/materials">Study</Link>
+              <Link href="/blogs">Blogs</Link>
+              <Link href="/#contact">Contact</Link>
             </div>
           </div>
 
-          <p className="footer-copy">
-            A cleaner digital hub for study materials, entertainment updates, projects, and publishing.
-          </p>
-
-          <div className="footer-contact-pills">
-            <a href={`mailto:${siteContent.footer.contact.email}`}>
-              <Mail size={14} />
-              <span>{siteContent.footer.contact.email}</span>
-            </a>
-
-            <a
-              href={siteContent.footer.contact.telegram}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              <Send size={14} />
-              <span>Telegram contact</span>
-            </a>
-          </div>
-        </div>
-
-        <div className="footer-columns">
           <div>
-            <h4>Explore</h4>
+            <h3 className="text-xs uppercase tracking-[0.24em] text-text-faint mb-4">Social</h3>
             <div className="footer-links">
-              {siteContent.footer.explore.map((link) => (
-                <Link key={link.to} to={link.to}>
-                  <span>{link.label}</span>
-                  <ArrowUpRight size={14} />
-                </Link>
+              {socials.map((s) => (
+                <a key={s.href} href={s.href} target="_blank" rel="noreferrer noopener">{s.label}</a>
               ))}
             </div>
           </div>
-
-          <div>
-            <h4>Projects</h4>
-            <div className="footer-links">
-              {siteContent.footer.projects.map((link) => (
-                <a key={link.href} href={link.href} target="_blank" rel="noopener noreferrer">
-                  <span>{link.label}</span>
-                  <ArrowUpRight size={14} />
-                </a>
-              ))}
-            </div>
-          </div>
-
-          <div>
-            <h4>Community</h4>
-            <div className="footer-links">
-              {siteContent.footer.socials.map((link) => (
-                <a key={link.href} href={link.href} target="_blank" rel="noopener noreferrer">
-                  <span>{link.label}</span>
-                  <ArrowUpRight size={14} />
-                </a>
-              ))}
-            </div>
-          </div>
-
-          <div>
-            <h4>Reach out</h4>
-            <div className="footer-links">
-              <a href={`mailto:${siteContent.footer.contact.email}`}>
-                <span>{siteContent.footer.contact.email}</span>
-                <ArrowUpRight size={14} />
-              </a>
-
-              <a
-                href={siteContent.footer.contact.telegram}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                <span>Telegram contact</span>
-                <ArrowUpRight size={14} />
-              </a>
-            </div>
-          </div>
         </div>
-      </div>
-
-      <div className="container footer-bottom-row">
-        <p>© {year} {siteContent.brand.name}. All rights reserved.</p>
-        <p>Think Beyond The Verse.</p>
       </div>
     </footer>
-  )
+  );
 }

@@ -1,77 +1,131 @@
-export interface Project {
-  id: string
-  title: string
-  description: string
-  url: string
-  logo_url: string
-  category: string
-  featured: boolean
-  created_at?: string
+export type UserRole = 'super_admin' | 'editor' | 'viewer';
+export type Board = 'ICSE' | 'CBSE' | 'ISC' | 'State' | 'Other';
+export type ResourceType = 'notes' | 'pdf' | 'video' | 'link' | 'image' | 'other';
+export type Difficulty = 'easy' | 'medium' | 'hard';
+export type NotifType = 'info' | 'success' | 'warning' | 'alert' | 'new_material' | 'new_movie' | 'new_blog' | 'quiz';
+
+export interface Announcement {
+  id: string;
+  title: string;
+  body: string | null;
+  cta_label: string | null;
+  cta_url: string | null;
+  badge: string | null;
+  priority: number;
+  active: boolean;
+  published_at: string;
 }
 
-export interface Material {
-  id: string
-  subject: string
-  title: string
-  description: string
-  drive_url: string
-  category: string
-  featured: boolean
-  created_at?: string
+export interface Project {
+  id: string;
+  title: string;
+  slug: string;
+  summary: string | null;
+  description: string | null;
+  image_url: string | null;
+  tech_stack: string[];
+  link: string | null;
+  github_url: string | null;
+  featured: boolean;
+  sort_order: number;
+  status: 'published' | 'draft' | 'archived';
 }
 
 export interface Movie {
-  id: string
-  title: string
-  language: string
-  type: string
-  poster_url: string
-  status: string
-  description: string
-  release_year?: number
-  featured: boolean
-  created_at?: string
+  id: string;
+  title: string;
+  slug: string;
+  description: string | null;
+  poster_url: string | null;
+  trailer_url: string | null;
+  movie_link: string | null;
+  download_link: string | null;
+  category: string | null;
+  year: number | null;
+  rating: string | null;
+  tags: string[];
+  featured: boolean;
+  published: boolean;
+  sort_order: number;
+}
+
+export interface Material {
+  id: string;
+  title: string;
+  slug: string;
+  board: Board;
+  class_level: string;
+  subject: string;
+  topic: string | null;
+  description: string | null;
+  cover_image: string | null;
+  resource_type: ResourceType;
+  resource_link: string | null;
+  download_link: string | null;
+  file_size: string | null;
+  is_premium: boolean;
+  featured: boolean;
+  published: boolean;
+  view_count: number;
+  sort_order: number;
+}
+
+export interface Quiz {
+  id: string;
+  title: string;
+  slug: string;
+  description: string | null;
+  board: string | null;
+  class_level: string | null;
+  subject: string | null;
+  time_limit: number;
+  difficulty: Difficulty;
+  published: boolean;
 }
 
 export interface Blog {
-  id: string
-  title: string
-  slug: string
-  excerpt: string
-  content: string
-  cover_url: string
-  category: string
-  published: boolean
-  created_at?: string
+  id: string;
+  title: string;
+  slug: string;
+  excerpt: string | null;
+  content: string | null;
+  cover_image: string | null;
+  category: string | null;
+  tags: string[];
+  read_time: number;
+  featured: boolean;
+  published: boolean;
+  published_at: string | null;
+  view_count: number;
 }
 
-export interface ContactSubmission {
-  id: string
-  name: string
-  email: string
-  subject: string
-  message: string
-  created_at?: string
+export interface Notification {
+  id: string;
+  title: string;
+  message: string;
+  type: NotifType;
+  target_url: string | null;
+  audience: 'all' | 'students' | 'viewers';
+  is_active: boolean;
+  created_at: string;
 }
 
-export interface HomepageSettings {
-  announcement_enabled: undefined
-  seo_title: string
-  seo_description: string
-  seo_keywords: any
-  featured_projects_title: string
-  featured_materials_title: string
-  featured_movies_title: string
-  featured_blogs_title: string
-  hero_badge: any
-  hero_image_url: any
-  secondary_cta_text: any
-  secondary_cta_url: any
-  id: string
-  hero_title: string
-  hero_subtitle: string
-  hero_cta_text: string
-  hero_cta_url: string
-  announcement: string
-  updated_at?: string
+export interface Contact {
+  id: string;
+  name: string;
+  email: string;
+  phone: string | null;
+  subject: string | null;
+  message: string;
+  source: string;
+  read: boolean;
+  created_at: string;
+}
+
+export interface Profile {
+  id: string;
+  email: string;
+  full_name: string | null;
+  avatar_url: string | null;
+  role: UserRole;
 }
