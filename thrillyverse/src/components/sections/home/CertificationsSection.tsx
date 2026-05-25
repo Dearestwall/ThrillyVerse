@@ -1,14 +1,7 @@
-const CERTS = [
-  { title: 'ISO 27001', subtitle: 'Information Security', icon: 'ðŸ”’', color: 'from-blue-500 to-cyan-500' },
-  { title: 'GDPR Compliant', subtitle: 'Data Privacy', icon: 'ðŸ›¡ï¸', color: 'from-green-500 to-emerald-500' },
-  { title: 'SSL Secured', subtitle: 'Encrypted Traffic', icon: 'ðŸ”', color: 'from-violet-500 to-purple-500' },
-  { title: 'NCERT Aligned', subtitle: 'Curriculum Match', icon: 'ðŸ“˜', color: 'from-orange-500 to-amber-500' },
-];
-
 export function CertificationsSection({ certifications }: { certifications: any[] }) {
   if (!certifications.length) return null;
   return (
-    <section className="home-section home-section--alt">
+    <section className="home-section">
       <div className="container">
         <div className="text-center mb-10 fade-up">
           <div className="section-eyebrow">Trust & Quality</div>
@@ -20,7 +13,7 @@ export function CertificationsSection({ certifications }: { certifications: any[
             <div key={c.id} className="cert-card card section-reveal" style={{ animationDelay: `${i * 70}ms` }}>
               <div
                 className="cert-icon"
-                style={{ background: `linear-gradient(135deg, ${c.color_from}, ${c.color_to})` }}
+                style={{ background: `linear-gradient(135deg, ${c.color_from ?? 'var(--color-primary)'}, ${c.color_to ?? 'var(--color-gold)'})` }}
               >
                 {c.emoji}
               </div>

@@ -2,7 +2,11 @@
 @tailwind components;
 @tailwind utilities;
 @import './public-pages.css';
-
+@import './navbar-footer.css';
+@import './home-sections.css';
+@import './final-fixes.css';
+@import './robust-sections.css';
+@import './site-polish.css';
 /* ============================================================
    DESIGN TOKENS
    ============================================================ */

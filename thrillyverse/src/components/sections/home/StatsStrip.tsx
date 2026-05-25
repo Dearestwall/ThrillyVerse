@@ -22,4 +22,3 @@ export function StatsStrip({ stats }: { stats: Stat[] }) {
     </section>
   );
 }
-

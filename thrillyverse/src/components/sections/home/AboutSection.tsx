@@ -1,22 +1,51 @@
+import Link from 'next/link';
+import { ArrowRight, Layers3, ShieldCheck, Sparkles, Rocket } from 'lucide-react';
+
+const HIGHLIGHTS = [
+  { value: '4', label: 'Public Pages', icon: Layers3 },
+  { value: '8+', label: 'Admin Modules', icon: ShieldCheck },
+  { value: '100%', label: 'Admin Managed', icon: Sparkles },
+  { value: '∞', label: 'Free Content', icon: Rocket },
+];
+
 export function AboutSection() {
   return (
-    <section id="about" className="py-16">
-      <div className="container-default grid md:grid-cols-2 gap-10 items-center">
-        <div>
-          <p className="text-sm font-semibold uppercase tracking-widest mb-3" style={{ color: 'var(--color-gold)' }}>About Us</p>
-          <h2 className="font-display text-xl font-bold mb-4">A dynamic platform for students and creators</h2>
-          <p className="text-text-muted mb-4">
-            ThrillyVerse is designed to combine structured educational content with engaging media and publishing tools.
-          </p>
-          <p className="text-text-muted">
-            Every section is editable from the admin panel, keeping the platform scalable, low-cost, and easy to maintain on Supabase, Cloudinary, EmailJS, and Vercel.
-          </p>
-        </div>
-        <div className="card p-8">
-          <div className="grid grid-cols-3 gap-4 text-center">
-            <div><div className="text-2xl font-bold text-primary">4</div><div className="text-xs text-text-muted">Main public pages</div></div>
-            <div><div className="text-2xl font-bold text-primary">8+</div><div className="text-xs text-text-muted">Admin modules</div></div>
-            <div><div className="text-2xl font-bold text-primary">100%</div><div className="text-xs text-text-muted">Admin-managed content</div></div>
+    <section id="about" className="home-section home-section--alt about-section-pro">
+      <div className="container-default">
+        <div className="about-shell">
+          <div className="about-copy slide-in-left">
+            <p className="section-eyebrow">About Us</p>
+            <h2 className="section-title about-title">A dynamic platform for students and creators</h2>
+            <p className="about-text-primary">
+              ThrillyVerse combines structured educational content, engaging media, publishing tools and creator-focused updates in one clean, fast platform.
+            </p>
+            <p className="about-text-secondary">
+              Every major section is managed from the admin panel, keeping the platform scalable, low-cost and easy to maintain across Supabase, Cloudinary, EmailJS and Vercel.
+            </p>
+            <div className="about-actions">
+              <Link href="/#contact" className="btn btn-primary btn-lg">
+                Get In Touch <ArrowRight size={16} />
+              </Link>
+              <Link href="/blogs" className="btn btn-secondary btn-lg">Explore Blogs</Link>
+            </div>
+          </div>
+
+          <div className="about-stats-wrap section-reveal">
+            <div className="about-stats-head">
+              <span className="about-stats-kicker">Platform Snapshot</span>
+              <h3>Compact, scalable and fully admin-powered</h3>
+            </div>
+            <div className="about-stats-grid about-stats-grid--horizontal">
+              {HIGHLIGHTS.map(({ value, label, icon: Icon }) => (
+                <article key={label} className="about-stat-card about-stat-card--compact card">
+                  <span className="about-stat-icon"><Icon size={16} /></span>
+                  <div className="about-stat-content">
+                    <div className="about-stat-value">{value}</div>
+                    <div className="about-stat-label">{label}</div>
+                  </div>
+                </article>
+              ))}
+            </div>
           </div>
         </div>
       </div>

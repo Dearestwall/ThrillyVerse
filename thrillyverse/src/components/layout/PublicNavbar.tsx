@@ -13,6 +13,8 @@ const LINKS = [
   { href: '/movies', label: 'Movies' },
   { href: '/materials', label: 'Study' },
   { href: '/blogs', label: 'Blog' },
+  { href: '/#about', label: 'About' },
+  { href: '/#contact', label: 'Contact' },
 ];
 
 export function PublicNavbar() {
@@ -21,7 +23,8 @@ export function PublicNavbar() {
   const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 10);
+    const onScroll = () => setScrolled(window.scrollY > 6);
+    onScroll();
     window.addEventListener('scroll', onScroll, { passive: true });
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
@@ -32,56 +35,48 @@ export function PublicNavbar() {
 
   useEffect(() => {
     document.body.style.overflow = mobileOpen ? 'hidden' : '';
-    return () => {
-      document.body.style.overflow = '';
-    };
+    return () => { document.body.style.overflow = ''; };
   }, [mobileOpen]);
+
+  const isActive = (href: string) => {
+    if (href.startsWith('/#')) return pathname === '/';
+    return href === '/' ? pathname === '/' : pathname.startsWith(href);
+  };
 
   return (
     <>
-      <header className={`public-navbar sticky top-0 z-50 ${scrolled ? 'is-scrolled' : ''}`}>
-        <nav className="navbar-inner">
+      <header className={`public-navbar public-navbar--compact ${scrolled ? 'is-scrolled' : ''}`}>
+        <nav className="navbar-inner" aria-label="Main navigation">
           <Link href="/" className="navbar-brand" aria-label="ThrillyVerse home">
             <span className="navbar-logo-wrap">
-              <Image
-                src="/logo-192.png"
-                alt="ThrillyVerse"
-                fill
-                sizes="44px"
-                className="navbar-logo-img"
-                priority
-              />
+              <Image src="/logo-192.png" alt="ThrillyVerse logo" fill sizes="40px" className="navbar-logo-img" priority />
             </span>
-            <span className="navbar-wordmark hidden sm:inline-block">
-              <span className="brand-part brand-primary">Thrilly</span>
-              <span className="brand-part brand-gold">Verse</span>
+            <span className="navbar-wordmark">
+              <span className="navbar-brand-line"><span className="brand-thrilly">Thrilly</span><span className="brand-verse">Verse</span></span>
+              <span className="navbar-tagline">✦Think Beyond The Verse✦</span>
             </span>
           </Link>
 
-          <div className="navbar-links" aria-label="Main navigation">
-            {LINKS.map((link) => {
-              const active = link.href === '/' ? pathname === '/' : pathname.startsWith(link.href);
-              return (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  className={`navbar-link ${active ? 'navbar-link-active' : ''}`}
-                  aria-current={active ? 'page' : undefined}
-                >
+          <ul className="navbar-links" role="list">
+            {LINKS.map((link) => (
+              <li key={link.href}>
+                <Link href={link.href} className={`navbar-link ${isActive(link.href) ? 'is-active' : ''}`} aria-current={isActive(link.href) ? 'page' : undefined}>
                   {link.label}
                 </Link>
-              );
-            })}
-          </div>
+              </li>
+            ))}
+          </ul>
 
           <div className="navbar-actions">
             <NotificationBell />
             <ThemeToggle />
             <button
-              className="md:hidden navbar-menu-btn"
-              onClick={() => setMobileOpen((v) => !v)}
-              aria-label="Toggle menu"
+              type="button"
+              className="navbar-burger"
+              onClick={() => setMobileOpen((prev) => !prev)}
+              aria-label={mobileOpen ? 'Close navigation menu' : 'Open navigation menu'}
               aria-expanded={mobileOpen}
+              aria-controls="mobile-nav-panel"
             >
               {mobileOpen ? <X size={18} /> : <Menu size={18} />}
             </button>
@@ -89,44 +84,45 @@ export function PublicNavbar() {
         </nav>
       </header>
 
-      <div className={`mobile-nav ${mobileOpen ? 'open' : ''}`} role="dialog" aria-modal="true" aria-label="Mobile navigation">
-        <div className="mobile-nav-panel">
-          <div className="mobile-nav-top">
-            <Link href="/" className="navbar-brand" aria-label="ThrillyVerse home">
-              <span className="navbar-logo-wrap navbar-logo-wrap-sm">
-                <Image src="/logo-192.png" alt="ThrillyVerse" fill sizes="40px" className="navbar-logo-img" />
-              </span>
-              <span className="navbar-wordmark">
-                <span className="brand-part brand-primary">Thrilly</span>
-                <span className="brand-part brand-gold">Verse</span>
-              </span>
-            </Link>
-            <button className="navbar-menu-btn" onClick={() => setMobileOpen(false)} aria-label="Close menu">
-              <X size={20} />
-            </button>
-          </div>
+      {mobileOpen && <div className="mobile-nav-overlay" onClick={() => setMobileOpen(false)} aria-hidden="true" />}
 
-          <nav className="mobile-links">
-            {LINKS.map((link) => {
-              const active = link.href === '/' ? pathname === '/' : pathname.startsWith(link.href);
-              return (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  className={`mobile-nav-link ${active ? 'active' : ''}`}
-                >
-                  {link.label}
-                </Link>
-              );
-            })}
-          </nav>
-
-          <div className="mobile-actions">
-            <NotificationBell />
-            <ThemeToggle />
-          </div>
+      <aside id="mobile-nav-panel" className={`mobile-nav-drawer ${mobileOpen ? 'is-open' : ''}`} role="dialog" aria-modal="true" aria-label="Mobile navigation">
+        <div className="mobile-nav-head">
+          <Link href="/" className="navbar-brand" onClick={() => setMobileOpen(false)}>
+            <span className="navbar-logo-wrap navbar-logo-wrap-sm">
+              <Image src="/logo-192.png" alt="ThrillyVerse logo" fill sizes="36px" className="navbar-logo-img" />
+            </span>
+            <span className="navbar-wordmark mobile-wordmark">
+              <span className="navbar-brand-line"><span className="brand-thrilly">Thrilly</span><span className="brand-verse">Verse</span></span>
+              <span className="navbar-tagline">✦Think Beyond The Verse✦</span>
+            </span>
+          </Link>
+          <button type="button" className="navbar-burger mobile-close-btn" onClick={() => setMobileOpen(false)} aria-label="Close menu">
+            <X size={18} />
+          </button>
         </div>
-      </div>
+
+        <ul className="mobile-links" role="list">
+          {LINKS.map((link) => (
+            <li key={link.href}>
+              <Link
+                href={link.href}
+                className={`mobile-nav-link ${isActive(link.href) ? 'is-active' : ''}`}
+                onClick={() => setMobileOpen(false)}
+              >
+                <span>{link.label}</span>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><path d="m9 18 6-6-6-6" /></svg>
+              </Link>
+            </li>
+          ))}
+        </ul>
+
+        <div className="mobile-nav-foot">
+          <NotificationBell />
+          <ThemeToggle />
+          <span className="mobile-foot-copy">Think Beyond The Verse</span>
+        </div>
+      </aside>
     </>
   );
 }

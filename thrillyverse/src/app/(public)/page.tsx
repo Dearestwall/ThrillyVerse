@@ -28,11 +28,11 @@ export default async function HomePage() {
     { count: quizzesCount },
   ] = await Promise.all([
     supabase.from('announcements').select('*').eq('active', true).order('priority', { ascending: false }).limit(5),
-    supabase.from('projects').select('*').order('sort_order').limit(6), // ← removed status filter to debug
+    supabase.from('projects').select('*').order('sort_order').limit(6),
     supabase.from('movies').select('id,title,slug,poster_url,category,rating,year').eq('featured', true).eq('published', true).limit(8),
     supabase.from('blogs').select('id,title,slug,cover_image,excerpt,category,read_time,published_at').eq('published', true).order('published_at', { ascending: false }).limit(3),
     supabase.from('partners').select('*').eq('active', true).order('sort_order'),
-    supabase.from('reviews').select('*').eq('published', true).order('sort_order').limit(6),
+    supabase.from('reviews').select('*').eq('published', true).order('sort_order').limit(8),
     supabase.from('certifications').select('*').eq('active', true).order('sort_order'),
     supabase.from('movies').select('id', { count: 'exact', head: true }),
     supabase.from('materials').select('id', { count: 'exact', head: true }),
