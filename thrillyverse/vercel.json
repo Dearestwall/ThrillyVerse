@@ -1,16 +1,5 @@
 {
   "framework": "nextjs",
   "buildCommand": "next build",
-  "outputDirectory": ".next",
-  "env": {
-    "NEXT_PUBLIC_SUPABASE_URL": "@supabase_url",
-    "NEXT_PUBLIC_SUPABASE_ANON_KEY": "@supabase_anon_key",
-    "SUPABASE_SERVICE_ROLE_KEY": "@supabase_service_role_key",
-    "NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME": "@cloudinary_cloud_name",
-    "CLOUDINARY_API_KEY": "@cloudinary_api_key",
-    "CLOUDINARY_API_SECRET": "@cloudinary_api_secret",
-    "NEXT_PUBLIC_EMAILJS_SERVICE_ID": "@emailjs_service_id",
-    "NEXT_PUBLIC_EMAILJS_TEMPLATE_ID": "@emailjs_template_id",
-    "NEXT_PUBLIC_EMAILJS_PUBLIC_KEY": "@emailjs_public_key"
-  }
+  "outputDirectory": ".next"
 }
