@@ -3,23 +3,42 @@
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
+import {
+  LogOut,
+  LayoutGrid,
+  FileText,
+  Film,
+  BookOpen,
+  Brain,
+  Megaphone,
+  Bell,
+  Mail,
+  Wrench,
+  Handshake,
+  Star,
+  BadgeCheck,
+} from 'lucide-react';
 
 const NAV = [
-  { href: '/admin', label: 'Dashboard', icon: '📊' },
-  { href: '/admin/blogs', label: 'Blogs', icon: '✍️' },
-  { href: '/admin/movies', label: 'Movies', icon: '🎬' },
-  { href: '/admin/materials', label: 'Materials', icon: '📚' },
-  { href: '/admin/quizzes', label: 'Quizzes', icon: '🧠' },
-  { href: '/admin/announcements', label: 'Announcements', icon: '📣' },
-  { href: '/admin/notifications', label: 'Notifications', icon: '🔔' },
-  { href: '/admin/contacts', label: 'Contacts', icon: '📬' },
-  { href: '/admin/projects', label: 'Projects', icon: '🛠️' },
-  { href: '/admin/partners', label: 'Partners', icon: '🤝' },
-  { href: '/admin/reviews', label: 'Reviews', icon: '⭐' },
-  { href: '/admin/certifications', label: 'Certifications', icon: '🏅' },
+  { href: '/admin', label: 'Dashboard', icon: LayoutGrid },
+  { href: '/admin/blogs', label: 'Blogs', icon: FileText },
+  { href: '/admin/movies', label: 'Movies', icon: Film },
+  { href: '/admin/materials', label: 'Materials', icon: BookOpen },
+  { href: '/admin/quizzes', label: 'Quizzes', icon: Brain },
+  { href: '/admin/announcements', label: 'Announcements', icon: Megaphone },
+  { href: '/admin/notifications', label: 'Notifications', icon: Bell },
+  { href: '/admin/contacts', label: 'Contacts', icon: Mail },
+  { href: '/admin/projects', label: 'Projects', icon: Wrench },
+  { href: '/admin/partners', label: 'Partners', icon: Handshake },
+  { href: '/admin/reviews', label: 'Reviews', icon: Star },
+  { href: '/admin/certifications', label: 'Certifications', icon: BadgeCheck },
 ];
 
-export function AdminSidebar() {
+type Props = {
+  onNavigate?: () => void;
+};
+
+export function AdminSidebar({ onNavigate }: Props) {
   const pathname = usePathname();
   const router = useRouter();
   const supabase = createClient();
@@ -31,37 +50,49 @@ export function AdminSidebar() {
 
   return (
     <div className="admin-sidebar-inner">
-      <Link href="/admin" className="admin-sidebar-logo">
-        <div className="logo-circle w-9 h-9 text-xs font-black">TV</div>
-        <div>
+      <Link href="/admin" className="admin-sidebar-logo" onClick={onNavigate}>
+        <div className="logo-circle w-10 h-10 text-xs font-black shrink-0">TV</div>
+        <div className="admin-sidebar-brand">
           <div className="font-display font-black text-sm leading-tight">
-            <span style={{ color: 'var(--color-primary)' }}>Thrilly</span>
+            <span style={{ color: 'var(--admin-primary)' }}>Thrilly</span>
             <span style={{ color: 'var(--color-gold)' }}>Verse</span>
           </div>
-          <div className="text-[10px] text-text-faint font-semibold uppercase tracking-widest">Admin</div>
+          <div className="admin-sidebar-subtitle">Admin</div>
         </div>
       </Link>
 
       <nav className="admin-nav flex-1">
         {NAV.map((item) => {
-          const active = pathname === item.href || (item.href !== '/admin' && pathname.startsWith(item.href));
+          const active =
+            pathname === item.href || (item.href !== '/admin' && pathname.startsWith(item.href));
+          const Icon = item.icon;
+
           return (
             <Link
               key={item.href}
               href={item.href}
               className={`admin-nav-item ${active ? 'admin-nav-item-active' : ''}`}
+              onClick={onNavigate}
             >
-              <span className="text-base w-5 text-center flex-shrink-0">{item.icon}</span>
-              <span>{item.label}</span>
+              <span className="admin-nav-icon">
+                <Icon size={16} />
+              </span>
+              <span className="admin-sidebar-label">{item.label}</span>
             </Link>
           );
         })}
       </nav>
 
-      <div className="mt-auto pt-4 border-t" style={{ borderColor: 'var(--color-divider)' }}>
-        <button onClick={handleLogout} className="admin-nav-item w-full text-left" style={{ color: 'var(--color-error)' }}>
-          <span className="text-base w-5 text-center">🚪</span>
-          <span>Logout</span>
+      <div className="admin-sidebar-footer">
+        <button
+          onClick={handleLogout}
+          className="admin-nav-item admin-nav-item-danger w-full text-left"
+          type="button"
+        >
+          <span className="admin-nav-icon">
+            <LogOut size={16} />
+          </span>
+          <span className="admin-sidebar-label">Logout</span>
         </button>
       </div>
     </div>

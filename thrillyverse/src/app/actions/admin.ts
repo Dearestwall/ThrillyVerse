@@ -203,6 +203,16 @@ export async function deleteRowAction(table: string, id: string, paths: string[]
   if (error) throw new Error(error.message);
   paths.forEach((path) => revalidatePath(path));
 }
+export async function bulkDeleteAction(table: string, ids: string[], paths: string[]) {
+  const allowedTables = ['projects', 'movies', 'materials', 'blogs', 'announcements', 'notifications', 'quizzes', 'contacts', 'partners', 'reviews', 'certifications'];
+  if (!allowedTables.includes(table)) throw new Error('Invalid table');
+
+  const { supabase } = await requireAdmin();
+  const { error } = await supabase.from(table).delete().in('id', ids);
+
+  if (error) throw new Error(error.message);
+  paths.forEach((path) => revalidatePath(path));
+}
 
 export async function toggleContactReadAction(id: string, read: boolean) {
   const { supabase } = await requireAdmin();
