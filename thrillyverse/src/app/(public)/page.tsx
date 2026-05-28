@@ -28,7 +28,7 @@ export default async function HomePage() {
     { count: quizzesCount },
   ] = await Promise.all([
     supabase.from('announcements').select('*').eq('active', true).order('priority', { ascending: false }).limit(5),
-    supabase.from('projects').select('*').order('sort_order').limit(6),
+    supabase.from('projects').select('id,title,slug,summary,description,image_url,link,github_url,tech_stack,status,sort_order,featured').order('sort_order', { ascending: true }).limit(6),
     supabase.from('movies').select('id,title,slug,poster_url,category,rating,year').eq('featured', true).eq('published', true).limit(8),
     supabase.from('blogs').select('id,title,slug,cover_image,excerpt,category,read_time,published_at').eq('published', true).order('published_at', { ascending: false }).limit(3),
     supabase.from('partners').select('*').eq('active', true).order('sort_order'),
