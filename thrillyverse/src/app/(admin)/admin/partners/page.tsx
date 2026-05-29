@@ -20,7 +20,7 @@ export default async function AdminPartnersPage() {
         </div>
       </div>
 
-      <PartnersAdminTable initialPartners={(data ?? []) as any} />
+      <PartnersAdminTable initialData={(data ?? []) as any} />
     </div>
   );
 }

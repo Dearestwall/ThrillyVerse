@@ -3,11 +3,11 @@ import CertificationsAdminTable from '@/components/sections/admin/Certifications
 
 export default async function AdminCertificationsPage() {
   const supabase = await createClient();
+
   const { data } = await supabase
     .from('certifications')
     .select('*')
-    .order('sort_order', { ascending: true })
-    .order('created_at', { ascending: false });
+    .order('sort_order', { ascending: true });
 
   return (
     <div className="admin-page">
@@ -15,12 +15,12 @@ export default async function AdminCertificationsPage() {
         <div>
           <h1 className="admin-page-title">Certifications</h1>
           <p className="admin-page-subtitle">
-            Manage homepage trust badges, highlights, and quality markers.
+            Manage trust badges, certificates, issuers, and showcase order.
           </p>
         </div>
       </div>
 
-      <CertificationsAdminTable initialCertifications={(data ?? []) as any} />
+      <CertificationsAdminTable initialData={(data ?? []) as any} />
     </div>
   );
 }

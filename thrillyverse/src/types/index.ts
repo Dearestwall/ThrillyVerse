@@ -159,7 +159,6 @@ export interface Contact {
 
 export interface Profile {
   is_active: any;
-  is_active: any;
   id: string;
   email: string;
   full_name: string | null;

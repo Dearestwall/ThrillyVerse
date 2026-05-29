@@ -1,6 +1,7 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
 @import './public-pages.css';
 @import './navbar-footer.css';
 @import './home-sections.css';
@@ -10,6 +11,7 @@
 @import './admin.css';
 @import './admin-responsive.css';
 @import './admin-enhanced.css';
+@import './admin-layout.css';
 /* ============================================================
    DESIGN TOKENS
    ============================================================ */

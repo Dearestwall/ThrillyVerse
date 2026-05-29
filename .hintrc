@@ -9,6 +9,7 @@
     "compat-api/css": "off",
     "axe/name-role-value": "off",
     "button-type": "off",
-    "axe/aria": "off"
+    "axe/aria": "off",
+    "css-prefix-order": "off"
   }
 }

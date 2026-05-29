@@ -1,13 +1,18 @@
 'use client';
 
+import { useMemo, useState } from 'react';
+import { usePathname, useRouter } from 'next/navigation';
 import {
+  LogOut,
   Menu,
   Moon,
   PanelLeftClose,
   PanelLeftOpen,
-  Search,
+  Sparkles,
   SunMedium,
 } from 'lucide-react';
+import toast from 'react-hot-toast';
+import { createClient } from '@/lib/supabase/client';
 
 type Props = {
   title?: string;
@@ -17,18 +22,118 @@ type Props = {
   onOpenMobile?: () => void;
 };
 
+const pageMetaMap: Record<string, { title: string; subtitle: string }> = {
+  '/admin': {
+    title: 'Dashboard',
+    subtitle: 'Manage content, metrics, and the full platform from one place.',
+  },
+  '/admin/movies': {
+    title: 'Movies',
+    subtitle: 'Edit featured movies, metadata, and release visibility.',
+  },
+  '/admin/materials': {
+    title: 'Materials',
+    subtitle: 'Manage notes, PDFs, subjects, classes, and premium resources.',
+  },
+  '/admin/blogs': {
+    title: 'Blogs',
+    subtitle: 'Create, update, and publish blog posts for ThrillyVerse.',
+  },
+  '/admin/quizzes': {
+    title: 'Quizzes',
+    subtitle: 'Control question sets, categories, and quiz publishing.',
+  },
+  '/admin/announcements': {
+    title: 'Announcements',
+    subtitle: 'Manage banners, CTAs, active messages, and priorities.',
+  },
+  '/admin/notifications': {
+    title: 'Notifications',
+    subtitle: 'Send platform updates and important user-facing alerts.',
+  },
+  '/admin/projects': {
+    title: 'Projects',
+    subtitle: 'Showcase tools, experiments, and featured utilities.',
+  },
+  '/admin/reviews': {
+    title: 'Reviews',
+    subtitle: 'Manage testimonials, ratings, and display order.',
+  },
+  '/admin/partners': {
+    title: 'Partners',
+    subtitle: 'Update partner logos, names, and links.',
+  },
+  '/admin/certifications': {
+    title: 'Certifications',
+    subtitle: 'Showcase achievements, issuers, and verification links.',
+  },
+  '/admin/contacts': {
+    title: 'Contacts',
+    subtitle: 'Review contact form messages and mark them as read.',
+  },
+  '/admin/settings': {
+    title: 'Settings',
+    subtitle: 'Control user access, roles, and admin preferences.',
+  },
+};
+
 export default function AdminTopbarControls({
-  title = 'Admin Panel',
-  subtitle = 'Manage content, updates, and platform data.',
+  title,
+  subtitle,
   desktopCollapsed = false,
   onToggleDesktop,
   onOpenMobile,
 }: Props) {
+  const pathname = usePathname();
+  const router = useRouter();
+  const supabase = createClient();
+
+  const [loggingOut, setLoggingOut] = useState(false);
+
+  const meta = useMemo(() => {
+    if (title || subtitle) {
+      return {
+        title: title ?? 'Admin Panel',
+        subtitle: subtitle ?? 'Manage content, updates, and platform data.',
+      };
+    }
+
+    return (
+      pageMetaMap[pathname] ?? {
+        title: 'Admin Panel',
+        subtitle: 'Manage content, updates, and platform data.',
+      }
+    );
+  }, [pathname, subtitle, title]);
+
   const toggleTheme = () => {
     const root = document.documentElement;
     const current = root.getAttribute('data-theme');
     const next = current === 'dark' ? 'light' : 'dark';
     root.setAttribute('data-theme', next);
+  };
+
+  const handleLogout = async () => {
+    if (loggingOut) return;
+
+    setLoggingOut(true);
+
+    try {
+      const { error } = await supabase.auth.signOut();
+
+      if (error) {
+        toast.error(error.message);
+        return;
+      }
+
+      toast.success('Logged out successfully');
+      router.replace('/admin/login');
+      router.refresh();
+    } catch {
+      toast.error('Logout failed');
+    } finally {
+      setLoggingOut(false);
+    }
   };
 
   return (
@@ -53,21 +158,15 @@ export default function AdminTopbarControls({
         </button>
 
         <div className="admin-topbar-title-group">
-          <h1 className="admin-topbar-title">{title}</h1>
-          <p className="admin-topbar-subtitle">{subtitle}</p>
+          <div className="admin-topbar-kicker">
+            <span>ThrillyVerse Control Center</span>
+          </div>
+          <h1 className="admin-topbar-title">{meta.title}</h1>
+          <p className="admin-topbar-subtitle">{meta.subtitle}</p>
         </div>
       </div>
 
       <div className="admin-topbar-right">
-        <div className="admin-topbar-search">
-          <Search size={16} />
-          <input
-            type="text"
-            className="form-input"
-            placeholder="Search admin pages, content, and records..."
-          />
-        </div>
-
         <button
           type="button"
           className="admin-theme-toggle"
@@ -76,6 +175,17 @@ export default function AdminTopbarControls({
         >
           <SunMedium size={16} className="theme-light-icon" />
           <Moon size={16} className="theme-dark-icon" />
+        </button>
+
+        <button
+          type="button"
+          className="admin-logout-btn"
+          onClick={handleLogout}
+          disabled={loggingOut}
+          aria-label="Logout"
+        >
+          <LogOut size={16} />
+          <span>{loggingOut ? 'Logging out...' : 'Logout'}</span>
         </button>
       </div>
     </header>

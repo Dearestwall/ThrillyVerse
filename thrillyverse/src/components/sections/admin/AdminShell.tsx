@@ -32,7 +32,7 @@ export type AdminStat<T> = {
 
 type Props<T extends Record<string, any>> = {
   title: string;
-  initialData: T[];
+  initialData?: T[] | null;
   columns: AdminColumn<T>[];
   searchKeys?: (keyof T | string)[];
   exportFields?: (keyof T | string)[];
@@ -43,6 +43,10 @@ type Props<T extends Record<string, any>> = {
   addLabel?: string;
   stats?: AdminStat<T>[];
 };
+
+function ensureArray<T>(value: T[] | null | undefined): T[] {
+  return Array.isArray(value) ? value : [];
+}
 
 function parseCsvLine(line: string): string[] {
   const result: string[] = [];
@@ -114,7 +118,7 @@ function parseJson(text: string): Record<string, string>[] {
 function toCsv(rows: Record<string, any>[]): string {
   if (!rows.length) return '';
 
-  const headers = Object.keys(rows[0]);
+  const headers = Object.keys(rows[0] ?? {});
 
   const escapeCell = (value: unknown) => {
     const str = String(value ?? '');
@@ -126,7 +130,7 @@ function toCsv(rows: Record<string, any>[]): string {
 
   return [
     headers.join(','),
-    ...rows.map((row) => headers.map((header) => escapeCell(row[header])).join(',')),
+    ...rows.map((row) => headers.map((header) => escapeCell(row?.[header])).join(',')),
   ].join('\n');
 }
 
@@ -147,7 +151,9 @@ export function AdminShell<T extends Record<string, any>>({
   addLabel,
   stats = [],
 }: Props<T>) {
-  const [rows, setRows] = useState<T[]>(initialData);
+  const normalizedInitialData = useMemo(() => ensureArray(initialData), [initialData]);
+
+  const [rows, setRows] = useState<T[]>(normalizedInitialData);
   const [query, setQuery] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<T | null>(null);
@@ -162,17 +168,21 @@ export function AdminShell<T extends Record<string, any>>({
   const fileRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
-    setRows(initialData);
+    setRows(ensureArray(initialData));
   }, [initialData]);
 
+  const safeRows = useMemo(() => ensureArray(rows), [rows]);
+
   const filteredRows = useMemo(() => {
-    if (!query.trim()) return rows;
+    if (!query.trim()) return safeRows;
     const q = query.toLowerCase();
 
-    return rows.filter((row) =>
-      searchKeys.some((key) => String(row[String(key)] ?? '').toLowerCase().includes(q)),
+    return safeRows.filter((row) =>
+      searchKeys.some((key) => String(row?.[String(key)] ?? '').toLowerCase().includes(q)),
     );
-  }, [rows, query, searchKeys]);
+  }, [safeRows, query, searchKeys]);
+
+  const hasRows = safeRows.length > 0;
 
   const handleSaved = () => {
     setIsModalOpen(false);
@@ -181,11 +191,16 @@ export function AdminShell<T extends Record<string, any>>({
   };
 
   const exportCsv = () => {
-    const fields = exportFields.length ? exportFields.map(String) : Object.keys(rows[0] ?? {});
-    const mapped = rows.map((row) => {
+    if (!hasRows) return;
+
+    const fields = exportFields.length
+      ? exportFields.map(String)
+      : Object.keys(safeRows[0] ?? {});
+
+    const mapped = safeRows.map((row) => {
       const entry: Record<string, any> = {};
       fields.forEach((field) => {
-        entry[field] = row[field];
+        entry[field] = row?.[field];
       });
       return entry;
     });
@@ -196,12 +211,12 @@ export function AdminShell<T extends Record<string, any>>({
     a.href = URL.createObjectURL(blob);
     a.download = `${title.toLowerCase().replace(/\s+/g, '-')}.csv`;
     a.click();
+    URL.revokeObjectURL(a.href);
   };
 
-  const templateFields =
-    exportFields.length
-      ? exportFields.map(String)
-      : Object.keys(initialData[0] ?? { title: '', published: '' });
+  const templateFields = exportFields.length
+    ? exportFields.map(String)
+    : Object.keys(normalizedInitialData[0] ?? { title: '', published: '' });
 
   const downloadTemplate = (format: 'csv' | 'json' | 'xlsx') => {
     const sampleRow = Object.fromEntries(templateFields.map((field) => [field, '']));
@@ -227,6 +242,7 @@ export function AdminShell<T extends Record<string, any>>({
     a.href = URL.createObjectURL(blob);
     a.download = `${title.toLowerCase().replace(/\s+/g, '-')}-template.${format}`;
     a.click();
+    URL.revokeObjectURL(a.href);
   };
 
   const runBulkUpload = async (parsed: Record<string, string>[]) => {
@@ -264,11 +280,17 @@ export function AdminShell<T extends Record<string, any>>({
       if (file.name.endsWith('.xlsx') || file.name.endsWith('.xls')) {
         const buffer = await file.arrayBuffer();
         const workbook = XLSX.read(buffer, { type: 'array' });
-        const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+        const firstSheetName = workbook.SheetNames?.[0];
+        if (!firstSheetName) {
+          setBulkError('The uploaded Excel file has no worksheet.');
+          return;
+        }
+
+        const firstSheet = workbook.Sheets[firstSheetName];
         const json = XLSX.utils.sheet_to_json<Record<string, any>>(firstSheet, { defval: '' });
 
         const parsed = json.map((row) =>
-          Object.fromEntries(Object.entries(row).map(([k, v]) => [k, String(v ?? '')])),
+          Object.fromEntries(Object.entries(row ?? {}).map(([k, v]) => [k, String(v ?? '')])),
         );
 
         await runBulkUpload(parsed);
@@ -334,7 +356,7 @@ export function AdminShell<T extends Record<string, any>>({
                 className={`admin-stat-card admin-stat-${stat.tone ?? 'default'}`}
               >
                 <span className="admin-stat-label">{stat.label}</span>
-                <strong className="admin-stat-value">{getStatValue(stat, rows)}</strong>
+                <strong className="admin-stat-value">{getStatValue(stat, safeRows)}</strong>
               </div>
             ))}
           </div>
@@ -373,7 +395,7 @@ export function AdminShell<T extends Record<string, any>>({
               type="button"
               className="btn btn-secondary"
               onClick={exportCsv}
-              disabled={!rows.length}
+              disabled={!hasRows}
             >
               <Download size={14} />
               Export
@@ -412,7 +434,7 @@ export function AdminShell<T extends Record<string, any>>({
                           key={String(column.key)}
                           className={`${column.className ?? ''} ${column.mobileHidden ? 'hide-mobile' : ''}`.trim()}
                         >
-                          {column.render ? column.render(row) : String(row[String(column.key)] ?? '—')}
+                          {column.render ? column.render(row) : String(row?.[String(column.key)] ?? '—')}
                         </td>
                       ))}
 

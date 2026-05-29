@@ -19,7 +19,7 @@ export default async function AdminNotificationsPage() {
         </div>
       </div>
 
-      <NotificationsAdminTable initialNotifications={(data ?? []) as any} />
+      <NotificationsAdminTable initialData={(data ?? []) as any} />
     </div>
   );
 }

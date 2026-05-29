@@ -15,12 +15,12 @@ export default async function AdminReviewsPage() {
         <div>
           <h1 className="admin-page-title">Reviews</h1>
           <p className="admin-page-subtitle">
-            Manage testimonials, ratings, featured feedback, and homepage ordering.
+            Manage testimonials, featured reviews, ordering, and publishing.
           </p>
         </div>
       </div>
 
-      <ReviewsAdminTable initialReviews={(data ?? []) as any} />
+      <ReviewsAdminTable initialData={(data ?? []) as any} />
     </div>
   );
 }

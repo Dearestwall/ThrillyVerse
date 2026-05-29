@@ -20,7 +20,7 @@ export default async function AdminProjectsPage() {
         </div>
       </div>
 
-      <ProjectsAdminTable initialProjects={(data ?? []) as any} />
+      <ProjectsAdminTable initialData={(data ?? []) as any} />
     </div>
   );
 }

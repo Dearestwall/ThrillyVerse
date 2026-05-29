@@ -1,0 +1,334 @@
+.admin-shell-layout {
+  min-height: 100dvh;
+  display: grid;
+  grid-template-columns: 280px minmax(0, 1fr);
+  background: var(--color-bg);
+}
+
+.admin-shell-layout.sidebar-collapsed {
+  grid-template-columns: 92px minmax(0, 1fr);
+}
+
+.admin-main-wrap {
+  min-width: 0;
+  padding: 1rem;
+  display: grid;
+  gap: 1rem;
+}
+
+.admin-main-content {
+  min-width: 0;
+  display: grid;
+  gap: 1rem;
+}
+
+.admin-topbar {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem 1.25rem;
+  border: 1px solid var(--color-border);
+  background: color-mix(in oklab, var(--color-surface) 84%, transparent);
+  backdrop-filter: blur(14px);
+  border-radius: 1.25rem;
+  box-shadow: var(--shadow-sm);
+}
+
+.admin-topbar-left,
+.admin-topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 0.875rem;
+  min-width: 0;
+}
+
+.admin-topbar-left {
+  flex: 1 1 auto;
+}
+
+.admin-topbar-right {
+  flex: 0 0 auto;
+}
+
+.admin-topbar-title-group {
+  min-width: 0;
+}
+
+.admin-topbar-kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  margin-bottom: 0.35rem;
+  color: var(--color-text-muted);
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+}
+
+.admin-topbar-title {
+  margin: 0;
+  font-size: clamp(1.2rem, 1rem + 0.8vw, 1.8rem);
+  line-height: 1.05;
+  letter-spacing: -0.03em;
+  font-weight: 850;
+  color: var(--color-text);
+}
+
+.admin-topbar-subtitle {
+  margin: 0.35rem 0 0;
+  color: var(--color-text-muted);
+  font-size: 0.92rem;
+  line-height: 1.5;
+  max-width: 56ch;
+}
+
+.admin-menu-btn,
+.admin-desktop-toggle-top,
+.admin-theme-toggle,
+.admin-mobile-close,
+.admin-desktop-collapse-btn {
+  width: 2.7rem;
+  height: 2.7rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.9rem;
+  border: 1px solid var(--color-border);
+  background: color-mix(in oklab, var(--color-surface-2) 88%, transparent);
+  color: var(--color-text);
+  flex-shrink: 0;
+}
+
+.admin-menu-btn {
+  display: none;
+}
+
+.admin-sidebar-desktop {
+  position: sticky;
+  top: 0;
+  align-self: start;
+  height: 100dvh;
+  width: 280px;
+  padding: 1rem;
+  border-right: 1px solid var(--color-border);
+  background: color-mix(in oklab, var(--color-surface) 92%, transparent);
+  backdrop-filter: blur(18px);
+  transition: width 180ms ease;
+  overflow: hidden;
+}
+
+.admin-sidebar-desktop.is-collapsed {
+  width: 92px;
+}
+
+.admin-sidebar-brand {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.admin-brand-link {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-width: 0;
+  text-decoration: none;
+  color: inherit;
+}
+
+.tv-admin-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-width: 0;
+}
+
+.tv-admin-brand-mark {
+  width: 2.8rem;
+  height: 2.8rem;
+  display: grid;
+  place-items: center;
+  border-radius: 1rem;
+  background: color-mix(in oklab, var(--color-primary) 14%, var(--color-surface));
+  border: 1px solid color-mix(in oklab, var(--color-primary) 22%, var(--color-border));
+  color: var(--color-primary);
+  box-shadow: var(--shadow-sm);
+  flex-shrink: 0;
+}
+
+.tv-admin-brand-copy {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  line-height: 1;
+}
+
+.tv-admin-brand-title {
+  font-size: 1rem;
+  font-weight: 900;
+  letter-spacing: -0.03em;
+}
+
+.brand-thrilly {
+  color: var(--color-primary);
+}
+
+.brand-verse {
+  color: var(--color-gold);
+}
+
+.tv-admin-brand-subtitle {
+  margin-top: 0.3rem;
+  font-size: 0.68rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+.admin-sidebar-nav {
+  display: grid;
+  gap: 1rem;
+  padding-top: 0.5rem;
+}
+
+.admin-nav-group {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.admin-nav-group-label {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  color: var(--color-text-muted);
+  padding-inline: 0.7rem;
+}
+
+.admin-nav-group-links {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.admin-nav-link {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  min-height: 2.9rem;
+  padding: 0.7rem 0.85rem;
+  border-radius: 1rem;
+  color: var(--color-text-muted);
+  text-decoration: none;
+  border: 1px solid transparent;
+  transition: all 180ms ease;
+}
+
+.admin-nav-link:hover {
+  color: var(--color-text);
+  background: color-mix(in oklab, var(--color-primary) 6%, var(--color-surface-2));
+  border-color: color-mix(in oklab, var(--color-primary) 16%, var(--color-border));
+}
+
+.admin-nav-link.is-active {
+  color: var(--color-text);
+  background: color-mix(in oklab, var(--color-primary) 10%, var(--color-surface));
+  border-color: color-mix(in oklab, var(--color-primary) 22%, var(--color-border));
+  box-shadow: var(--shadow-sm);
+}
+
+.admin-nav-link.is-collapsed {
+  justify-content: center;
+  padding-inline: 0;
+}
+
+.admin-mobile-drawer {
+  position: fixed;
+  inset: 0;
+  z-index: 70;
+  pointer-events: none;
+}
+
+.admin-mobile-drawer.is-open {
+  pointer-events: auto;
+}
+
+.admin-mobile-drawer-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgb(0 0 0 / 0.45);
+  opacity: 0;
+  transition: opacity 180ms ease;
+}
+
+.admin-mobile-drawer.is-open .admin-mobile-drawer-backdrop {
+  opacity: 1;
+}
+
+.admin-mobile-drawer-panel {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: min(88vw, 320px);
+  height: 100dvh;
+  padding: 1rem;
+  background: var(--color-surface);
+  border-right: 1px solid var(--color-border);
+  transform: translateX(-100%);
+  transition: transform 180ms ease;
+  box-shadow: var(--shadow-lg);
+  overflow-y: auto;
+}
+
+.admin-mobile-drawer.is-open .admin-mobile-drawer-panel {
+  transform: translateX(0);
+}
+
+.admin-mobile-drawer-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+@media (max-width: 1024px) {
+  .admin-shell-layout,
+  .admin-shell-layout.sidebar-collapsed {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .admin-sidebar-desktop {
+    display: none;
+  }
+
+  .admin-menu-btn {
+    display: inline-flex;
+  }
+
+  .admin-desktop-toggle-top {
+    display: none;
+  }
+
+  .admin-main-wrap {
+    padding: 0.875rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .admin-topbar {
+    padding: 0.9rem 1rem;
+  }
+
+  .admin-topbar-subtitle {
+    display: none;
+  }
+
+  .admin-topbar-title {
+    font-size: 1.1rem;
+  }
+}

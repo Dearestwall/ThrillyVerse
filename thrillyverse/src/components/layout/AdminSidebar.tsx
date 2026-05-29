@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import {
   Award,
   Bell,
@@ -14,6 +14,7 @@ import {
   Handshake,
   Home,
   LayoutDashboard,
+  LogOut,
   MessageSquare,
   Newspaper,
   Settings,
@@ -21,6 +22,9 @@ import {
   Video,
   X,
 } from 'lucide-react';
+import { createClient } from '@/lib/supabase/client';
+import toast from 'react-hot-toast';
+import { useState } from 'react';
 
 type Props = {
   mobileOpen?: boolean;
@@ -29,21 +33,57 @@ type Props = {
   onToggleDesktop?: () => void;
 };
 
-const navItems = [
-  { href: '/admin', label: 'Dashboard', icon: LayoutDashboard },
-  { href: '/admin/movies', label: 'Movies', icon: Video },
-  { href: '/admin/materials', label: 'Materials', icon: BookOpen },
-  { href: '/admin/blogs', label: 'Blogs', icon: FileText },
-  { href: '/admin/quizzes', label: 'Quizzes', icon: FolderKanban },
-  { href: '/admin/announcements', label: 'Announcements', icon: Newspaper },
-  { href: '/admin/notifications', label: 'Notifications', icon: Bell },
-  { href: '/admin/projects', label: 'Projects', icon: Briefcase },
-  { href: '/admin/reviews', label: 'Reviews', icon: Star },
-  { href: '/admin/partners', label: 'Partners', icon: Handshake },
-  { href: '/admin/certifications', label: 'Certifications', icon: Award },
-  { href: '/admin/contacts', label: 'Contacts', icon: MessageSquare },
-  { href: '/admin/settings', label: 'Settings', icon: Settings },
+const navGroups = [
+  {
+    label: 'Overview',
+    items: [{ href: '/admin', label: 'Dashboard', icon: LayoutDashboard }],
+  },
+  {
+    label: 'Content',
+    items: [
+      { href: '/admin/movies', label: 'Movies', icon: Video },
+      { href: '/admin/materials', label: 'Materials', icon: BookOpen },
+      { href: '/admin/blogs', label: 'Blogs', icon: FileText },
+      { href: '/admin/quizzes', label: 'Quizzes', icon: FolderKanban },
+      { href: '/admin/announcements', label: 'Announcements', icon: Newspaper },
+      { href: '/admin/notifications', label: 'Notifications', icon: Bell },
+    ],
+  },
+  {
+    label: 'Brand',
+    items: [
+      { href: '/admin/projects', label: 'Projects', icon: Briefcase },
+      { href: '/admin/reviews', label: 'Reviews', icon: Star },
+      { href: '/admin/partners', label: 'Partners', icon: Handshake },
+      { href: '/admin/certifications', label: 'Certifications', icon: Award },
+      { href: '/admin/contacts', label: 'Contacts', icon: MessageSquare },
+    ],
+  },
+  {
+    label: 'System',
+    items: [{ href: '/admin/settings', label: 'Settings', icon: Settings }],
+  },
 ];
+
+function BrandBlock({ collapsed = false }: { collapsed?: boolean }) {
+  return (
+    <div className={`tv-admin-brand ${collapsed ? 'is-collapsed' : ''}`}>
+      <div className="tv-admin-brand-mark">
+        <Home size={18} />
+      </div>
+
+      {!collapsed && (
+        <div className="tv-admin-brand-copy">
+          <span className="tv-admin-brand-title">
+            <span className="brand-thrilly">Thrilly</span>
+            <span className="brand-verse">Verse</span>
+          </span>
+          <span className="tv-admin-brand-subtitle">Admin Panel</span>
+        </div>
+      )}
+    </div>
+  );
+}
 
 function SidebarLinks({
   collapsed = false,
@@ -55,25 +95,33 @@ function SidebarLinks({
   const pathname = usePathname();
 
   return (
-    <nav className="admin-sidebar-nav">
-      {navItems.map((item) => {
-        const Icon = item.icon;
-        const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
+    <div className="admin-sidebar-nav">
+      {navGroups.map((group) => (
+        <div key={group.label} className="admin-nav-group">
+          {!collapsed && <div className="admin-nav-group-label">{group.label}</div>}
 
-        return (
-          <Link
-            key={item.href}
-            href={item.href}
-            onClick={onClose}
-            className={`admin-nav-link ${active ? 'is-active' : ''} ${collapsed ? 'is-collapsed' : ''}`}
-            title={collapsed ? item.label : undefined}
-          >
-            <Icon size={18} />
-            {!collapsed && <span>{item.label}</span>}
-          </Link>
-        );
-      })}
-    </nav>
+          <nav className="admin-nav-group-links">
+            {group.items.map((item) => {
+              const Icon = item.icon;
+              const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
+
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  onClick={onClose}
+                  className={`admin-nav-link ${active ? 'is-active' : ''} ${collapsed ? 'is-collapsed' : ''}`}
+                  title={collapsed ? item.label : undefined}
+                >
+                  <Icon size={18} />
+                  {!collapsed && <span>{item.label}</span>}
+                </Link>
+              );
+            })}
+          </nav>
+        </div>
+      ))}
+    </div>
   );
 }
 
@@ -83,15 +131,40 @@ export default function AdminSidebar({
   onClose,
   onToggleDesktop,
 }: Props) {
+  const router = useRouter();
+  const supabase = createClient();
+  const [loggingOut, setLoggingOut] = useState(false);
+
+  const handleLogout = async () => {
+    if (loggingOut) return;
+
+    setLoggingOut(true);
+
+    try {
+      const { error } = await supabase.auth.signOut();
+
+      if (error) {
+        toast.error(error.message);
+        return;
+      }
+
+      toast.success('Logged out successfully');
+      onClose?.();
+      router.replace('/admin/login');
+      router.refresh();
+    } catch {
+      toast.error('Logout failed');
+    } finally {
+      setLoggingOut(false);
+    }
+  };
+
   return (
     <>
       <aside className={`admin-sidebar-desktop ${desktopCollapsed ? 'is-collapsed' : ''}`}>
         <div className="admin-sidebar-brand">
-          <Link href="/admin" className="admin-brand-link">
-            <div className="admin-brand-mark">
-              <Home size={18} />
-            </div>
-            {!desktopCollapsed && <span>ThrillyVerse Admin</span>}
+          <Link href="/admin" className="admin-brand-link" aria-label="ThrillyVerse Admin">
+            <BrandBlock collapsed={desktopCollapsed} />
           </Link>
 
           <button
@@ -104,18 +177,37 @@ export default function AdminSidebar({
           </button>
         </div>
 
-        <SidebarLinks collapsed={desktopCollapsed} />
+        <div className="admin-sidebar-scroll">
+          <SidebarLinks collapsed={desktopCollapsed} />
+        </div>
+
+        {!desktopCollapsed && (
+          <div className="admin-sidebar-footer">
+            <button
+              type="button"
+              className="admin-sidebar-logout"
+              onClick={handleLogout}
+              disabled={loggingOut}
+            >
+              <LogOut size={16} />
+              <span>{loggingOut ? 'Logging out...' : 'Logout'}</span>
+            </button>
+          </div>
+        )}
       </aside>
 
       <div className={`admin-mobile-drawer ${mobileOpen ? 'is-open' : ''}`}>
-        <div className="admin-mobile-drawer-backdrop" onClick={onClose} />
+        <button
+          type="button"
+          aria-label="Close menu overlay"
+          className="admin-mobile-drawer-backdrop"
+          onClick={onClose}
+        />
+
         <aside className="admin-mobile-drawer-panel">
           <div className="admin-mobile-drawer-header">
             <div className="admin-brand-link">
-              <div className="admin-brand-mark">
-                <Home size={18} />
-              </div>
-              <span>ThrillyVerse Admin</span>
+              <BrandBlock />
             </div>
 
             <button
@@ -128,7 +220,21 @@ export default function AdminSidebar({
             </button>
           </div>
 
-          <SidebarLinks onClose={onClose} />
+          <div className="admin-mobile-drawer-body">
+            <SidebarLinks onClose={onClose} />
+          </div>
+
+          <div className="admin-mobile-drawer-footer">
+            <button
+              type="button"
+              className="admin-sidebar-logout"
+              onClick={handleLogout}
+              disabled={loggingOut}
+            >
+              <LogOut size={16} />
+              <span>{loggingOut ? 'Logging out...' : 'Logout'}</span>
+            </button>
+          </div>
         </aside>
       </div>
     </>
