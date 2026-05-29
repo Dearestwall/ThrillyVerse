@@ -1,188 +1,188 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
+import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
-import { createSlug } from '@/utils';
 
-type AnyObject = Record<string, any>;
+const ALLOWED_TABLES = [
+  'projects',
+  'movies',
+  'materials',
+  'blogs',
+  'announcements',
+  'notifications',
+  'quizzes',
+  'contacts',
+  'reviews',
+  'partners',
+  'certifications',
+] as const;
 
-async function requireAdmin() {
-  const supabase = createClient();
-  const { data: { user }, error } = await supabase.auth.getUser();
+type AllowedTable = (typeof ALLOWED_TABLES)[number];
 
-  if (error || !user) throw new Error('Unauthorized');
-
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('role, is_active')
-    .eq('id', user.id)
-    .single();
-
-  if (!profile || !profile.is_active || !['super_admin', 'editor'].includes(profile.role)) {
-    throw new Error('Forbidden');
-  }
-
-  return { supabase, user };
+function createSlug(value: string) {
+  return value
+    .toLowerCase()
+    .trim()
+    .replace(/['"]/g, '')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
 }
 
-async function uniqueSlug(supabase: any, table: string, baseTitle: string) {
-  const base = createSlug(baseTitle);
-  let slug = base || 'item';
-  let i = 1;
-
-  while (true) {
-    const { data } = await supabase.from(table).select('id').eq('slug', slug).maybeSingle();
-    if (!data) return slug;
-    slug = `${base}-${i++}`;
-  }
+function toBool(value: FormDataEntryValue | null) {
+  return value === 'on' || value === 'true' || value === '1';
 }
 
-function asString(fd: FormData, key: string, fallback = '') {
-  const v = fd.get(key);
-  return typeof v === 'string' ? v.trim() : fallback;
-}
-
-function asNumber(fd: FormData, key: string, fallback = 0) {
-  const n = Number(fd.get(key) ?? fallback);
+function toNum(value: FormDataEntryValue | null, fallback = 0) {
+  const n = Number(value);
   return Number.isFinite(n) ? n : fallback;
 }
 
-function asBool(fd: FormData, key: string) {
-  return fd.get(key) === 'on';
+function toText(value: FormDataEntryValue | null) {
+  const v = String(value ?? '').trim();
+  return v ? v : null;
 }
 
-function asArray(fd: FormData, key: string) {
-  return asString(fd, key)
+function toTags(value: FormDataEntryValue | null) {
+  return String(value ?? '')
     .split(',')
     .map((v) => v.trim())
     .filter(Boolean);
 }
 
-function publishState(fd: FormData, key = 'published') {
-  return asBool(fd, key);
+async function requireAdmin() {
+  const supabase = await createClient();
+
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser();
+
+  if (userError || !user) {
+    redirect('/admin/login');
+  }
+
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('role,is_active')
+    .eq('id', user.id)
+    .single();
+
+  if (!profile?.is_active || !['admin', 'super_admin', 'editor'].includes(profile.role)) {
+    redirect('/admin/login');
+  }
+
+  return { supabase, user };
 }
 
-function projectStatus(fd: FormData) {
-  const status = asString(fd, 'status', '').toLowerCase();
-  if (status === 'published') return 'published';
-  if (status === 'archived') return 'archived';
-  if (publishState(fd, 'published')) return 'published';
-  return 'draft';
-}
+export async function deleteRowAction(table: AllowedTable, id: string, paths: string[] = []) {
+  if (!ALLOWED_TABLES.includes(table)) throw new Error('Invalid table');
 
-function nullIfEmpty(value: string) {
-  return value.trim() ? value : null;
-}
-
-export async function createProjectAction(formData: FormData) {
-  const { supabase, user } = await requireAdmin();
-  const title = asString(formData, 'title');
-  if (!title) throw new Error('Title is required');
-
-  const slug = await uniqueSlug(supabase, 'projects', title);
-
-  const { error } = await supabase.from('projects').insert({
-    title,
-    slug,
-    summary: nullIfEmpty(asString(formData, 'summary')),
-    description: nullIfEmpty(asString(formData, 'description')),
-    image_url: nullIfEmpty(asString(formData, 'image_url')),
-    link: nullIfEmpty(asString(formData, 'link')),
-    github_url: nullIfEmpty(asString(formData, 'github_url')),
-    tech_stack: asArray(formData, 'tech_stack'),
-    sort_order: asNumber(formData, 'sort_order', 0),
-    featured: asBool(formData, 'featured'),
-    status: projectStatus(formData),
-    created_by: user.id,
-    updated_at: new Date().toISOString(),
-  });
-
-  if (error) throw new Error(error.message);
-  revalidatePath('/');
-  revalidatePath('/admin/projects');
-}
-
-export async function updateProjectAction(id: string, formData: FormData) {
   const { supabase } = await requireAdmin();
-  const title = asString(formData, 'title');
-  if (!title) throw new Error('Title is required');
-
-  const slugInput = asString(formData, 'slug');
-  const slug = slugInput || (await uniqueSlug(supabase, 'projects', title));
-
-  const { error } = await supabase.from('projects').update({
-    title,
-    slug,
-    summary: nullIfEmpty(asString(formData, 'summary')),
-    description: nullIfEmpty(asString(formData, 'description')),
-    image_url: nullIfEmpty(asString(formData, 'image_url')),
-    link: nullIfEmpty(asString(formData, 'link')),
-    github_url: nullIfEmpty(asString(formData, 'github_url')),
-    tech_stack: asArray(formData, 'tech_stack'),
-    sort_order: asNumber(formData, 'sort_order', 0),
-    featured: asBool(formData, 'featured'),
-    status: projectStatus(formData),
-    updated_at: new Date().toISOString(),
-  }).eq('id', id);
+  const { error } = await supabase.from(table).delete().eq('id', id);
 
   if (error) throw new Error(error.message);
-  revalidatePath('/');
-  revalidatePath('/admin/projects');
+
+  paths.forEach((path) => revalidatePath(path));
+}
+
+export async function updateContactAction(id: string, formData: FormData) {
+  const { supabase } = await requireAdmin();
+
+  const payload = {
+    name: toText(formData.get('name')),
+    email: toText(formData.get('email')),
+    phone: toText(formData.get('phone')),
+    subject: toText(formData.get('subject')),
+    message: toText(formData.get('message')),
+    read: toBool(formData.get('read')),
+  };
+
+  const { error } = await supabase.from('contacts').update(payload).eq('id', id);
+  if (error) throw new Error(error.message);
+
+  revalidatePath('/admin/contacts');
+}
+
+export async function toggleContactReadAction(id: string, read: boolean) {
+  const { supabase } = await requireAdmin();
+  const { error } = await supabase.from('contacts').update({ read }).eq('id', id);
+  if (error) throw new Error(error.message);
+  revalidatePath('/admin/contacts');
 }
 
 export async function createMovieAction(formData: FormData) {
   const { supabase, user } = await requireAdmin();
-  const title = asString(formData, 'title');
-  if (!title) throw new Error('Title is required');
+  const title = String(formData.get('title') ?? '').trim();
 
-  const slug = await uniqueSlug(supabase, 'movies', title);
-
-  const { error } = await supabase.from('movies').insert({
+  const payload = {
     title,
-    slug,
-    description: nullIfEmpty(asString(formData, 'description')),
-    poster_url: nullIfEmpty(asString(formData, 'poster_url')),
-    trailer_url: nullIfEmpty(asString(formData, 'trailer_url')),
-    movie_link: nullIfEmpty(asString(formData, 'movie_link')),
-    download_link: nullIfEmpty(asString(formData, 'download_link')),
-    category: nullIfEmpty(asString(formData, 'category')),
-    year: asNumber(formData, 'year', 0) || null,
-    rating: nullIfEmpty(asString(formData, 'rating')),
-    language: nullIfEmpty(asString(formData, 'language')),
-    duration: nullIfEmpty(asString(formData, 'duration')),
-    tags: asArray(formData, 'tags'),
-    featured: asBool(formData, 'featured'),
-    published: publishState(formData),
+    slug: createSlug(String(formData.get('slug') || title)),
+    description: toText(formData.get('description')),
+    poster_url: toText(formData.get('poster_url')),
+    trailer_url: toText(formData.get('trailer_url')),
+    movie_link: toText(formData.get('movie_link')),
+    download_link: toText(formData.get('download_link')),
+    category: toText(formData.get('category')),
+    year: toNum(formData.get('year'), 0) || null,
+    rating: toText(formData.get('rating')),
+    language: toText(formData.get('language')),
+    duration: toText(formData.get('duration')),
+    tags: toTags(formData.get('tags')),
+    featured: toBool(formData.get('featured')),
+    published: toBool(formData.get('published')),
+    sort_order: toNum(formData.get('sort_order'), 0),
     created_by: user.id,
-    updated_at: new Date().toISOString(),
-  });
+  };
 
+  const { error } = await supabase.from('movies').insert(payload);
   if (error) throw new Error(error.message);
+
   revalidatePath('/movies');
   revalidatePath('/admin/movies');
 }
 
 export async function updateMovieAction(id: string, formData: FormData) {
   const { supabase } = await requireAdmin();
+  const title = String(formData.get('title') ?? '').trim();
 
-  const { error } = await supabase.from('movies').update({
-    title: asString(formData, 'title'),
-    description: nullIfEmpty(asString(formData, 'description')),
-    poster_url: nullIfEmpty(asString(formData, 'poster_url')),
-    trailer_url: nullIfEmpty(asString(formData, 'trailer_url')),
-    movie_link: nullIfEmpty(asString(formData, 'movie_link')),
-    download_link: nullIfEmpty(asString(formData, 'download_link')),
-    category: nullIfEmpty(asString(formData, 'category')),
-    year: asNumber(formData, 'year', 0) || null,
-    rating: nullIfEmpty(asString(formData, 'rating')),
-    language: nullIfEmpty(asString(formData, 'language')),
-    duration: nullIfEmpty(asString(formData, 'duration')),
-    tags: asArray(formData, 'tags'),
-    featured: asBool(formData, 'featured'),
-    published: publishState(formData),
-    updated_at: new Date().toISOString(),
-  }).eq('id', id);
+  const payload = {
+    title,
+    slug: createSlug(String(formData.get('slug') || title)),
+    description: toText(formData.get('description')),
+    poster_url: toText(formData.get('poster_url')),
+    trailer_url: toText(formData.get('trailer_url')),
+    movie_link: toText(formData.get('movie_link')),
+    download_link: toText(formData.get('download_link')),
+    category: toText(formData.get('category')),
+    year: toNum(formData.get('year'), 0) || null,
+    rating: toText(formData.get('rating')),
+    language: toText(formData.get('language')),
+    duration: toText(formData.get('duration')),
+    tags: toTags(formData.get('tags')),
+    featured: toBool(formData.get('featured')),
+    published: toBool(formData.get('published')),
+    sort_order: toNum(formData.get('sort_order'), 0),
+  };
 
+  const { error } = await supabase.from('movies').update(payload).eq('id', id);
+  if (error) throw new Error(error.message);
+
+  revalidatePath('/movies');
+  revalidatePath('/admin/movies');
+}
+
+export async function toggleMoviePublishedAction(id: string, published: boolean) {
+  const { supabase } = await requireAdmin();
+  const { error } = await supabase.from('movies').update({ published }).eq('id', id);
+  if (error) throw new Error(error.message);
+  revalidatePath('/movies');
+  revalidatePath('/admin/movies');
+}
+
+export async function toggleMovieFeaturedAction(id: string, featured: boolean) {
+  const { supabase } = await requireAdmin();
+  const { error } = await supabase.from('movies').update({ featured }).eq('id', id);
   if (error) throw new Error(error.message);
   revalidatePath('/movies');
   revalidatePath('/admin/movies');
@@ -190,60 +190,184 @@ export async function updateMovieAction(id: string, formData: FormData) {
 
 export async function createMaterialAction(formData: FormData) {
   const { supabase, user } = await requireAdmin();
-  const title = asString(formData, 'title');
-  if (!title) throw new Error('Title is required');
+  const title = String(formData.get('title') ?? '').trim();
 
-  const slug = await uniqueSlug(supabase, 'materials', title);
-
-  const { error } = await supabase.from('materials').insert({
+  const payload = {
     title,
-    slug,
-    board: asString(formData, 'board') || 'Other',
-    class_level: asString(formData, 'class_level') || '',
-    subject: asString(formData, 'subject') || '',
-    topic: nullIfEmpty(asString(formData, 'topic')),
-    description: nullIfEmpty(asString(formData, 'description')),
-    cover_image: nullIfEmpty(asString(formData, 'cover_image')),
-    resource_type: asString(formData, 'resource_type') || 'notes',
-    resource_link: nullIfEmpty(asString(formData, 'resource_link')),
-    download_link: nullIfEmpty(asString(formData, 'download_link')),
-    file_size: nullIfEmpty(asString(formData, 'file_size')),
-    is_premium: asBool(formData, 'is_premium'),
-    featured: asBool(formData, 'featured'),
-    published: publishState(formData),
+    slug: createSlug(String(formData.get('slug') || title)),
+    board: toText(formData.get('board')),
+    class_level: toText(formData.get('class_level')),
+    subject: toText(formData.get('subject')),
+    topic: toText(formData.get('topic')),
+    description: toText(formData.get('description')),
+    cover_image: toText(formData.get('cover_image')),
+    resource_type: toText(formData.get('resource_type')),
+    resource_link: toText(formData.get('resource_link')),
+    download_link: toText(formData.get('download_link')),
+    file_size: toText(formData.get('file_size')),
+    is_premium: toBool(formData.get('is_premium')),
+    featured: toBool(formData.get('featured')),
+    published: toBool(formData.get('published')),
+    sort_order: toNum(formData.get('sort_order'), 0),
     created_by: user.id,
-    updated_at: new Date().toISOString(),
-  });
+  };
 
+  const { error } = await supabase.from('materials').insert(payload);
   if (error) throw new Error(error.message);
+
   revalidatePath('/materials');
   revalidatePath('/admin/materials');
 }
 
 export async function updateMaterialAction(id: string, formData: FormData) {
   const { supabase } = await requireAdmin();
+  const title = String(formData.get('title') ?? '').trim();
 
-  const { error } = await supabase.from('materials').update({
-    title: asString(formData, 'title'),
-    board: asString(formData, 'board') || 'Other',
-    class_level: asString(formData, 'class_level') || '',
-    subject: asString(formData, 'subject') || '',
-    topic: nullIfEmpty(asString(formData, 'topic')),
-    description: nullIfEmpty(asString(formData, 'description')),
-    cover_image: nullIfEmpty(asString(formData, 'cover_image')),
-    resource_type: asString(formData, 'resource_type') || 'notes',
-    resource_link: nullIfEmpty(asString(formData, 'resource_link')),
-    download_link: nullIfEmpty(asString(formData, 'download_link')),
-    file_size: nullIfEmpty(asString(formData, 'file_size')),
-    is_premium: asBool(formData, 'is_premium'),
-    featured: asBool(formData, 'featured'),
-    published: publishState(formData),
-    updated_at: new Date().toISOString(),
-  }).eq('id', id);
+  const payload = {
+    title,
+    slug: createSlug(String(formData.get('slug') || title)),
+    board: toText(formData.get('board')),
+    class_level: toText(formData.get('class_level')),
+    subject: toText(formData.get('subject')),
+    topic: toText(formData.get('topic')),
+    description: toText(formData.get('description')),
+    cover_image: toText(formData.get('cover_image')),
+    resource_type: toText(formData.get('resource_type')),
+    resource_link: toText(formData.get('resource_link')),
+    download_link: toText(formData.get('download_link')),
+    file_size: toText(formData.get('file_size')),
+    is_premium: toBool(formData.get('is_premium')),
+    featured: toBool(formData.get('featured')),
+    published: toBool(formData.get('published')),
+    sort_order: toNum(formData.get('sort_order'), 0),
+  };
 
+  const { error } = await supabase.from('materials').update(payload).eq('id', id);
+  if (error) throw new Error(error.message);
+
+  revalidatePath('/materials');
+  revalidatePath('/admin/materials');
+}
+
+export async function toggleMaterialPublishedAction(id: string, published: boolean) {
+  const { supabase } = await requireAdmin();
+  const { error } = await supabase.from('materials').update({ published }).eq('id', id);
   if (error) throw new Error(error.message);
   revalidatePath('/materials');
   revalidatePath('/admin/materials');
+}
+
+export async function toggleMaterialFeaturedAction(id: string, featured: boolean) {
+  const { supabase } = await requireAdmin();
+  const { error } = await supabase.from('materials').update({ featured }).eq('id', id);
+  if (error) throw new Error(error.message);
+  revalidatePath('/materials');
+  revalidatePath('/admin/materials');
+}
+
+export async function createBlogAction(formData: FormData) {
+  const { supabase, user } = await requireAdmin();
+  const title = String(formData.get('title') ?? '').trim();
+  const published = toBool(formData.get('published'));
+
+  const payload = {
+    title,
+    slug: createSlug(String(formData.get('slug') || title)),
+    excerpt: toText(formData.get('excerpt')),
+    content: toText(formData.get('content')),
+    cover_image: toText(formData.get('cover_image')),
+    category: toText(formData.get('category')),
+    tags: toTags(formData.get('tags')),
+    read_time: toNum(formData.get('read_time'), 5),
+    featured: toBool(formData.get('featured')),
+    published,
+    published_at: published ? new Date().toISOString() : null,
+    author_id: user.id,
+  };
+
+  const { error } = await supabase.from('blogs').insert(payload);
+  if (error) throw new Error(error.message);
+
+  revalidatePath('/blogs');
+  revalidatePath('/admin/blogs');
+}
+
+export async function updateBlogAction(id: string, formData: FormData) {
+  const { supabase } = await requireAdmin();
+  const title = String(formData.get('title') ?? '').trim();
+  const published = toBool(formData.get('published'));
+
+  const payload = {
+    title,
+    slug: createSlug(String(formData.get('slug') || title)),
+    excerpt: toText(formData.get('excerpt')),
+    content: toText(formData.get('content')),
+    cover_image: toText(formData.get('cover_image')),
+    category: toText(formData.get('category')),
+    tags: toTags(formData.get('tags')),
+    read_time: toNum(formData.get('read_time'), 5),
+    featured: toBool(formData.get('featured')),
+    published,
+    published_at: published ? new Date().toISOString() : null,
+  };
+
+  const { error } = await supabase.from('blogs').update(payload).eq('id', id);
+  if (error) throw new Error(error.message);
+
+  revalidatePath('/blogs');
+  revalidatePath('/admin/blogs');
+}
+
+export async function toggleBlogPublishedAction(id: string, published: boolean) {
+  const { supabase } = await requireAdmin();
+  const { error } = await supabase
+    .from('blogs')
+    .update({ published, published_at: published ? new Date().toISOString() : null })
+    .eq('id', id);
+  if (error) throw new Error(error.message);
+  revalidatePath('/blogs');
+  revalidatePath('/admin/blogs');
+}
+
+export async function createAnnouncementAction(formData: FormData) {
+  const { supabase, user } = await requireAdmin();
+
+  const payload = {
+    title: String(formData.get('title') ?? '').trim(),
+    body: toText(formData.get('body')),
+    cta_label: toText(formData.get('cta_label')),
+    cta_url: toText(formData.get('cta_url')),
+    badge: toText(formData.get('badge')),
+    priority: toNum(formData.get('priority'), 0),
+    active: toBool(formData.get('active')),
+    created_by: user.id,
+  };
+
+  const { error } = await supabase.from('announcements').insert(payload);
+  if (error) throw new Error(error.message);
+
+  revalidatePath('/');
+  revalidatePath('/admin/announcements');
+}
+
+export async function updateAnnouncementAction(id: string, formData: FormData) {
+  const { supabase } = await requireAdmin();
+
+  const payload = {
+    title: String(formData.get('title') ?? '').trim(),
+    body: toText(formData.get('body')),
+    cta_label: toText(formData.get('cta_label')),
+    cta_url: toText(formData.get('cta_url')),
+    badge: toText(formData.get('badge')),
+    priority: toNum(formData.get('priority'), 0),
+    active: toBool(formData.get('active')),
+  };
+
+  const { error } = await supabase.from('announcements').update(payload).eq('id', id);
+  if (error) throw new Error(error.message);
+
+  revalidatePath('/');
+  revalidatePath('/admin/announcements');
 }
 
 export async function toggleAnnouncementActiveAction(id: string, active: boolean) {
@@ -254,289 +378,127 @@ export async function toggleAnnouncementActiveAction(id: string, active: boolean
   revalidatePath('/admin/announcements');
 }
 
-export async function toggleBlogPublishedAction(id: string, published: boolean) {
-  const { supabase } = await requireAdmin();
-  const { error } = await supabase
-    .from('blogs')
-    .update({
-      published,
-      published_at: published ? new Date().toISOString() : null,
-      updated_at: new Date().toISOString(),
-    })
-    .eq('id', id);
-
-  if (error) throw new Error(error.message);
-  revalidatePath('/blogs');
-  revalidatePath('/admin/blogs');
-}
-
-export async function toggleCertificationActiveAction(id: string, active: boolean) {
-  const { supabase } = await requireAdmin();
-  const { error } = await supabase.from('certifications').update({ active, updated_at: new Date().toISOString() }).eq('id', id);
-  if (error) throw new Error(error.message);
-  revalidatePath('/');
-  revalidatePath('/admin/certifications');
-}
-
-export async function toggleNotificationActiveAction(id: string, is_active: boolean) {
-  const { supabase } = await requireAdmin();
-  const { error } = await supabase.from('notifications').update({ is_active, updated_at: new Date().toISOString() }).eq('id', id);
-  if (error) throw new Error(error.message);
-  revalidatePath('/admin/notifications');
-}
-
-export async function togglePartnerActiveAction(id: string, active: boolean) {
-  const { supabase } = await requireAdmin();
-  const { error } = await supabase.from('partners').update({ active, updated_at: new Date().toISOString() }).eq('id', id);
-  if (error) throw new Error(error.message);
-  revalidatePath('/');
-  revalidatePath('/admin/partners');
-}
-
-export async function toggleQuizPublishedAction(id: string, published: boolean) {
-  const { supabase } = await requireAdmin();
-  const { error } = await supabase.from('quizzes').update({ published, updated_at: new Date().toISOString() }).eq('id', id);
-  if (error) throw new Error(error.message);
-  revalidatePath('/materials');
-  revalidatePath('/admin/quizzes');
-}
-
-export async function toggleReviewPublishedAction(id: string, published: boolean) {
-  const { supabase } = await requireAdmin();
-  const { error } = await supabase.from('reviews').update({ published, updated_at: new Date().toISOString() }).eq('id', id);
-  if (error) throw new Error(error.message);
-  revalidatePath('/');
-  revalidatePath('/admin/reviews');
-}
-
-export async function createBlogAction(formData: FormData) {
-  const { supabase, user } = await requireAdmin();
-  const title = asString(formData, 'title');
-  if (!title) throw new Error('Title is required');
-
-  const slug = await uniqueSlug(supabase, 'blogs', title);
-  const published = publishState(formData);
-
-  const { error } = await supabase.from('blogs').insert({
-    title,
-    slug,
-    excerpt: nullIfEmpty(asString(formData, 'excerpt')),
-    content: nullIfEmpty(asString(formData, 'content')),
-    cover_image: nullIfEmpty(asString(formData, 'cover_image')),
-    category: nullIfEmpty(asString(formData, 'category')),
-    tags: asArray(formData, 'tags'),
-    read_time: asNumber(formData, 'read_time', 5),
-    featured: asBool(formData, 'featured'),
-    published,
-    published_at: published ? new Date().toISOString() : null,
-    author_id: user.id,
-    updated_at: new Date().toISOString(),
-  });
-
-  if (error) throw new Error(error.message);
-  revalidatePath('/blogs');
-  revalidatePath('/admin/blogs');
-}
-
-export async function updateBlogAction(id: string, formData: FormData) {
-  const { supabase } = await requireAdmin();
-  const published = publishState(formData);
-
-  const { error } = await supabase.from('blogs').update({
-    title: asString(formData, 'title'),
-    slug: asString(formData, 'slug') || undefined,
-    excerpt: nullIfEmpty(asString(formData, 'excerpt')),
-    content: nullIfEmpty(asString(formData, 'content')),
-    cover_image: nullIfEmpty(asString(formData, 'cover_image')),
-    category: nullIfEmpty(asString(formData, 'category')),
-    tags: asArray(formData, 'tags'),
-    read_time: asNumber(formData, 'read_time', 5),
-    featured: asBool(formData, 'featured'),
-    published,
-    published_at: published ? new Date().toISOString() : null,
-    updated_at: new Date().toISOString(),
-  }).eq('id', id);
-
-  if (error) throw new Error(error.message);
-  revalidatePath('/blogs');
-  revalidatePath('/admin/blogs');
-}
-
-export async function createAnnouncementAction(formData: FormData) {
-  const { supabase, user } = await requireAdmin();
-
-  const { error } = await supabase.from('announcements').insert({
-    title: asString(formData, 'title'),
-    body: nullIfEmpty(asString(formData, 'body')),
-    cta_label: nullIfEmpty(asString(formData, 'cta_label')),
-    cta_url: nullIfEmpty(asString(formData, 'cta_url')),
-    badge: nullIfEmpty(asString(formData, 'badge')),
-    priority: asNumber(formData, 'priority', 0),
-    active: asBool(formData, 'active'),
-    created_by: user.id,
-    updated_at: new Date().toISOString(),
-  });
-
-  if (error) throw new Error(error.message);
-  revalidatePath('/');
-  revalidatePath('/admin/announcements');
-}
-
-export async function updateAnnouncementAction(id: string, formData: FormData) {
-  const { supabase } = await requireAdmin();
-
-  const { error } = await supabase.from('announcements').update({
-    title: asString(formData, 'title'),
-    body: nullIfEmpty(asString(formData, 'body')),
-    cta_label: nullIfEmpty(asString(formData, 'cta_label')),
-    cta_url: nullIfEmpty(asString(formData, 'cta_url')),
-    badge: nullIfEmpty(asString(formData, 'badge')),
-    priority: asNumber(formData, 'priority', 0),
-    active: asBool(formData, 'active'),
-    updated_at: new Date().toISOString(),
-  }).eq('id', id);
-
-  if (error) throw new Error(error.message);
-  revalidatePath('/');
-  revalidatePath('/admin/announcements');
-}
-
 export async function createNotificationAction(formData: FormData) {
   const { supabase, user } = await requireAdmin();
 
-  const { error } = await supabase.from('notifications').insert({
-    title: asString(formData, 'title'),
-    message: asString(formData, 'message'),
-    type: asString(formData, 'type') || 'info',
-    target_url: nullIfEmpty(asString(formData, 'target_url')),
-    audience: asString(formData, 'audience') || 'all',
-    is_active: asBool(formData, 'is_active'),
+  const payload = {
+    title: String(formData.get('title') ?? '').trim(),
+    message: String(formData.get('message') ?? '').trim(),
+    type: String(formData.get('type') ?? 'info'),
+    target_url: toText(formData.get('target_url')),
+    audience: toText(formData.get('audience')) ?? 'all',
+    is_active: toBool(formData.get('is_active')),
     created_by: user.id,
-    updated_at: new Date().toISOString(),
-  });
+  };
 
+  const { error } = await supabase.from('notifications').insert(payload);
   if (error) throw new Error(error.message);
+
+  revalidatePath('/materials');
   revalidatePath('/admin/notifications');
 }
 
 export async function updateNotificationAction(id: string, formData: FormData) {
   const { supabase } = await requireAdmin();
 
-  const { error } = await supabase.from('notifications').update({
-    title: asString(formData, 'title'),
-    message: asString(formData, 'message'),
-    type: asString(formData, 'type') || 'info',
-    target_url: nullIfEmpty(asString(formData, 'target_url')),
-    audience: asString(formData, 'audience') || 'all',
-    is_active: asBool(formData, 'is_active'),
-    updated_at: new Date().toISOString(),
-  }).eq('id', id);
+  const payload = {
+    title: String(formData.get('title') ?? '').trim(),
+    message: String(formData.get('message') ?? '').trim(),
+    type: String(formData.get('type') ?? 'info'),
+    target_url: toText(formData.get('target_url')),
+    audience: toText(formData.get('audience')) ?? 'all',
+    is_active: toBool(formData.get('is_active')),
+  };
 
+  const { error } = await supabase.from('notifications').update(payload).eq('id', id);
   if (error) throw new Error(error.message);
+
+  revalidatePath('/materials');
+  revalidatePath('/admin/notifications');
+}
+
+export async function toggleNotificationActiveAction(id: string, isActive: boolean) {
+  const { supabase } = await requireAdmin();
+  const { error } = await supabase.from('notifications').update({ is_active: isActive }).eq('id', id);
+  if (error) throw new Error(error.message);
+  revalidatePath('/materials');
   revalidatePath('/admin/notifications');
 }
 
 export async function createQuizAction(formData: FormData) {
   const { supabase, user } = await requireAdmin();
-  const title = asString(formData, 'title');
-  if (!title) throw new Error('Title is required');
+  const title = String(formData.get('title') ?? '').trim();
 
-  const slug = await uniqueSlug(supabase, 'quizzes', title);
-
-  const { error } = await supabase.from('quizzes').insert({
+  const payload = {
     title,
-    slug,
-    description: nullIfEmpty(asString(formData, 'description')),
-    board: nullIfEmpty(asString(formData, 'board')),
-    class_level: nullIfEmpty(asString(formData, 'class_level')),
-    subject: nullIfEmpty(asString(formData, 'subject')),
-    time_limit: asNumber(formData, 'time_limit', 10),
-    difficulty: asString(formData, 'difficulty') || 'medium',
-    published: publishState(formData),
+    slug: createSlug(String(formData.get('slug') || title)),
+    description: toText(formData.get('description')),
+    board: toText(formData.get('board')),
+    class_level: toText(formData.get('class_level')),
+    subject: toText(formData.get('subject')),
+    time_limit: toNum(formData.get('time_limit'), 10),
+    difficulty: String(formData.get('difficulty') ?? 'medium'),
+    published: toBool(formData.get('published')),
     created_by: user.id,
-    updated_at: new Date().toISOString(),
-  });
+  };
 
+  const { error } = await supabase.from('quizzes').insert(payload);
   if (error) throw new Error(error.message);
+
   revalidatePath('/materials');
   revalidatePath('/admin/quizzes');
 }
 
 export async function updateQuizAction(id: string, formData: FormData) {
   const { supabase } = await requireAdmin();
+  const title = String(formData.get('title') ?? '').trim();
 
-  const { error } = await supabase.from('quizzes').update({
-    title: asString(formData, 'title'),
-    description: nullIfEmpty(asString(formData, 'description')),
-    board: nullIfEmpty(asString(formData, 'board')),
-    class_level: nullIfEmpty(asString(formData, 'class_level')),
-    subject: nullIfEmpty(asString(formData, 'subject')),
-    time_limit: asNumber(formData, 'time_limit', 10),
-    difficulty: asString(formData, 'difficulty') || 'medium',
-    published: publishState(formData),
-    updated_at: new Date().toISOString(),
-  }).eq('id', id);
+  const payload = {
+    title,
+    slug: createSlug(String(formData.get('slug') || title)),
+    description: toText(formData.get('description')),
+    board: toText(formData.get('board')),
+    class_level: toText(formData.get('class_level')),
+    subject: toText(formData.get('subject')),
+    time_limit: toNum(formData.get('time_limit'), 10),
+    difficulty: String(formData.get('difficulty') ?? 'medium'),
+    published: toBool(formData.get('published')),
+  };
 
+  const { error } = await supabase.from('quizzes').update(payload).eq('id', id);
+  if (error) throw new Error(error.message);
+
+  revalidatePath('/materials');
+  revalidatePath('/admin/quizzes');
+}
+
+export async function toggleQuizPublishedAction(id: string, published: boolean) {
+  const { supabase } = await requireAdmin();
+  const { error } = await supabase.from('quizzes').update({ published }).eq('id', id);
   if (error) throw new Error(error.message);
   revalidatePath('/materials');
   revalidatePath('/admin/quizzes');
 }
 
-export async function createPartnerAction(formData: FormData) {
-  const { supabase, user } = await requireAdmin();
-
-  const { error } = await supabase.from('partners').insert({
-    name: asString(formData, 'name'),
-    emoji: asString(formData, 'emoji') || '🤝',
-    logo_url: nullIfEmpty(asString(formData, 'logo_url')),
-    website_url: nullIfEmpty(asString(formData, 'website_url')),
-    sort_order: asNumber(formData, 'sort_order', 0),
-    active: asBool(formData, 'active'),
-    created_by: user.id,
-    updated_at: new Date().toISOString(),
-  });
-
-  if (error) throw new Error(error.message);
-  revalidatePath('/');
-  revalidatePath('/admin/partners');
-}
-
-export async function updatePartnerAction(id: string, formData: FormData) {
-  const { supabase } = await requireAdmin();
-
-  const { error } = await supabase.from('partners').update({
-    name: asString(formData, 'name'),
-    emoji: asString(formData, 'emoji') || '🤝',
-    logo_url: nullIfEmpty(asString(formData, 'logo_url')),
-    website_url: nullIfEmpty(asString(formData, 'website_url')),
-    sort_order: asNumber(formData, 'sort_order', 0),
-    active: asBool(formData, 'active'),
-    updated_at: new Date().toISOString(),
-  }).eq('id', id);
-
-  if (error) throw new Error(error.message);
-  revalidatePath('/');
-  revalidatePath('/admin/partners');
-}
-
 export async function createReviewAction(formData: FormData) {
   const { supabase, user } = await requireAdmin();
 
-  const { error } = await supabase.from('reviews').insert({
-    name: asString(formData, 'name'),
-    role: nullIfEmpty(asString(formData, 'role')),
-    emoji: asString(formData, 'emoji') || '👤',
-    avatar_url: nullIfEmpty(asString(formData, 'avatar_url')),
-    rating: asNumber(formData, 'rating', 5),
-    text: asString(formData, 'text'),
-    featured: asBool(formData, 'featured'),
-    published: asBool(formData, 'published'),
-    sort_order: asNumber(formData, 'sort_order', 0),
+  const payload = {
+    name: String(formData.get('name') ?? '').trim(),
+    role: toText(formData.get('role')),
+    text: String(formData.get('text') ?? '').trim(),
+    avatar_url: toText(formData.get('avatar_url')),
+    emoji: toText(formData.get('emoji')) ?? '⭐',
+    rating: toNum(formData.get('rating'), 5),
+    featured: toBool(formData.get('featured')),
+    published: toBool(formData.get('published')),
+    sort_order: toNum(formData.get('sort_order'), 0),
     created_by: user.id,
-    updated_at: new Date().toISOString(),
-  });
+  };
 
+  const { error } = await supabase.from('reviews').insert(payload);
   if (error) throw new Error(error.message);
+
   revalidatePath('/');
   revalidatePath('/admin/reviews');
 }
@@ -544,40 +506,156 @@ export async function createReviewAction(formData: FormData) {
 export async function updateReviewAction(id: string, formData: FormData) {
   const { supabase } = await requireAdmin();
 
-  const { error } = await supabase.from('reviews').update({
-    name: asString(formData, 'name'),
-    role: nullIfEmpty(asString(formData, 'role')),
-    emoji: asString(formData, 'emoji') || '👤',
-    avatar_url: nullIfEmpty(asString(formData, 'avatar_url')),
-    rating: asNumber(formData, 'rating', 5),
-    text: asString(formData, 'text'),
-    featured: asBool(formData, 'featured'),
-    published: asBool(formData, 'published'),
-    sort_order: asNumber(formData, 'sort_order', 0),
-    updated_at: new Date().toISOString(),
-  }).eq('id', id);
+  const payload = {
+    name: String(formData.get('name') ?? '').trim(),
+    role: toText(formData.get('role')),
+    text: String(formData.get('text') ?? '').trim(),
+    avatar_url: toText(formData.get('avatar_url')),
+    emoji: toText(formData.get('emoji')) ?? '⭐',
+    rating: toNum(formData.get('rating'), 5),
+    featured: toBool(formData.get('featured')),
+    published: toBool(formData.get('published')),
+    sort_order: toNum(formData.get('sort_order'), 0),
+  };
 
+  const { error } = await supabase.from('reviews').update(payload).eq('id', id);
+  if (error) throw new Error(error.message);
+
+  revalidatePath('/');
+  revalidatePath('/admin/reviews');
+}
+
+export async function toggleReviewPublishedAction(id: string, published: boolean) {
+  const { supabase } = await requireAdmin();
+  const { error } = await supabase.from('reviews').update({ published }).eq('id', id);
   if (error) throw new Error(error.message);
   revalidatePath('/');
   revalidatePath('/admin/reviews');
 }
 
+export async function toggleReviewFeaturedAction(id: string, featured: boolean) {
+  const { supabase } = await requireAdmin();
+  const { error } = await supabase.from('reviews').update({ featured }).eq('id', id);
+  if (error) throw new Error(error.message);
+  revalidatePath('/');
+  revalidatePath('/admin/reviews');
+}
+
+export async function createProjectAction(formData: FormData) {
+  const { supabase, user } = await requireAdmin();
+  const title = String(formData.get('title') ?? '').trim();
+
+  const payload = {
+    title,
+    slug: createSlug(String(formData.get('slug') || title)),
+    summary: toText(formData.get('summary')),
+    description: toText(formData.get('description')),
+    image_url: toText(formData.get('image_url')),
+    link: toText(formData.get('link')),
+    github_url: toText(formData.get('github_url')),
+    tech_stack: toTags(formData.get('tech_stack')),
+    featured: toBool(formData.get('featured')),
+    status: String(formData.get('status') ?? 'draft'),
+    sort_order: toNum(formData.get('sort_order'), 0),
+    created_by: user.id,
+  };
+
+  const { error } = await supabase.from('projects').insert(payload);
+  if (error) throw new Error(error.message);
+
+  revalidatePath('/');
+  revalidatePath('/admin/projects');
+}
+
+export async function updateProjectAction(id: string, formData: FormData) {
+  const { supabase } = await requireAdmin();
+  const title = String(formData.get('title') ?? '').trim();
+
+  const payload = {
+    title,
+    slug: createSlug(String(formData.get('slug') || title)),
+    summary: toText(formData.get('summary')),
+    description: toText(formData.get('description')),
+    image_url: toText(formData.get('image_url')),
+    link: toText(formData.get('link')),
+    github_url: toText(formData.get('github_url')),
+    tech_stack: toTags(formData.get('tech_stack')),
+    featured: toBool(formData.get('featured')),
+    status: String(formData.get('status') ?? 'draft'),
+    sort_order: toNum(formData.get('sort_order'), 0),
+  };
+
+  const { error } = await supabase.from('projects').update(payload).eq('id', id);
+  if (error) throw new Error(error.message);
+
+  revalidatePath('/');
+  revalidatePath('/admin/projects');
+}
+
+export async function createPartnerAction(formData: FormData) {
+  const { supabase, user } = await requireAdmin();
+
+  const payload = {
+    name: String(formData.get('name') ?? '').trim(),
+    emoji: toText(formData.get('emoji')),
+    logo_url: toText(formData.get('logo_url')),
+    website_url: toText(formData.get('website_url')),
+    sort_order: toNum(formData.get('sort_order'), 0),
+    active: toBool(formData.get('active')),
+    created_by: user.id,
+  };
+
+  const { error } = await supabase.from('partners').insert(payload);
+  if (error) throw new Error(error.message);
+
+  revalidatePath('/');
+  revalidatePath('/admin/partners');
+}
+
+export async function updatePartnerAction(id: string, formData: FormData) {
+  const { supabase } = await requireAdmin();
+
+  const payload = {
+    name: String(formData.get('name') ?? '').trim(),
+    emoji: toText(formData.get('emoji')),
+    logo_url: toText(formData.get('logo_url')),
+    website_url: toText(formData.get('website_url')),
+    sort_order: toNum(formData.get('sort_order'), 0),
+    active: toBool(formData.get('active')),
+  };
+
+  const { error } = await supabase.from('partners').update(payload).eq('id', id);
+  if (error) throw new Error(error.message);
+
+  revalidatePath('/');
+  revalidatePath('/admin/partners');
+}
+
+export async function togglePartnerActiveAction(id: string, active: boolean) {
+  const { supabase } = await requireAdmin();
+  const { error } = await supabase.from('partners').update({ active }).eq('id', id);
+  if (error) throw new Error(error.message);
+  revalidatePath('/');
+  revalidatePath('/admin/partners');
+}
+
 export async function createCertificationAction(formData: FormData) {
   const { supabase, user } = await requireAdmin();
 
-  const { error } = await supabase.from('certifications').insert({
-    title: asString(formData, 'title'),
-    subtitle: nullIfEmpty(asString(formData, 'subtitle')),
-    emoji: asString(formData, 'emoji') || '🏅',
-    color_from: asString(formData, 'color_from') || '#7c3aed',
-    color_to: asString(formData, 'color_to') || '#06b6d4',
-    sort_order: asNumber(formData, 'sort_order', 0),
-    active: asBool(formData, 'active'),
+  const payload = {
+    title: String(formData.get('title') ?? '').trim(),
+    subtitle: toText(formData.get('subtitle')),
+    emoji: toText(formData.get('emoji')),
+    color_from: toText(formData.get('color_from')),
+    color_to: toText(formData.get('color_to')),
+    sort_order: toNum(formData.get('sort_order'), 0),
+    active: toBool(formData.get('active')),
     created_by: user.id,
-    updated_at: new Date().toISOString(),
-  });
+  };
 
+  const { error } = await supabase.from('certifications').insert(payload);
   if (error) throw new Error(error.message);
+
   revalidatePath('/');
   revalidatePath('/admin/certifications');
 }
@@ -585,45 +663,27 @@ export async function createCertificationAction(formData: FormData) {
 export async function updateCertificationAction(id: string, formData: FormData) {
   const { supabase } = await requireAdmin();
 
-  const { error } = await supabase.from('certifications').update({
-    title: asString(formData, 'title'),
-    subtitle: nullIfEmpty(asString(formData, 'subtitle')),
-    emoji: asString(formData, 'emoji') || '🏅',
-    color_from: asString(formData, 'color_from') || '#7c3aed',
-    color_to: asString(formData, 'color_to') || '#06b6d4',
-    sort_order: asNumber(formData, 'sort_order', 0),
-    active: asBool(formData, 'active'),
-    updated_at: new Date().toISOString(),
-  }).eq('id', id);
+  const payload = {
+    title: String(formData.get('title') ?? '').trim(),
+    subtitle: toText(formData.get('subtitle')),
+    emoji: toText(formData.get('emoji')),
+    color_from: toText(formData.get('color_from')),
+    color_to: toText(formData.get('color_to')),
+    sort_order: toNum(formData.get('sort_order'), 0),
+    active: toBool(formData.get('active')),
+  };
 
+  const { error } = await supabase.from('certifications').update(payload).eq('id', id);
   if (error) throw new Error(error.message);
+
   revalidatePath('/');
   revalidatePath('/admin/certifications');
 }
 
-export async function toggleContactReadAction(id: string, read: boolean) {
+export async function toggleCertificationActiveAction(id: string, active: boolean) {
   const { supabase } = await requireAdmin();
-  const { error } = await supabase.from('contacts').update({ read }).eq('id', id);
+  const { error } = await supabase.from('certifications').update({ active }).eq('id', id);
   if (error) throw new Error(error.message);
-  revalidatePath('/admin/contacts');
-}
-
-export async function deleteRowAction(table: string, id: string, paths: string[]) {
-  const allowedTables = ['projects', 'movies', 'materials', 'blogs', 'announcements', 'notifications', 'quizzes', 'contacts', 'partners', 'reviews', 'certifications'];
-  if (!allowedTables.includes(table)) throw new Error('Invalid table');
-
-  const { supabase } = await requireAdmin();
-  const { error } = await supabase.from(table).delete().eq('id', id);
-  if (error) throw new Error(error.message);
-  paths.forEach((path) => revalidatePath(path));
-}
-
-export async function bulkDeleteAction(table: string, ids: string[], paths: string[]) {
-  const allowedTables = ['projects', 'movies', 'materials', 'blogs', 'announcements', 'notifications', 'quizzes', 'contacts', 'partners', 'reviews', 'certifications'];
-  if (!allowedTables.includes(table)) throw new Error('Invalid table');
-
-  const { supabase } = await requireAdmin();
-  const { error } = await supabase.from(table).delete().in('id', ids);
-  if (error) throw new Error(error.message);
-  paths.forEach((path) => revalidatePath(path));
+  revalidatePath('/');
+  revalidatePath('/admin/certifications');
 }

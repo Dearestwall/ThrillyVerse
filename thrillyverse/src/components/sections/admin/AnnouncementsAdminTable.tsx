@@ -5,7 +5,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { toast } from 'react-hot-toast';
-import { ToggleLeft, ToggleRight, Trash2 } from 'lucide-react';
+import { ToggleLeft, ToggleRight, Trash2, Megaphone } from 'lucide-react';
 import { AdminShell } from './AdminShell';
 import {
   createAnnouncementAction,
@@ -36,7 +36,11 @@ function AnnouncementForm({
   onClose: () => void;
   onSaved: () => void;
 }) {
-  const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<FD>({
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = useForm<FD>({
     resolver: zodResolver(schema),
     defaultValues: item
       ? {
@@ -71,13 +75,23 @@ function AnnouncementForm({
       toast.success(item ? 'Announcement updated' : 'Announcement created');
       onSaved();
     } catch (error: any) {
-      toast.error(error.message || 'Failed');
+      toast.error(error?.message || 'Failed to save announcement');
     }
   };
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="admin-form">
-      <h2 className="modal-title">{item ? 'Edit Announcement' : 'New Announcement'}</h2>
+      <div className="admin-form-header">
+        <div className="logo-circle">
+          <Megaphone size={18} />
+        </div>
+        <div>
+          <h2 className="modal-title">{item ? 'Edit Announcement' : 'New Announcement'}</h2>
+          <p className="modal-subtitle">
+            Create important banners with CTA, badge, and priority ordering.
+          </p>
+        </div>
+      </div>
 
       <div className="form-grid-2">
         <div className="form-group col-span-2">
@@ -117,9 +131,11 @@ function AnnouncementForm({
         </label>
       </div>
 
-      <div className="modal-form-footer">
-        <button type="button" className="btn btn-secondary" onClick={onClose}>Cancel</button>
-        <button type="submit" className="btn btn-primary" disabled={isSubmitting}>
+      <div className="modal-form-footer centered-button-row">
+        <button type="button" className="btn btn-secondary btn-pill" onClick={onClose}>
+          Cancel
+        </button>
+        <button type="submit" className="btn btn-primary btn-pill" disabled={isSubmitting}>
           {isSubmitting ? 'Saving...' : item ? 'Update Announcement' : 'Create Announcement'}
         </button>
       </div>
@@ -128,9 +144,9 @@ function AnnouncementForm({
 }
 
 export default function AnnouncementsAdminTable({
-  initialAnnouncements,
+  initialData,
 }: {
-  initialAnnouncements: Announcement[];
+  initialData: Announcement[];
 }) {
   const [, startTransition] = useTransition();
 
@@ -146,14 +162,32 @@ export default function AnnouncementsAdminTable({
   return (
     <AdminShell<Announcement>
       title="Announcements"
-      initialData={initialAnnouncements}
+      initialData={initialData}
       searchKeys={['title', 'body', 'badge']}
       exportFields={['id', 'title', 'badge', 'priority', 'active', 'created_at']}
       onBulkUpload={bulkUpload}
+      addLabel="New Announcement"
+      stats={[
+        { label: 'Total', value: (rows) => rows.length },
+        { label: 'Active', value: (rows) => rows.filter((r) => !!r.active).length, tone: 'success' },
+        { label: 'Inactive', value: (rows) => rows.filter((r) => !r.active).length, tone: 'warning' },
+      ]}
       columns={[
-        { key: 'title', label: 'Title', render: (r) => <span className="font-medium">{r.title}</span> },
-        { key: 'badge', label: 'Badge', render: (r) => r.badge || '—' },
-        { key: 'priority', label: 'Priority', render: (r) => r.priority ?? 0 },
+        {
+          key: 'title',
+          label: 'Title',
+          render: (r) => <span className="font-medium">{r.title}</span>,
+        },
+        {
+          key: 'badge',
+          label: 'Badge',
+          render: (r) => r.badge || '—',
+        },
+        {
+          key: 'priority',
+          label: 'Priority',
+          render: (r) => r.priority ?? 0,
+        },
         {
           key: 'active',
           label: 'Status',
@@ -175,7 +209,7 @@ export default function AnnouncementsAdminTable({
                 window.location.reload();
               })
             }
-            aria-label={row.active ? 'Deactivate' : 'Activate'}
+            aria-label={row.active ? 'Deactivate announcement' : 'Activate announcement'}
           >
             {row.active ? <ToggleRight size={14} /> : <ToggleLeft size={14} />}
           </button>

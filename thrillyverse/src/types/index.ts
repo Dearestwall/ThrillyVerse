@@ -5,6 +5,9 @@ export type Difficulty = 'easy' | 'medium' | 'hard';
 export type NotifType = 'info' | 'success' | 'warning' | 'alert' | 'new_material' | 'new_movie' | 'new_blog' | 'quiz';
 
 export interface Announcement {
+  message: string;
+  type: string;
+  published: any;
   id: string;
   title: string;
   body: string | null;
@@ -155,6 +158,8 @@ export interface Contact {
 }
 
 export interface Profile {
+  is_active: any;
+  is_active: any;
   id: string;
   email: string;
   full_name: string | null;

@@ -94,6 +94,9 @@ function ReviewForm({
         <div className="form-group">
           <label className="form-label">Name</label>
           <input className="form-input" {...form.register('name')} />
+          {form.formState.errors.name && (
+            <p className="form-error">{form.formState.errors.name.message}</p>
+          )}
         </div>
 
         <div className="form-group">
@@ -109,6 +112,9 @@ function ReviewForm({
         <div className="form-group col-span-2">
           <label className="form-label">Text</label>
           <textarea rows={5} className="form-input" {...form.register('text')} />
+          {form.formState.errors.text && (
+            <p className="form-error">{form.formState.errors.text.message}</p>
+          )}
         </div>
 
         <div className="form-group">
@@ -150,9 +156,9 @@ function ReviewForm({
 }
 
 export default function ReviewsAdminTable({
-  initialReviews,
+  initialData,
 }: {
-  initialReviews: Review[];
+  initialData: Review[];
 }) {
   const [, startTransition] = useTransition();
 
@@ -169,12 +175,16 @@ export default function ReviewsAdminTable({
   return (
     <AdminShell<Review>
       title="Reviews"
-      initialData={initialReviews}
+      initialData={initialData}
       searchKeys={['name', 'role', 'text', 'emoji']}
       exportFields={['id', 'name', 'role', 'rating', 'featured', 'published', 'sort_order']}
       onBulkUpload={bulkUpload}
       columns={[
-        { key: 'name', label: 'Name', render: (r) => <span className="font-medium">{r.name}</span> },
+        {
+          key: 'name',
+          label: 'Name',
+          render: (r) => <span className="font-medium">{r.name}</span>,
+        },
         { key: 'role', label: 'Role', render: (r) => r.role || '—' },
         { key: 'rating', label: 'Rating', render: (r) => `${r.rating}/5` },
         { key: 'emoji', label: 'Emoji', render: (r) => r.emoji || '—' },
@@ -199,6 +209,7 @@ export default function ReviewsAdminTable({
                 window.location.reload();
               })
             }
+            aria-label={row.published ? 'Unpublish review' : 'Publish review'}
           >
             {row.published ? <EyeOff size={14} /> : <Eye size={14} />}
           </button>
@@ -212,6 +223,7 @@ export default function ReviewsAdminTable({
                 window.location.reload();
               })
             }
+            aria-label={row.featured ? 'Remove featured review' : 'Feature review'}
           >
             <Star size={14} />
           </button>
@@ -225,6 +237,7 @@ export default function ReviewsAdminTable({
                 window.location.reload();
               })
             }
+            aria-label="Delete review"
           >
             <Trash2 size={14} />
           </button>

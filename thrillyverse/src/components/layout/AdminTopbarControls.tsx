@@ -1,70 +1,83 @@
 'use client';
 
-import { useState } from 'react';
-import { ThemeToggle } from '@/components/common/ThemeToggle';
-import { Menu, PanelLeftClose, PanelLeftOpen } from 'lucide-react';
+import {
+  Menu,
+  Moon,
+  PanelLeftClose,
+  PanelLeftOpen,
+  Search,
+  SunMedium,
+} from 'lucide-react';
 
 type Props = {
-  onToggleSidebar: () => void;
-  collapsed: boolean;
-  onOpenMobileMenu?: () => void;
+  title?: string;
+  subtitle?: string;
+  desktopCollapsed?: boolean;
+  onToggleDesktop?: () => void;
+  onOpenMobile?: () => void;
 };
 
-export function AdminTopbarControls({
-  onToggleSidebar,
-  collapsed,
-  onOpenMobileMenu,
+export default function AdminTopbarControls({
+  title = 'Admin Panel',
+  subtitle = 'Manage content, updates, and platform data.',
+  desktopCollapsed = false,
+  onToggleDesktop,
+  onOpenMobile,
 }: Props) {
-  const [animating, setAnimating] = useState(false);
-  const [mobileAnimating, setMobileAnimating] = useState(false);
-
-  const handleToggle = () => {
-    setAnimating(true);
-    onToggleSidebar();
-    window.setTimeout(() => setAnimating(false), 220);
-  };
-
-  const handleOpenMobile = () => {
-    setMobileAnimating(true);
-    onOpenMobileMenu?.();
-    window.setTimeout(() => setMobileAnimating(false), 180);
+  const toggleTheme = () => {
+    const root = document.documentElement;
+    const current = root.getAttribute('data-theme');
+    const next = current === 'dark' ? 'light' : 'dark';
+    root.setAttribute('data-theme', next);
   };
 
   return (
-    <div className="admin-topbar-controls">
-      <div className="admin-topbar-controls__left">
+    <header className="admin-topbar">
+      <div className="admin-topbar-left">
         <button
-          className="btn btn-secondary btn-sm admin-nav-toggle md:hidden admin-control-btn"
           type="button"
-          aria-label="Open admin menu"
-          onClick={handleOpenMobile}
-          style={{
-            transform: mobileAnimating ? 'translateY(-1px) scale(0.97)' : 'none',
-          }}
+          className="admin-menu-btn"
+          aria-label="Open menu"
+          onClick={onOpenMobile}
         >
           <Menu size={18} />
-          <span className="admin-control-text">Menu</span>
         </button>
 
         <button
-          className="btn btn-secondary btn-sm hidden md:inline-flex admin-collapse-btn admin-control-btn"
           type="button"
-          aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-          onClick={handleToggle}
-          style={{
-            transform: animating ? 'translateY(-1px) scale(0.97)' : 'none',
-          }}
+          className="admin-desktop-toggle-top"
+          aria-label={desktopCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+          onClick={onToggleDesktop}
         >
-          <span className="admin-control-icon">
-            {collapsed ? <PanelLeftOpen size={18} /> : <PanelLeftClose size={18} />}
-          </span>
-          <span className="admin-control-text">{collapsed ? 'Expand' : 'Collapse'}</span>
+          {desktopCollapsed ? <PanelLeftOpen size={18} /> : <PanelLeftClose size={18} />}
         </button>
+
+        <div className="admin-topbar-title-group">
+          <h1 className="admin-topbar-title">{title}</h1>
+          <p className="admin-topbar-subtitle">{subtitle}</p>
+        </div>
       </div>
 
-      <div className="admin-topbar-controls__right">
-        <ThemeToggle />
+      <div className="admin-topbar-right">
+        <div className="admin-topbar-search">
+          <Search size={16} />
+          <input
+            type="text"
+            className="form-input"
+            placeholder="Search admin pages, content, and records..."
+          />
+        </div>
+
+        <button
+          type="button"
+          className="admin-theme-toggle"
+          aria-label="Toggle theme"
+          onClick={toggleTheme}
+        >
+          <SunMedium size={16} className="theme-light-icon" />
+          <Moon size={16} className="theme-dark-icon" />
+        </button>
       </div>
-    </div>
+    </header>
   );
 }

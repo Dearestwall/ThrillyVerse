@@ -5,7 +5,7 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { toast } from 'react-hot-toast';
-import { ToggleLeft, ToggleRight, Trash2 } from 'lucide-react';
+import { ToggleLeft, ToggleRight, Trash2, Award } from 'lucide-react';
 import { AdminShell } from './AdminShell';
 import {
   createCertificationAction,
@@ -15,13 +15,22 @@ import {
 } from '@/app/actions/admin';
 import type { Certification } from '@/types';
 
+type CertificationLike = Certification & {
+  issuer?: string | null;
+  issue_date?: string | null;
+  credential_url?: string | null;
+  image_url?: string | null;
+  description?: string | null;
+  active?: boolean | null;
+};
+
 const schema = z.object({
   title: z.string().min(1, 'Title is required'),
-  subtitle: z.string().optional(),
-  emoji: z.string().optional(),
-  image_url: z.string().optional(),
-  verify_url: z.string().optional(),
   issuer: z.string().optional(),
+  issue_date: z.string().optional(),
+  credential_url: z.string().optional(),
+  image_url: z.string().optional(),
+  description: z.string().optional(),
   sort_order: z.coerce.number().default(0),
   active: z.boolean().default(true),
 });
@@ -33,7 +42,7 @@ function CertificationForm({
   onClose,
   onSaved,
 }: {
-  item: Certification | null;
+  item: CertificationLike | null;
   onClose: () => void;
   onSaved: () => void;
 }) {
@@ -42,21 +51,21 @@ function CertificationForm({
     defaultValues: item
       ? {
           title: item.title ?? '',
-          subtitle: item.subtitle ?? '',
-          emoji: item.emoji ?? '',
-          image_url: (item as any).image_url ?? '',
-          verify_url: (item as any).verify_url ?? '',
-          issuer: (item as any).issuer ?? '',
+          issuer: item.issuer ?? '',
+          issue_date: item.issue_date ?? '',
+          credential_url: item.credential_url ?? '',
+          image_url: item.image_url ?? '',
+          description: item.description ?? '',
           sort_order: item.sort_order ?? 0,
-          active: (item as any).active ?? true,
+          active: item.active ?? true,
         }
       : {
           title: '',
-          subtitle: '',
-          emoji: '🏆',
-          image_url: '',
-          verify_url: '',
           issuer: '',
+          issue_date: '',
+          credential_url: '',
+          image_url: '',
+          description: '',
           sort_order: 0,
           active: true,
         },
@@ -64,9 +73,7 @@ function CertificationForm({
 
   const onSubmit = async (data: FD) => {
     const fd = new FormData();
-    Object.entries(data).forEach(([key, value]) => {
-      fd.append(key, String(value ?? ''));
-    });
+    Object.entries(data).forEach(([key, value]) => fd.append(key, String(value ?? '')));
     if (data.active) fd.set('active', 'on');
 
     try {
@@ -85,7 +92,17 @@ function CertificationForm({
 
   return (
     <form onSubmit={form.handleSubmit(onSubmit)} className="admin-form">
-      <h2 className="modal-title">{item ? 'Edit Certification' : 'Add Certification'}</h2>
+      <div className="admin-form-header">
+        <div className="logo-circle">
+          <Award size={18} />
+        </div>
+        <div>
+          <h2 className="modal-title">{item ? 'Edit Certification' : 'Add Certification'}</h2>
+          <p className="modal-subtitle">
+            Manage titles, issuers, verification links, and showcase order.
+          </p>
+        </div>
+      </div>
 
       <div className="form-grid-2">
         <div className="form-group col-span-2">
@@ -96,14 +113,29 @@ function CertificationForm({
           )}
         </div>
 
-        <div className="form-group col-span-2">
-          <label className="form-label">Subtitle</label>
-          <textarea rows={3} className="form-input" {...form.register('subtitle')} />
+        <div className="form-group">
+          <label className="form-label">Issuer</label>
+          <input className="form-input" {...form.register('issuer')} />
         </div>
 
         <div className="form-group">
-          <label className="form-label">Emoji</label>
-          <input className="form-input" {...form.register('emoji')} />
+          <label className="form-label">Issue Date</label>
+          <input type="date" className="form-input" {...form.register('issue_date')} />
+        </div>
+
+        <div className="form-group col-span-2">
+          <label className="form-label">Credential URL</label>
+          <input className="form-input" {...form.register('credential_url')} />
+        </div>
+
+        <div className="form-group col-span-2">
+          <label className="form-label">Image URL</label>
+          <input className="form-input" {...form.register('image_url')} />
+        </div>
+
+        <div className="form-group col-span-2">
+          <label className="form-label">Description</label>
+          <textarea rows={4} className="form-input" {...form.register('description')} />
         </div>
 
         <div className="form-group">
@@ -111,22 +143,7 @@ function CertificationForm({
           <input type="number" className="form-input" {...form.register('sort_order')} />
         </div>
 
-        <div className="form-group">
-          <label className="form-label">Image URL</label>
-          <input className="form-input" {...form.register('image_url')} />
-        </div>
-
-        <div className="form-group">
-          <label className="form-label">Verify URL</label>
-          <input className="form-input" {...form.register('verify_url')} />
-        </div>
-
-        <div className="form-group col-span-2">
-          <label className="form-label">Issuer</label>
-          <input className="form-input" {...form.register('issuer')} />
-        </div>
-
-        <label className="check-row col-span-2">
+        <label className="check-row">
           <input type="checkbox" {...form.register('active')} />
           Active
         </label>
@@ -145,9 +162,9 @@ function CertificationForm({
 }
 
 export default function CertificationsAdminTable({
-  initialCertifications,
+  initialData,
 }: {
-  initialCertifications: Certification[];
+  initialData: CertificationLike[];
 }) {
   const [, startTransition] = useTransition();
 
@@ -161,39 +178,33 @@ export default function CertificationsAdminTable({
   };
 
   return (
-    <AdminShell<Certification>
+    <AdminShell<CertificationLike>
       title="Certifications"
-      initialData={initialCertifications}
-      searchKeys={['title', 'subtitle', 'emoji']}
-      exportFields={['id', 'title', 'subtitle', 'emoji', 'sort_order']}
+      initialData={initialData}
+      searchKeys={['title', 'issuer', 'description']}
+      exportFields={['id', 'title', 'issuer', 'issue_date', 'sort_order', 'active']}
       onBulkUpload={bulkUpload}
+      addLabel="Add Certification"
+      stats={[
+        { label: 'Total', value: (rows) => rows.length },
+        { label: 'Active', value: (rows) => rows.filter((r) => !!r.active).length, tone: 'success' },
+        { label: 'Inactive', value: (rows) => rows.filter((r) => !r.active).length, tone: 'warning' },
+      ]}
       columns={[
         {
           key: 'title',
           label: 'Title',
-          render: (r) => <span className="font-medium">{r.title}</span>,
+          render: (row) => <span className="font-medium">{row.title}</span>,
         },
-        {
-          key: 'subtitle',
-          label: 'Subtitle',
-          render: (r) => r.subtitle || '—',
-        },
-        {
-          key: 'emoji',
-          label: 'Emoji',
-          render: (r) => r.emoji || '—',
-        },
-        {
-          key: 'sort_order',
-          label: 'Order',
-          render: (r) => r.sort_order ?? 0,
-        },
+        { key: 'issuer', label: 'Issuer', render: (row) => row.issuer || '—' },
+        { key: 'issue_date', label: 'Date', render: (row) => row.issue_date || '—', mobileHidden: true },
+        { key: 'sort_order', label: 'Order', render: (row) => row.sort_order ?? 0, mobileHidden: true },
         {
           key: 'active',
           label: 'Status',
-          render: (r) => (
-            <span className={`badge ${(r as any).active ? 'badge-success' : 'badge-muted'}`}>
-              {(r as any).active ? 'Active' : 'Inactive'}
+          render: (row) => (
+            <span className={`badge ${row.active ? 'badge-success' : 'badge-muted'}`}>
+              {row.active ? 'Active' : 'Inactive'}
             </span>
           ),
         },
@@ -205,12 +216,13 @@ export default function CertificationsAdminTable({
             className="btn btn-ghost btn-sm"
             onClick={() =>
               startTransition(async () => {
-                await toggleCertificationActiveAction(row.id, !(row as any).active);
+                await toggleCertificationActiveAction(row.id, !row.active);
                 window.location.reload();
               })
             }
+            aria-label={row.active ? 'Deactivate certification' : 'Activate certification'}
           >
-            {(row as any).active ? <ToggleRight size={14} /> : <ToggleLeft size={14} />}
+            {row.active ? <ToggleRight size={14} /> : <ToggleLeft size={14} />}
           </button>
 
           <button
@@ -222,6 +234,7 @@ export default function CertificationsAdminTable({
                 window.location.reload();
               })
             }
+            aria-label="Delete certification"
           >
             <Trash2 size={14} />
           </button>

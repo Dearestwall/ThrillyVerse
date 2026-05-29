@@ -35,7 +35,7 @@ function ProjectForm({
   onClose: () => void;
   onSaved: () => void;
 }) {
-  const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<FD>({
+  const form = useForm<FD>({
     resolver: zodResolver(schema),
     defaultValues: item
       ? {
@@ -72,10 +72,13 @@ function ProjectForm({
     if (data.featured) fd.set('featured', 'on');
 
     try {
-      if (item) await updateProjectAction(item.id, fd);
-      else await createProjectAction(fd);
-
-      toast.success(item ? 'Project updated' : 'Project created');
+      if (item) {
+        await updateProjectAction(item.id, fd);
+        toast.success('Project updated');
+      } else {
+        await createProjectAction(fd);
+        toast.success('Project created');
+      }
       onSaved();
     } catch (error: any) {
       toast.error(error.message || 'Failed');
@@ -83,24 +86,26 @@ function ProjectForm({
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="admin-form">
+    <form onSubmit={form.handleSubmit(onSubmit)} className="admin-form">
       <h2 className="modal-title">{item ? 'Edit Project' : 'New Project'}</h2>
 
       <div className="form-grid-2">
         <div className="form-group col-span-2">
           <label className="form-label">Title</label>
-          <input className="form-input" {...register('title')} />
-          {errors.title && <p className="form-error">{errors.title.message}</p>}
+          <input className="form-input" {...form.register('title')} />
+          {form.formState.errors.title && (
+            <p className="form-error">{form.formState.errors.title.message}</p>
+          )}
         </div>
 
         <div className="form-group">
           <label className="form-label">Slug</label>
-          <input className="form-input" {...register('slug')} />
+          <input className="form-input" {...form.register('slug')} />
         </div>
 
         <div className="form-group">
           <label className="form-label">Status</label>
-          <select className="form-input" {...register('status')}>
+          <select className="form-input" {...form.register('status')}>
             <option value="draft">Draft</option>
             <option value="published">Published</option>
             <option value="archived">Archived</option>
@@ -109,49 +114,55 @@ function ProjectForm({
 
         <div className="form-group col-span-2">
           <label className="form-label">Summary</label>
-          <input className="form-input" {...register('summary')} />
+          <input className="form-input" {...form.register('summary')} />
         </div>
 
         <div className="form-group col-span-2">
           <label className="form-label">Description</label>
-          <textarea rows={5} className="form-input" {...register('description')} />
+          <textarea rows={5} className="form-input" {...form.register('description')} />
         </div>
 
         <div className="form-group">
           <label className="form-label">Image URL</label>
-          <input className="form-input" {...register('image_url')} />
+          <input className="form-input" {...form.register('image_url')} />
         </div>
 
         <div className="form-group">
           <label className="form-label">Tech Stack</label>
-          <input className="form-input" {...register('tech_stack')} />
+          <input className="form-input" {...form.register('tech_stack')} />
         </div>
 
         <div className="form-group">
           <label className="form-label">Live Link</label>
-          <input className="form-input" {...register('link')} />
+          <input className="form-input" {...form.register('link')} />
         </div>
 
         <div className="form-group">
           <label className="form-label">GitHub URL</label>
-          <input className="form-input" {...register('github_url')} />
+          <input className="form-input" {...form.register('github_url')} />
         </div>
 
         <div className="form-group">
           <label className="form-label">Sort Order</label>
-          <input type="number" className="form-input" {...register('sort_order')} />
+          <input type="number" className="form-input" {...form.register('sort_order')} />
         </div>
 
         <label className="check-row">
-          <input type="checkbox" {...register('featured')} />
+          <input type="checkbox" {...form.register('featured')} />
           Featured
         </label>
       </div>
 
       <div className="modal-form-footer">
-        <button type="button" className="btn btn-secondary" onClick={onClose}>Cancel</button>
-        <button type="submit" className="btn btn-primary" disabled={isSubmitting}>
-          {isSubmitting ? 'Saving...' : item ? 'Update Project' : 'Create Project'}
+        <button type="button" className="btn btn-secondary" onClick={onClose}>
+          Cancel
+        </button>
+        <button type="submit" className="btn btn-primary" disabled={form.formState.isSubmitting}>
+          {form.formState.isSubmitting
+            ? 'Saving...'
+            : item
+              ? 'Update Project'
+              : 'Create Project'}
         </button>
       </div>
     </form>
@@ -159,9 +170,9 @@ function ProjectForm({
 }
 
 export default function ProjectsAdminTable({
-  initialProjects,
+  initialData,
 }: {
-  initialProjects: Project[];
+  initialData: Project[];
 }) {
   const [, startTransition] = useTransition();
 
@@ -177,19 +188,21 @@ export default function ProjectsAdminTable({
   return (
     <AdminShell<Project>
       title="Projects"
-      initialData={initialProjects}
+      initialData={initialData}
       searchKeys={['title', 'summary', 'status']}
       exportFields={['id', 'title', 'slug', 'status', 'featured', 'sort_order']}
       onBulkUpload={bulkUpload}
       columns={[
-        { key: 'title', label: 'Title', render: (r) => <span className="font-medium">{r.title}</span> },
+        {
+          key: 'title',
+          label: 'Title',
+          render: (r) => <span className="font-medium">{r.title}</span>,
+        },
         {
           key: 'tech_stack',
           label: 'Stack',
           render: (r) =>
-            Array.isArray(r.tech_stack) && r.tech_stack.length
-              ? r.tech_stack.map((tech: string) => tech).join(', ')
-              : '—',
+            Array.isArray(r.tech_stack) && r.tech_stack.length ? r.tech_stack.join(', ') : '—',
         },
         { key: 'status', label: 'Status' },
         {

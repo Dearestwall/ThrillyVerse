@@ -1,8 +1,8 @@
 'use client';
 
-import { useState } from 'react';
-import { Menu, Search } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import AdminSidebar from '@/components/layout/AdminSidebar';
+import AdminTopbarControls from '@/components/layout/AdminTopbarControls';
 
 export default function AdminFrame({
   children,
@@ -10,42 +10,41 @@ export default function AdminFrame({
   children: React.ReactNode;
 }) {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [desktopCollapsed, setDesktopCollapsed] = useState(false);
+  const [hydrated, setHydrated] = useState(false);
+
+  useEffect(() => {
+    setHydrated(true);
+    try {
+      const saved = window.localStorage.getItem('tv-admin-sidebar-collapsed');
+      if (saved === 'true') setDesktopCollapsed(true);
+    } catch {}
+  }, []);
+
+  useEffect(() => {
+    if (!hydrated) return;
+    try {
+      window.localStorage.setItem('tv-admin-sidebar-collapsed', String(desktopCollapsed));
+    } catch {}
+  }, [desktopCollapsed, hydrated]);
 
   return (
-    <div className="admin-shell-layout">
-      <AdminSidebar mobileOpen={mobileOpen} onClose={() => setMobileOpen(false)} />
+    <div className={`admin-shell-layout ${desktopCollapsed ? 'sidebar-collapsed' : ''}`}>
+      <AdminSidebar
+        mobileOpen={mobileOpen}
+        desktopCollapsed={desktopCollapsed}
+        onClose={() => setMobileOpen(false)}
+        onToggleDesktop={() => setDesktopCollapsed((prev) => !prev)}
+      />
 
       <div className="admin-main-wrap">
-        <header className="admin-topbar">
-          <div className="admin-topbar-left">
-            <button
-              type="button"
-              className="admin-menu-btn"
-              aria-label="Open menu"
-              onClick={() => setMobileOpen(true)}
-            >
-              <Menu size={18} />
-            </button>
+        <AdminTopbarControls
+          desktopCollapsed={desktopCollapsed}
+          onToggleDesktop={() => setDesktopCollapsed((prev) => !prev)}
+          onOpenMobile={() => setMobileOpen(true)}
+        />
 
-            <div className="admin-topbar-title-group">
-              <h1 className="admin-topbar-title">Admin Panel</h1>
-              <p className="admin-topbar-subtitle">Manage content, updates, and platform data.</p>
-            </div>
-          </div>
-
-          <div className="admin-topbar-search">
-            <Search size={16} />
-            <input
-              type="text"
-              className="form-input"
-              placeholder="Search admin pages, records, and content..."
-            />
-          </div>
-        </header>
-
-        <main className="admin-main-content">
-          {children}
-        </main>
+        <main className="admin-main-content">{children}</main>
       </div>
     </div>
   );

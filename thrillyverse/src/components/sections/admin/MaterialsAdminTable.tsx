@@ -5,7 +5,7 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { toast } from 'react-hot-toast';
-import { Eye, EyeOff, Star, Trash2 } from 'lucide-react';
+import { Eye, EyeOff, Star, Trash2, BookOpen } from 'lucide-react';
 import { AdminShell } from './AdminShell';
 import {
   createMaterialAction,
@@ -113,7 +113,15 @@ function MaterialForm({
 
   return (
     <form onSubmit={form.handleSubmit(onSubmit)} className="admin-form">
-      <h2 className="modal-title">{item ? 'Edit Material' : 'Add Material'}</h2>
+      <div className="admin-form-header">
+        <div className="logo-circle">
+          <BookOpen size={18} />
+        </div>
+        <div>
+          <h2 className="modal-title">{item ? 'Edit Material' : 'Add Material'}</h2>
+          <p className="modal-subtitle">Manage notes, PDFs, videos, premium resources, and learning links.</p>
+        </div>
+      </div>
 
       <div className="form-grid-2">
         <div className="form-group col-span-2">
@@ -218,11 +226,11 @@ function MaterialForm({
         </label>
       </div>
 
-      <div className="modal-form-footer">
-        <button type="button" className="btn btn-secondary" onClick={onClose}>
+      <div className="modal-form-footer centered-button-row">
+        <button type="button" className="btn btn-secondary btn-pill" onClick={onClose}>
           Cancel
         </button>
-        <button type="submit" className="btn btn-primary" disabled={form.formState.isSubmitting}>
+        <button type="submit" className="btn btn-primary btn-pill" disabled={form.formState.isSubmitting}>
           {form.formState.isSubmitting ? 'Saving...' : item ? 'Update' : 'Create'}
         </button>
       </div>
@@ -245,43 +253,43 @@ export default function MaterialsAdminTable({ initialData }: { initialData: Mate
   };
 
   return (
-    <AdminShell<Material>
-      title="Materials"
-      initialData={initialData}
-      searchKeys={['title', 'subject', 'class_level', 'board', 'topic']}
-      exportFields={[
-        'id',
-        'title',
-        'slug',
-        'board',
-        'class_level',
-        'subject',
-        'resource_type',
-        'is_premium',
-        'featured',
-        'published',
-      ]}
-      onBulkUpload={bulkUpload}
-      columns={[
-        {
-          key: 'title',
-          label: 'Title',
-          render: (r) => <span className="font-medium">{r.title}</span>,
-        },
-        { key: 'board', label: 'Board' },
-        { key: 'class_level', label: 'Class' },
-        { key: 'subject', label: 'Subject' },
-        { key: 'resource_type', label: 'Type' },
-        {
-          key: 'published',
-          label: 'Status',
-          render: (r) => (
-            <span className={`badge ${r.published ? 'badge-success' : 'badge-muted'}`}>
-              {r.published ? 'Published' : 'Draft'}
-            </span>
-          ),
-        },
-      ]}
+  <AdminShell<Material>
+  title="Materials"
+  initialData={initialData}
+  searchKeys={['title', 'board', 'class_level', 'subject', 'topic']}
+  exportFields={[
+    'id',
+    'title',
+    'board',
+    'class_level',
+    'subject',
+    'resource_type',
+    'featured',
+    'published',
+    'sort_order',
+  ]}
+  onBulkUpload={bulkUpload}
+  addLabel="Add Material"
+  stats={[
+    { label: 'Total', value: (rows) => rows.length },
+    { label: 'Published', value: (rows) => rows.filter((r) => !!r.published).length, tone: 'success' },
+    { label: 'Featured', value: (rows) => rows.filter((r) => !!r.featured).length, tone: 'warning' },
+  ]}
+  columns={[
+    { key: 'title', label: 'Title', render: (r) => <span className="font-medium">{r.title}</span> },
+    { key: 'board', label: 'Board' },
+    { key: 'subject', label: 'Subject' },
+    { key: 'resource_type', label: 'Type', mobileHidden: true },
+    {
+      key: 'published',
+      label: 'Status',
+      render: (r) => (
+        <span className={`badge ${r.published ? 'badge-success' : 'badge-muted'}`}>
+          {r.published ? 'Live' : 'Draft'}
+        </span>
+      ),
+    },
+  ]}
       extraActions={(row) => (
         <>
           <button
@@ -293,6 +301,7 @@ export default function MaterialsAdminTable({ initialData }: { initialData: Mate
                 window.location.reload();
               })
             }
+            aria-label={row.published ? 'Unpublish material' : 'Publish material'}
           >
             {row.published ? <EyeOff size={14} /> : <Eye size={14} />}
           </button>
@@ -306,6 +315,7 @@ export default function MaterialsAdminTable({ initialData }: { initialData: Mate
                 window.location.reload();
               })
             }
+            aria-label={row.featured ? 'Remove featured' : 'Mark featured'}
           >
             <Star size={14} />
           </button>
@@ -319,6 +329,7 @@ export default function MaterialsAdminTable({ initialData }: { initialData: Mate
                 window.location.reload();
               })
             }
+            aria-label="Delete material"
           >
             <Trash2 size={14} />
           </button>

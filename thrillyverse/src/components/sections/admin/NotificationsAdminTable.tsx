@@ -35,7 +35,7 @@ function NotificationForm({
   onClose: () => void;
   onSaved: () => void;
 }) {
-  const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<FD>({
+  const form = useForm<FD>({
     resolver: zodResolver(schema),
     defaultValues: item
       ? {
@@ -62,58 +62,81 @@ function NotificationForm({
     if (data.is_active) fd.set('is_active', 'on');
 
     try {
-      if (item) await updateNotificationAction(item.id, fd);
-      else await createNotificationAction(fd);
-
-      toast.success(item ? 'Notification updated' : 'Notification created');
+      if (item) {
+        await updateNotificationAction(item.id, fd);
+        toast.success('Notification updated');
+      } else {
+        await createNotificationAction(fd);
+        toast.success('Notification created');
+      }
       onSaved();
     } catch (error: any) {
-      toast.error(error.message || 'Failed');
+      toast.error(error?.message || 'Failed to save notification');
     }
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="admin-form">
+    <form onSubmit={form.handleSubmit(onSubmit)} className="admin-form">
       <h2 className="modal-title">{item ? 'Edit Notification' : 'New Notification'}</h2>
 
       <div className="form-grid-2">
         <div className="form-group col-span-2">
           <label className="form-label">Title</label>
-          <input className="form-input" {...register('title')} />
-          {errors.title && <p className="form-error">{errors.title.message}</p>}
+          <input className="form-input" {...form.register('title')} />
+          {form.formState.errors.title && (
+            <p className="form-error">{form.formState.errors.title.message}</p>
+          )}
         </div>
 
         <div className="form-group col-span-2">
           <label className="form-label">Message</label>
-          <textarea className="form-input" rows={4} {...register('message')} />
-          {errors.message && <p className="form-error">{errors.message.message}</p>}
+          <textarea className="form-input" rows={4} {...form.register('message')} />
+          {form.formState.errors.message && (
+            <p className="form-error">{form.formState.errors.message.message}</p>
+          )}
         </div>
 
         <div className="form-group">
           <label className="form-label">Type</label>
-          <input className="form-input" {...register('type')} />
+          <select className="form-input" {...form.register('type')}>
+            <option value="info">Info</option>
+            <option value="success">Success</option>
+            <option value="warning">Warning</option>
+            <option value="error">Error</option>
+          </select>
         </div>
 
         <div className="form-group">
           <label className="form-label">Audience</label>
-          <input className="form-input" {...register('audience')} />
+          <select className="form-input" {...form.register('audience')}>
+            <option value="all">All</option>
+            <option value="students">Students</option>
+            <option value="admins">Admins</option>
+            <option value="visitors">Visitors</option>
+          </select>
         </div>
 
         <div className="form-group col-span-2">
           <label className="form-label">Target URL</label>
-          <input className="form-input" {...register('target_url')} />
+          <input className="form-input" {...form.register('target_url')} />
         </div>
 
         <label className="check-row col-span-2">
-          <input type="checkbox" {...register('is_active')} />
+          <input type="checkbox" {...form.register('is_active')} />
           Active
         </label>
       </div>
 
       <div className="modal-form-footer">
-        <button type="button" className="btn btn-secondary" onClick={onClose}>Cancel</button>
-        <button type="submit" className="btn btn-primary" disabled={isSubmitting}>
-          {isSubmitting ? 'Saving...' : item ? 'Update Notification' : 'Create Notification'}
+        <button type="button" className="btn btn-secondary" onClick={onClose}>
+          Cancel
+        </button>
+        <button type="submit" className="btn btn-primary" disabled={form.formState.isSubmitting}>
+          {form.formState.isSubmitting
+            ? 'Saving...'
+            : item
+              ? 'Update Notification'
+              : 'Create Notification'}
         </button>
       </div>
     </form>
@@ -121,9 +144,9 @@ function NotificationForm({
 }
 
 export default function NotificationsAdminTable({
-  initialNotifications,
+  initialData,
 }: {
-  initialNotifications: Notification[];
+  initialData: Notification[];
 }) {
   const [, startTransition] = useTransition();
 
@@ -139,12 +162,16 @@ export default function NotificationsAdminTable({
   return (
     <AdminShell<Notification>
       title="Notifications"
-      initialData={initialNotifications}
+      initialData={initialData}
       searchKeys={['title', 'message', 'type', 'audience']}
       exportFields={['id', 'title', 'type', 'audience', 'is_active', 'created_at']}
       onBulkUpload={bulkUpload}
       columns={[
-        { key: 'title', label: 'Title', render: (r) => <span className="font-medium">{r.title}</span> },
+        {
+          key: 'title',
+          label: 'Title',
+          render: (r) => <span className="font-medium">{r.title}</span>,
+        },
         { key: 'type', label: 'Type' },
         { key: 'audience', label: 'Audience' },
         {

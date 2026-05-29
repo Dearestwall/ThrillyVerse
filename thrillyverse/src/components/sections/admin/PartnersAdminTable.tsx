@@ -15,6 +15,12 @@ import {
 } from '@/app/actions/admin';
 import type { Partner } from '@/types';
 
+type PartnerLike = Partner & {
+  website_url?: string | null;
+  description?: string | null;
+  active?: boolean | null;
+};
+
 const schema = z.object({
   name: z.string().min(1, 'Name is required'),
   emoji: z.string().optional(),
@@ -32,7 +38,7 @@ function PartnerForm({
   onClose,
   onSaved,
 }: {
-  item: Partner | null;
+  item: PartnerLike | null;
   onClose: () => void;
   onSaved: () => void;
 }) {
@@ -43,10 +49,10 @@ function PartnerForm({
           name: item.name ?? '',
           emoji: item.emoji ?? '',
           logo_url: item.logo_url ?? '',
-          website_url: (item as any).website_url ?? '',
-          description: (item as any).description ?? '',
+          website_url: item.website_url ?? '',
+          description: item.description ?? '',
           sort_order: item.sort_order ?? 0,
-          active: (item as any).active ?? true,
+          active: item.active ?? true,
         }
       : {
           name: '',
@@ -86,6 +92,9 @@ function PartnerForm({
         <div className="form-group">
           <label className="form-label">Name</label>
           <input className="form-input" {...form.register('name')} />
+          {form.formState.errors.name && (
+            <p className="form-error">{form.formState.errors.name.message}</p>
+          )}
         </div>
 
         <div className="form-group">
@@ -132,9 +141,9 @@ function PartnerForm({
 }
 
 export default function PartnersAdminTable({
-  initialPartners,
+  initialData,
 }: {
-  initialPartners: Partner[];
+  initialData: PartnerLike[];
 }) {
   const [, startTransition] = useTransition();
 
@@ -148,14 +157,18 @@ export default function PartnersAdminTable({
   };
 
   return (
-    <AdminShell<Partner>
+    <AdminShell<PartnerLike>
       title="Partners"
-      initialData={initialPartners}
-      searchKeys={['name', 'emoji']}
-      exportFields={['id', 'name', 'emoji', 'logo_url', 'sort_order']}
+      initialData={initialData}
+      searchKeys={['name', 'emoji', 'description']}
+      exportFields={['id', 'name', 'emoji', 'logo_url', 'website_url', 'sort_order', 'active']}
       onBulkUpload={bulkUpload}
       columns={[
-        { key: 'name', label: 'Name', render: (r) => <span className="font-medium">{r.name}</span> },
+        {
+          key: 'name',
+          label: 'Name',
+          render: (r) => <span className="font-medium">{r.name}</span>,
+        },
         { key: 'emoji', label: 'Emoji', render: (r) => r.emoji || '—' },
         { key: 'logo_url', label: 'Logo', render: (r) => r.logo_url || '—' },
         { key: 'sort_order', label: 'Order', render: (r) => r.sort_order ?? 0 },
@@ -163,8 +176,8 @@ export default function PartnersAdminTable({
           key: 'active',
           label: 'Status',
           render: (r) => (
-            <span className={`badge ${(r as any).active ? 'badge-success' : 'badge-muted'}`}>
-              {(r as any).active ? 'Active' : 'Inactive'}
+            <span className={`badge ${r.active ? 'badge-success' : 'badge-muted'}`}>
+              {r.active ? 'Active' : 'Inactive'}
             </span>
           ),
         },
@@ -176,12 +189,13 @@ export default function PartnersAdminTable({
             className="btn btn-ghost btn-sm"
             onClick={() =>
               startTransition(async () => {
-                await togglePartnerActiveAction(row.id, !(row as any).active);
+                await togglePartnerActiveAction(row.id, !row.active);
                 window.location.reload();
               })
             }
+            aria-label={row.active ? 'Deactivate partner' : 'Activate partner'}
           >
-            {(row as any).active ? <ToggleRight size={14} /> : <ToggleLeft size={14} />}
+            {row.active ? <ToggleRight size={14} /> : <ToggleLeft size={14} />}
           </button>
 
           <button
@@ -193,6 +207,7 @@ export default function PartnersAdminTable({
                 window.location.reload();
               })
             }
+            aria-label="Delete partner"
           >
             <Trash2 size={14} />
           </button>

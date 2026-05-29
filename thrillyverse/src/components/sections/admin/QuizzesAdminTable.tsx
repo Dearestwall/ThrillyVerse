@@ -28,8 +28,16 @@ const schema = z.object({
 
 type FD = z.infer<typeof schema>;
 
-function QuizForm({ item, onClose, onSaved }: { item: Quiz | null; onClose: () => void; onSaved: () => void }) {
-  const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<FD>({
+function QuizForm({
+  item,
+  onClose,
+  onSaved,
+}: {
+  item: Quiz | null;
+  onClose: () => void;
+  onSaved: () => void;
+}) {
+  const form = useForm<FD>({
     resolver: zodResolver(schema),
     defaultValues: item
       ? {
@@ -70,57 +78,64 @@ function QuizForm({ item, onClose, onSaved }: { item: Quiz | null; onClose: () =
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="admin-form">
+    <form onSubmit={form.handleSubmit(onSubmit)} className="admin-form">
       <h2 className="modal-title">{item ? 'Edit Quiz' : 'Create Quiz'}</h2>
 
       <div className="form-grid-2">
         <div className="form-group col-span-2">
           <label className="form-label">Title</label>
-          <input className="form-input" {...register('title')} />
-          {errors.title && <p className="form-error">{errors.title.message}</p>}
+          <input className="form-input" {...form.register('title')} />
+          {form.formState.errors.title && (
+            <p className="form-error">{form.formState.errors.title.message}</p>
+          )}
         </div>
 
         <div className="form-group col-span-2">
           <label className="form-label">Description</label>
-          <textarea className="form-input" rows={3} {...register('description')} />
+          <textarea className="form-input" rows={3} {...form.register('description')} />
         </div>
 
         <div className="form-group">
           <label className="form-label">Board</label>
-          <input className="form-input" {...register('board')} />
+          <input className="form-input" {...form.register('board')} />
         </div>
 
         <div className="form-group">
           <label className="form-label">Class Level</label>
-          <input className="form-input" {...register('class_level')} />
+          <input className="form-input" {...form.register('class_level')} />
         </div>
 
         <div className="form-group">
           <label className="form-label">Subject</label>
-          <input className="form-input" {...register('subject')} />
+          <input className="form-input" {...form.register('subject')} />
         </div>
 
         <div className="form-group">
           <label className="form-label">Time Limit</label>
-          <input type="number" className="form-input" {...register('time_limit')} />
+          <input type="number" className="form-input" {...form.register('time_limit')} />
         </div>
 
         <div className="form-group">
           <label className="form-label">Difficulty</label>
-          <select className="form-input" {...register('difficulty')}>
+          <select className="form-input" {...form.register('difficulty')}>
             <option value="easy">Easy</option>
             <option value="medium">Medium</option>
             <option value="hard">Hard</option>
           </select>
         </div>
 
-        <label className="check-row"><input type="checkbox" {...register('published')} /> Published</label>
+        <label className="check-row">
+          <input type="checkbox" {...form.register('published')} />
+          Published
+        </label>
       </div>
 
       <div className="modal-form-footer">
-        <button type="button" className="btn btn-secondary" onClick={onClose}>Cancel</button>
-        <button type="submit" className="btn btn-primary" disabled={isSubmitting}>
-          {isSubmitting ? 'Saving...' : item ? 'Update Quiz' : 'Create Quiz'}
+        <button type="button" className="btn btn-secondary" onClick={onClose}>
+          Cancel
+        </button>
+        <button type="submit" className="btn btn-primary" disabled={form.formState.isSubmitting}>
+          {form.formState.isSubmitting ? 'Saving...' : item ? 'Update Quiz' : 'Create Quiz'}
         </button>
       </div>
     </form>
@@ -130,7 +145,7 @@ function QuizForm({ item, onClose, onSaved }: { item: Quiz | null; onClose: () =
 export default function QuizzesAdminTable({ initialData }: { initialData: Quiz[] }) {
   const [, startTransition] = useTransition();
 
-  const bulkUpload = async (rows: Record<string, any>[]) => {
+  const bulkUpload = async (rows: Record<string, string>[]) => {
     for (const row of rows) {
       const fd = new FormData();
       Object.entries(row).forEach(([k, v]) => fd.append(k, String(v ?? '')));
@@ -155,7 +170,11 @@ export default function QuizzesAdminTable({ initialData }: { initialData: Quiz[]
         {
           key: 'published',
           label: 'Status',
-          render: (r) => <span className={`badge ${r.published ? 'badge-success' : 'badge-muted'}`}>{r.published ? 'Live' : 'Draft'}</span>,
+          render: (r) => (
+            <span className={`badge ${r.published ? 'badge-success' : 'badge-muted'}`}>
+              {r.published ? 'Live' : 'Draft'}
+            </span>
+          ),
         },
       ]}
       extraActions={(row) => (
@@ -163,26 +182,35 @@ export default function QuizzesAdminTable({ initialData }: { initialData: Quiz[]
           <button
             type="button"
             className="btn btn-ghost btn-sm"
-            onClick={() => startTransition(async () => {
-              await toggleQuizPublishedAction(row.id, !row.published);
-              window.location.reload();
-            })}
+            onClick={() =>
+              startTransition(async () => {
+                await toggleQuizPublishedAction(row.id, !row.published);
+                window.location.reload();
+              })
+            }
+            aria-label={row.published ? 'Unpublish quiz' : 'Publish quiz'}
           >
             {row.published ? <EyeOff size={14} /> : <Eye size={14} />}
           </button>
+
           <button
             type="button"
             className="btn btn-ghost btn-sm danger"
-            onClick={() => startTransition(async () => {
-              await deleteRowAction('quizzes', row.id, ['/materials', '/admin/quizzes']);
-              window.location.reload();
-            })}
+            onClick={() =>
+              startTransition(async () => {
+                await deleteRowAction('quizzes', row.id, ['/materials', '/admin/quizzes']);
+                window.location.reload();
+              })
+            }
+            aria-label="Delete quiz"
           >
             <Trash2 size={14} />
           </button>
         </>
       )}
-      renderForm={(item, onClose, onSaved) => <QuizForm item={item} onClose={onClose} onSaved={onSaved} />}
+      renderForm={(item, onClose, onSaved) => (
+        <QuizForm item={item} onClose={onClose} onSaved={onSaved} />
+      )}
     />
   );
 }

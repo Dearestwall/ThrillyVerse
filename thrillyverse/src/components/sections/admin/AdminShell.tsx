@@ -1,13 +1,33 @@
 'use client';
 
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Download, Plus, Search, Upload, X, FileJson, FileSpreadsheet, ClipboardPaste } from 'lucide-react';
+import {
+  Download,
+  Plus,
+  Search,
+  Upload,
+  X,
+  FileJson,
+  FileSpreadsheet,
+  ClipboardPaste,
+  FileUp,
+} from 'lucide-react';
 import * as XLSX from 'xlsx';
+
 export type AdminColumn<T> = {
   key: keyof T | string;
   label: string;
   className?: string;
+  mobileHidden?: boolean;
   render?: (row: T) => React.ReactNode;
+};
+
+export type AdminStatTone = 'default' | 'success' | 'warning' | 'danger';
+
+export type AdminStat<T> = {
+  label: string;
+  value: number | string | ((rows: T[]) => number | string);
+  tone?: AdminStatTone;
 };
 
 type Props<T extends Record<string, any>> = {
@@ -21,6 +41,7 @@ type Props<T extends Record<string, any>> = {
   onBulkUpload?: (rows: Record<string, string>[]) => Promise<void>;
   getRowId?: (row: T) => string;
   addLabel?: string;
+  stats?: AdminStat<T>[];
 };
 
 function parseCsvLine(line: string): string[] {
@@ -61,19 +82,26 @@ function parseCsv(text: string): Record<string, string>[] {
   if (lines.length < 2) return [];
 
   const headers = parseCsvLine(lines[0]);
-  return lines.slice(1).map((line) => {
-    const values = parseCsvLine(line);
-    const row: Record<string, string> = {};
-    headers.forEach((header, index) => {
-      row[header] = values[index] ?? '';
+
+  return lines
+    .map((line, index) => ({ line, index }))
+    .slice(1)
+    .map(({ line }) => {
+      const values = parseCsvLine(line);
+      const row: Record<string, string> = {};
+
+      headers.forEach((header, index) => {
+        row[header] = values[index] ?? '';
+      });
+
+      return row;
     });
-    return row;
-  });
 }
 
 function parseJson(text: string): Record<string, string>[] {
   const data = JSON.parse(text);
   if (!Array.isArray(data)) return [];
+
   return data.map((row) => {
     const mapped: Record<string, string> = {};
     Object.entries(row ?? {}).forEach(([key, value]) => {
@@ -85,6 +113,7 @@ function parseJson(text: string): Record<string, string>[] {
 
 function toCsv(rows: Record<string, any>[]): string {
   if (!rows.length) return '';
+
   const headers = Object.keys(rows[0]);
 
   const escapeCell = (value: unknown) => {
@@ -101,6 +130,10 @@ function toCsv(rows: Record<string, any>[]): string {
   ].join('\n');
 }
 
+function getStatValue<T>(stat: AdminStat<T>, rows: T[]) {
+  return typeof stat.value === 'function' ? stat.value(rows) : stat.value;
+}
+
 export function AdminShell<T extends Record<string, any>>({
   title,
   initialData,
@@ -112,15 +145,20 @@ export function AdminShell<T extends Record<string, any>>({
   onBulkUpload,
   getRowId = (row) => String(row.id),
   addLabel,
+  stats = [],
 }: Props<T>) {
   const [rows, setRows] = useState<T[]>(initialData);
   const [query, setQuery] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<T | null>(null);
+
   const [isBulkModalOpen, setIsBulkModalOpen] = useState(false);
-  const [bulkFormat, setBulkFormat] = useState<'csv' | 'json' | 'paste'>('csv');
+  const [bulkFormat, setBulkFormat] = useState<'csv' | 'json' | 'xlsx' | 'paste'>('csv');
   const [pasteValue, setPasteValue] = useState('');
   const [isUploading, setIsUploading] = useState(false);
+  const [bulkError, setBulkError] = useState('');
+  const [bulkInfo, setBulkInfo] = useState('');
+
   const fileRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
@@ -130,8 +168,9 @@ export function AdminShell<T extends Record<string, any>>({
   const filteredRows = useMemo(() => {
     if (!query.trim()) return rows;
     const q = query.toLowerCase();
+
     return rows.filter((row) =>
-      searchKeys.some((key) => String(row[String(key)] ?? '').toLowerCase().includes(q))
+      searchKeys.some((key) => String(row[String(key)] ?? '').toLowerCase().includes(q)),
     );
   }, [rows, query, searchKeys]);
 
@@ -160,16 +199,29 @@ export function AdminShell<T extends Record<string, any>>({
   };
 
   const templateFields =
-    exportFields.length ? exportFields.map(String) : Object.keys(initialData[0] ?? { title: '', published: '' });
+    exportFields.length
+      ? exportFields.map(String)
+      : Object.keys(initialData[0] ?? { title: '', published: '' });
 
-  const downloadTemplate = (format: 'csv' | 'json') => {
+  const downloadTemplate = (format: 'csv' | 'json' | 'xlsx') => {
     const sampleRow = Object.fromEntries(templateFields.map((field) => [field, '']));
-    const content =
-      format === 'csv'
-        ? toCsv([sampleRow])
-        : JSON.stringify([sampleRow], null, 2);
 
-    const type = format === 'csv' ? 'text/csv;charset=utf-8;' : 'application/json;charset=utf-8;';
+    if (format === 'xlsx') {
+      const worksheet = XLSX.utils.json_to_sheet([sampleRow]);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, 'Template');
+      XLSX.writeFile(workbook, `${title.toLowerCase().replace(/\s+/g, '-')}-template.xlsx`);
+      return;
+    }
+
+    const content =
+      format === 'csv' ? toCsv([sampleRow]) : JSON.stringify([sampleRow], null, 2);
+
+    const type =
+      format === 'csv'
+        ? 'text/csv;charset=utf-8;'
+        : 'application/json;charset=utf-8;';
+
     const blob = new Blob([content], { type });
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
@@ -179,145 +231,217 @@ export function AdminShell<T extends Record<string, any>>({
 
   const runBulkUpload = async (parsed: Record<string, string>[]) => {
     if (!onBulkUpload) return;
+
+    if (!parsed.length) {
+      setBulkError('No valid rows were found in the uploaded content.');
+      return;
+    }
+
     setIsUploading(true);
+    setBulkError('');
+    setBulkInfo('');
+
     try {
       await onBulkUpload(parsed);
-      setIsBulkModalOpen(false);
-      setPasteValue('');
-      window.location.reload();
+      setBulkInfo(`Imported ${parsed.length} row${parsed.length > 1 ? 's' : ''} successfully.`);
+      setTimeout(() => {
+        setIsBulkModalOpen(false);
+        setPasteValue('');
+        window.location.reload();
+      }, 700);
+    } catch (error) {
+      setBulkError(error instanceof Error ? error.message : 'Bulk upload failed.');
     } finally {
       setIsUploading(false);
     }
   };
 
   const handleFileUpload = async (file: File) => {
-    const text = await file.text();
-    if (file.name.endsWith('.xlsx') || file.name.endsWith('.xls')) {
-  const buffer = await file.arrayBuffer();
-  const workbook = XLSX.read(buffer, { type: 'array' });
-  const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
-  const json = XLSX.utils.sheet_to_json<Record<string, any>>(firstSheet, { defval: '' });
-  const parsed = json.map((row) =>
-    Object.fromEntries(Object.entries(row).map(([k, v]) => [k, String(v ?? '')]))
-  );
-  await runBulkUpload(parsed);
-  return;
-}
-    await runBulkUpload(parseCsv(text));
+    setBulkError('');
+    setBulkInfo('');
+
+    try {
+      if (file.name.endsWith('.xlsx') || file.name.endsWith('.xls')) {
+        const buffer = await file.arrayBuffer();
+        const workbook = XLSX.read(buffer, { type: 'array' });
+        const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+        const json = XLSX.utils.sheet_to_json<Record<string, any>>(firstSheet, { defval: '' });
+
+        const parsed = json.map((row) =>
+          Object.fromEntries(Object.entries(row).map(([k, v]) => [k, String(v ?? '')])),
+        );
+
+        await runBulkUpload(parsed);
+        return;
+      }
+
+      const text = await file.text();
+
+      if (file.name.endsWith('.json')) {
+        await runBulkUpload(parseJson(text));
+        return;
+      }
+
+      await runBulkUpload(parseCsv(text));
+    } catch (error) {
+      setBulkError(error instanceof Error ? error.message : 'Could not read the uploaded file.');
+    }
   };
 
   const handlePasteImport = async () => {
     if (!pasteValue.trim()) return;
 
+    setBulkError('');
+    setBulkInfo('');
+
     try {
       const parsed = pasteValue.trim().startsWith('[')
         ? parseJson(pasteValue)
         : parseCsv(pasteValue);
+
       await runBulkUpload(parsed);
     } catch {
-      alert('Invalid pasted format. Use CSV with headers or JSON array.');
+      setBulkError('Invalid pasted format. Use CSV with headers or a JSON array.');
     }
   };
 
+  const openCreateModal = () => {
+    setEditingItem(null);
+    setIsModalOpen(true);
+  };
+
+  const openEditModal = (row: T) => {
+    setEditingItem(row);
+    setIsModalOpen(true);
+  };
+
+  const openBulkModal = () => {
+    setBulkError('');
+    setBulkInfo('');
+    setPasteValue('');
+    setBulkFormat('csv');
+    setIsBulkModalOpen(true);
+  };
+
   return (
-    <section className="admin-shell card">
-      <div className="admin-shell-toolbar admin-shell-toolbar-top">
-        <div className="admin-shell-toolbar-stack">
-          <div className="admin-shell-headline">
-            <h2 className="admin-section-title">{title}</h2>
-            <p className="admin-section-subtitle">
-              Search, create, update, export, and bulk-manage {title.toLowerCase()}.
-            </p>
+    <>
+      <section className="admin-shell card">
+        {stats.length > 0 && (
+          <div className="admin-stats-grid">
+            {stats.map((stat) => (
+              <div
+                key={stat.label}
+                className={`admin-stat-card admin-stat-${stat.tone ?? 'default'}`}
+              >
+                <span className="admin-stat-label">{stat.label}</span>
+                <strong className="admin-stat-value">{getStatValue(stat, rows)}</strong>
+              </div>
+            ))}
+          </div>
+        )}
+
+        <div className="admin-shell-toolbar admin-shell-toolbar-top">
+          <div className="admin-shell-toolbar-stack">
+            <div className="admin-shell-headline">
+              <h2 className="admin-section-title">{title}</h2>
+              <p className="admin-section-subtitle">
+                Search, create, update, export, and bulk-manage {title.toLowerCase()}.
+              </p>
+            </div>
+
+            <div className="admin-shell-search">
+              <Search size={16} />
+              <input
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                className="form-input"
+                placeholder={`Search ${title.toLowerCase()}...`}
+                aria-label={`Search ${title}`}
+              />
+            </div>
           </div>
 
-          <div className="admin-shell-search">
-            <Search size={15} />
-            <input
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              className="form-input"
-              placeholder={`Search ${title.toLowerCase()}...`}
-              aria-label={`Search ${title}`}
-            />
-          </div>
-        </div>
-
-        <div className="admin-shell-actions">
-          {onBulkUpload && (
-            <button type="button" className="btn btn-secondary" onClick={() => setIsBulkModalOpen(true)}>
-              <Upload size={14} />
-              Bulk Upload
-            </button>
-          )}
-
-          <button type="button" className="btn btn-secondary" onClick={exportCsv} disabled={!rows.length}>
-            <Download size={14} />
-            Export
-          </button>
-
-          <button
-            type="button"
-            className="btn btn-primary"
-            onClick={() => {
-              setEditingItem(null);
-              setIsModalOpen(true);
-            }}
-          >
-            <Plus size={14} />
-            {addLabel ?? `Add ${title.endsWith('s') ? title.slice(0, -1) : title}`}
-          </button>
-        </div>
-      </div>
-
-      <div className="table-wrapper admin-table-wrap">
-        <table className="admin-table">
-          <thead>
-            <tr>
-              {columns.map((column) => (
-                <th key={String(column.key)} className={column.className}>
-                  {column.label}
-                </th>
-              ))}
-              <th className="actions-col">Actions</th>
-            </tr>
-          </thead>
-
-          <tbody>
-            {filteredRows.length ? (
-              filteredRows.map((row) => (
-                <tr key={getRowId(row)}>
-                  {columns.map((column) => (
-                    <td key={String(column.key)} className={column.className}>
-                      {column.render ? column.render(row) : String(row[String(column.key)] ?? '—')}
-                    </td>
-                  ))}
-                  <td>
-                    <div className="row-actions">
-                      <button
-                        type="button"
-                        className="btn btn-ghost btn-sm"
-                        onClick={() => {
-                          setEditingItem(row);
-                          setIsModalOpen(true);
-                        }}
-                      >
-                        Edit
-                      </button>
-                      {extraActions?.(row)}
-                    </div>
-                  </td>
-                </tr>
-              ))
-            ) : (
-              <tr>
-                <td colSpan={columns.length + 1}>
-                  <div className="empty-inline">No {title.toLowerCase()} found.</div>
-                </td>
-              </tr>
+          <div className="admin-shell-actions">
+            {onBulkUpload && (
+              <button type="button" className="btn btn-secondary" onClick={openBulkModal}>
+                <Upload size={14} />
+                Bulk Upload
+              </button>
             )}
-          </tbody>
-        </table>
-      </div>
+
+            <button
+              type="button"
+              className="btn btn-secondary"
+              onClick={exportCsv}
+              disabled={!rows.length}
+            >
+              <Download size={14} />
+              Export
+            </button>
+
+            <button type="button" className="btn btn-primary" onClick={openCreateModal}>
+              <Plus size={14} />
+              {addLabel ?? `Add ${title.endsWith('s') ? title.slice(0, -1) : title}`}
+            </button>
+          </div>
+        </div>
+
+        <div className="admin-table-section">
+          <div className="table-wrapper admin-table-wrap">
+            <table className="admin-table">
+              <thead>
+                <tr>
+                  {columns.map((column) => (
+                    <th
+                      key={String(column.key)}
+                      className={`${column.className ?? ''} ${column.mobileHidden ? 'hide-mobile' : ''}`.trim()}
+                    >
+                      {column.label}
+                    </th>
+                  ))}
+                  <th className="actions-col">Actions</th>
+                </tr>
+              </thead>
+
+              <tbody>
+                {filteredRows.length ? (
+                  filteredRows.map((row) => (
+                    <tr key={getRowId(row)}>
+                      {columns.map((column) => (
+                        <td
+                          key={String(column.key)}
+                          className={`${column.className ?? ''} ${column.mobileHidden ? 'hide-mobile' : ''}`.trim()}
+                        >
+                          {column.render ? column.render(row) : String(row[String(column.key)] ?? '—')}
+                        </td>
+                      ))}
+
+                      <td>
+                        <div className="row-actions">
+                          <button
+                            type="button"
+                            className="btn btn-ghost btn-sm"
+                            onClick={() => openEditModal(row)}
+                          >
+                            Edit
+                          </button>
+                          {extraActions?.(row)}
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan={columns.length + 1}>
+                      <div className="empty-inline">No {title.toLowerCase()} found.</div>
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
 
       {isModalOpen && (
         <div className="admin-modal-backdrop" role="dialog" aria-modal="true">
@@ -330,6 +454,7 @@ export function AdminShell<T extends Record<string, any>>({
             >
               <X size={16} />
             </button>
+
             {renderForm(editingItem, () => setIsModalOpen(false), handleSaved)}
           </div>
         </div>
@@ -350,122 +475,175 @@ export function AdminShell<T extends Record<string, any>>({
             <div className="bulk-modal-header">
               <h2 className="modal-title">Bulk Upload {title}</h2>
               <p className="admin-page-subtitle">
-                Download a template, upload CSV or JSON, or paste rows directly.
+                Download a template, upload CSV, JSON, Excel, or paste rows directly in the expected format.
               </p>
             </div>
 
-            <div className="bulk-format-tabs">
-              <button
-                type="button"
-                className={`bulk-tab ${bulkFormat === 'csv' ? 'is-active' : ''}`}
-                onClick={() => setBulkFormat('csv')}
-              >
-                <FileSpreadsheet size={14} />
-                CSV
-              </button>
-              <button
-                type="button"
-                className={`bulk-tab ${bulkFormat === 'json' ? 'is-active' : ''}`}
-                onClick={() => setBulkFormat('json')}
-              >
-                <FileJson size={14} />
-                JSON
-              </button>
-              <button
-                type="button"
-                className={`bulk-tab ${bulkFormat === 'paste' ? 'is-active' : ''}`}
-                onClick={() => setBulkFormat('paste')}
-              >
-                <ClipboardPaste size={14} />
-                Paste
-              </button>
-            </div>
+            <div className="bulk-modal-grid-vertical">
+              <aside className="bulk-sidebar">
+                <button
+                  type="button"
+                  className={`bulk-nav-item ${bulkFormat === 'csv' ? 'is-active' : ''}`}
+                  onClick={() => setBulkFormat('csv')}
+                >
+                  <FileSpreadsheet size={16} />
+                  <div>
+                    <span>CSV Upload</span>
+                    <small>Comma-separated rows</small>
+                  </div>
+                </button>
 
-            <div className="bulk-modal-grid">
-              <div className="bulk-card">
-                <h3 className="bulk-card-title">Template</h3>
-                <p className="bulk-card-text">
-                  Download a starter file with the required headers for {title.toLowerCase()}.
-                </p>
+                <button
+                  type="button"
+                  className={`bulk-nav-item ${bulkFormat === 'json' ? 'is-active' : ''}`}
+                  onClick={() => setBulkFormat('json')}
+                >
+                  <FileJson size={16} />
+                  <div>
+                    <span>JSON Upload</span>
+                    <small>Array of objects</small>
+                  </div>
+                </button>
 
-                <div className="bulk-card-actions">
-                  <button type="button" className="btn btn-secondary" onClick={() => downloadTemplate('csv')}>
-                    Download CSV Template
-                  </button>
-                  <button type="button" className="btn btn-secondary" onClick={() => downloadTemplate('json')}>
-                    Download JSON Template
-                  </button>
-                </div>
+                <button
+                  type="button"
+                  className={`bulk-nav-item ${bulkFormat === 'xlsx' ? 'is-active' : ''}`}
+                  onClick={() => setBulkFormat('xlsx')}
+                >
+                  <FileUp size={16} />
+                  <div>
+                    <span>Excel Upload</span>
+                    <small>.xlsx or .xls sheet</small>
+                  </div>
+                </button>
 
-                <div className="bulk-fields-preview">
-                  <span className="bulk-fields-label">Expected fields</span>
-                  <div className="bulk-chip-wrap">
-                    {templateFields.map((field) => (
-                      <span key={field} className="bulk-chip">{field}</span>
-                    ))}
+                <button
+                  type="button"
+                  className={`bulk-nav-item ${bulkFormat === 'paste' ? 'is-active' : ''}`}
+                  onClick={() => setBulkFormat('paste')}
+                >
+                  <ClipboardPaste size={16} />
+                  <div>
+                    <span>Paste Data</span>
+                    <small>CSV or JSON text</small>
+                  </div>
+                </button>
+              </aside>
+
+              <div className="bulk-main-panel">
+                <div className="bulk-card">
+                  <h3 className="bulk-card-title">Template</h3>
+                  <p className="bulk-card-text">
+                    Download a ready-made template with the correct field order for {title.toLowerCase()}.
+                  </p>
+
+                  <div className="bulk-card-actions">
+                    <button type="button" className="btn btn-secondary" onClick={() => downloadTemplate('csv')}>
+                      Download CSV Template
+                    </button>
+                    <button type="button" className="btn btn-secondary" onClick={() => downloadTemplate('json')}>
+                      Download JSON Template
+                    </button>
+                    <button type="button" className="btn btn-secondary" onClick={() => downloadTemplate('xlsx')}>
+                      Download Excel Template
+                    </button>
+                  </div>
+
+                  <div className="bulk-fields-preview">
+                    <span className="bulk-fields-label">Expected fields</span>
+                    <div className="bulk-chip-wrap">
+                      {templateFields.map((field) => (
+                        <span key={field} className="bulk-chip">
+                          {field}
+                        </span>
+                      ))}
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              <div className="bulk-card">
-                <h3 className="bulk-card-title">Import</h3>
+                <div className="bulk-card">
+                  <h3 className="bulk-card-title">
+                    {bulkFormat === 'paste'
+                      ? 'Paste Content'
+                      : bulkFormat === 'xlsx'
+                        ? 'Upload Excel Sheet'
+                        : bulkFormat === 'json'
+                          ? 'Upload JSON File'
+                          : 'Upload CSV File'}
+                  </h3>
 
-                {(bulkFormat === 'csv' || bulkFormat === 'json') && (
-                  <>
-                    <p className="bulk-card-text">
-                      Upload {bulkFormat.toUpperCase()} files. Excel users can save sheets as CSV before upload.
-                    </p>
+                  {(bulkFormat === 'csv' || bulkFormat === 'json' || bulkFormat === 'xlsx') && (
+                    <>
+                      <p className="bulk-card-text">
+                        {bulkFormat === 'xlsx'
+                          ? 'Upload a spreadsheet directly. The first worksheet will be read automatically.'
+                          : `Upload ${bulkFormat.toUpperCase()} content that matches the template fields.`}
+                      </p>
 
-                    <input
-                      ref={fileRef}
-                      type="file"
-                      hidden
-                      accept={bulkFormat === 'json' ? '.json' : '.csv,.txt'}
-                      onChange={(e) => {
-                        const file = e.target.files?.[0];
-                        if (file) void handleFileUpload(file);
-                      }}
-                    />
+                      <input
+                        ref={fileRef}
+                        type="file"
+                        hidden
+                        accept={
+                          bulkFormat === 'json'
+                            ? '.json'
+                            : bulkFormat === 'xlsx'
+                              ? '.xlsx,.xls'
+                              : '.csv,.txt'
+                        }
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) void handleFileUpload(file);
+                        }}
+                      />
 
-                    <button
-                      type="button"
-                      className="btn btn-primary"
-                      onClick={() => fileRef.current?.click()}
-                      disabled={isUploading}
-                    >
-                      {isUploading ? 'Uploading...' : `Upload ${bulkFormat.toUpperCase()}`}
-                    </button>
-                  </>
-                )}
+                      <button
+                        type="button"
+                        className="btn btn-primary"
+                        onClick={() => fileRef.current?.click()}
+                        disabled={isUploading}
+                      >
+                        {isUploading
+                          ? 'Uploading...'
+                          : bulkFormat === 'xlsx'
+                            ? 'Upload Excel File'
+                            : `Upload ${bulkFormat.toUpperCase()}`}
+                      </button>
+                    </>
+                  )}
 
-                {bulkFormat === 'paste' && (
-                  <>
-                    <p className="bulk-card-text">
-                      Paste CSV with headers or a JSON array of objects directly below.
-                    </p>
+                  {bulkFormat === 'paste' && (
+                    <>
+                      <p className="bulk-card-text">
+                        Paste CSV with headers or a JSON array of objects below, then import it directly.
+                      </p>
 
-                    <textarea
-                      className="form-input bulk-paste-area"
-                      placeholder={`Example CSV:\n${templateFields.join(',')}\n\nOr paste JSON array here...`}
-                      value={pasteValue}
-                      onChange={(e) => setPasteValue(e.target.value)}
-                    />
+                      <textarea
+                        className="form-input bulk-paste-area"
+                        placeholder={`Example CSV:\n${templateFields.join(',')}\n\nOr paste JSON array here...`}
+                        value={pasteValue}
+                        onChange={(e) => setPasteValue(e.target.value)}
+                      />
 
-                    <button
-                      type="button"
-                      className="btn btn-primary"
-                      onClick={handlePasteImport}
-                      disabled={isUploading || !pasteValue.trim()}
-                    >
-                      {isUploading ? 'Importing...' : 'Import Pasted Data'}
-                    </button>
-                  </>
-                )}
+                      <button
+                        type="button"
+                        className="btn btn-primary"
+                        onClick={handlePasteImport}
+                        disabled={isUploading || !pasteValue.trim()}
+                      >
+                        {isUploading ? 'Importing...' : 'Import Pasted Data'}
+                      </button>
+                    </>
+                  )}
+
+                  {bulkInfo ? <p className="bulk-status success">{bulkInfo}</p> : null}
+                  {bulkError ? <p className="bulk-status error">{bulkError}</p> : null}
+                </div>
               </div>
             </div>
           </div>
         </div>
       )}
-    </section>
+    </>
   );
 }

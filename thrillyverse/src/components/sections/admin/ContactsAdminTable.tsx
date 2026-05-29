@@ -5,7 +5,7 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { toast } from 'react-hot-toast';
-import { MailOpen, Mail, Trash2 } from 'lucide-react';
+import { MailOpen, Mail, Trash2, MessageSquareMore } from 'lucide-react';
 import { AdminShell } from './AdminShell';
 import { updateContactAction, deleteRowAction, toggleContactReadAction } from '@/app/actions/admin';
 import type { Contact } from '@/types';
@@ -56,6 +56,7 @@ function ContactForm({
 
   const onSubmit = async (data: FD) => {
     if (!item) return;
+
     const fd = new FormData();
     Object.entries(data).forEach(([key, value]) => fd.append(key, String(value ?? '')));
     if (data.read) fd.set('read', 'on');
@@ -71,7 +72,15 @@ function ContactForm({
 
   return (
     <form onSubmit={form.handleSubmit(onSubmit)} className="admin-form">
-      <h2 className="modal-title">Contact Details</h2>
+      <div className="admin-form-header">
+        <div className="logo-circle">
+          <MessageSquareMore size={18} />
+        </div>
+        <div>
+          <h2 className="modal-title">Contact Details</h2>
+          <p className="modal-subtitle">Review sender details, source, and message content.</p>
+        </div>
+      </div>
 
       <div className="form-grid-2">
         <div className="form-group">
@@ -101,7 +110,7 @@ function ContactForm({
 
         <div className="form-group col-span-2">
           <label className="form-label">Message</label>
-          <textarea rows={8} className="form-input" {...form.register('message')} />
+          <textarea rows={8} className="form-input admin-editor" {...form.register('message')} />
         </div>
 
         <label className="check-row col-span-2">
@@ -110,11 +119,11 @@ function ContactForm({
         </label>
       </div>
 
-      <div className="modal-form-footer">
-        <button type="button" className="btn btn-secondary" onClick={onClose}>
+      <div className="modal-form-footer centered-button-row">
+        <button type="button" className="btn btn-secondary btn-pill" onClick={onClose}>
           Close
         </button>
-        <button type="submit" className="btn btn-primary" disabled={form.formState.isSubmitting}>
+        <button type="submit" className="btn btn-primary btn-pill" disabled={form.formState.isSubmitting}>
           {form.formState.isSubmitting ? 'Saving...' : 'Update Contact'}
         </button>
       </div>
@@ -131,12 +140,17 @@ export default function ContactsAdminTable({ initialData }: { initialData: Conta
       initialData={initialData}
       searchKeys={['name', 'email', 'subject', 'message', 'source']}
       exportFields={['id', 'name', 'email', 'phone', 'subject', 'source', 'read', 'created_at']}
-      addLabel="View Contact"
+      addLabel="Open Contact"
+      stats={[
+        { label: 'Total', value: (rows) => rows.length },
+        { label: 'Unread', value: (rows) => rows.filter((r) => !r.read).length, tone: 'warning' },
+        { label: 'Read', value: (rows) => rows.filter((r) => !!r.read).length, tone: 'success' },
+      ]}
       columns={[
         { key: 'name', label: 'Name', render: (r) => <span className="font-medium">{r.name}</span> },
         { key: 'email', label: 'Email' },
         { key: 'subject', label: 'Subject', render: (r) => r.subject || '—' },
-        { key: 'source', label: 'Source' },
+        { key: 'source', label: 'Source', mobileHidden: true },
         {
           key: 'read',
           label: 'Status',
@@ -158,6 +172,7 @@ export default function ContactsAdminTable({ initialData }: { initialData: Conta
                 window.location.reload();
               })
             }
+            aria-label={row.read ? 'Mark unread' : 'Mark read'}
           >
             {row.read ? <MailOpen size={14} /> : <Mail size={14} />}
           </button>
@@ -171,6 +186,7 @@ export default function ContactsAdminTable({ initialData }: { initialData: Conta
                 window.location.reload();
               })
             }
+            aria-label="Delete contact"
           >
             <Trash2 size={14} />
           </button>
