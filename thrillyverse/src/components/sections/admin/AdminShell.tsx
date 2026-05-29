@@ -1,8 +1,8 @@
 'use client';
 
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Download, Plus, Search, Upload, X } from 'lucide-react';
-
+import { Download, Plus, Search, Upload, X, FileJson, FileSpreadsheet, ClipboardPaste } from 'lucide-react';
+import * as XLSX from 'xlsx';
 export type AdminColumn<T> = {
   key: keyof T | string;
   label: string;
@@ -61,20 +61,26 @@ function parseCsv(text: string): Record<string, string>[] {
   if (lines.length < 2) return [];
 
   const headers = parseCsvLine(lines[0]);
-  const rows: Record<string, string>[] = [];
-
-  for (let i = 1; i < lines.length; i += 1) {
-    const values = parseCsvLine(lines[i]);
+  return lines.slice(1).map((line) => {
+    const values = parseCsvLine(line);
     const row: Record<string, string> = {};
-
     headers.forEach((header, index) => {
       row[header] = values[index] ?? '';
     });
+    return row;
+  });
+}
 
-    rows.push(row);
-  }
-
-  return rows;
+function parseJson(text: string): Record<string, string>[] {
+  const data = JSON.parse(text);
+  if (!Array.isArray(data)) return [];
+  return data.map((row) => {
+    const mapped: Record<string, string> = {};
+    Object.entries(row ?? {}).forEach(([key, value]) => {
+      mapped[key] = String(value ?? '');
+    });
+    return mapped;
+  });
 }
 
 function toCsv(rows: Record<string, any>[]): string {
@@ -89,12 +95,10 @@ function toCsv(rows: Record<string, any>[]): string {
     return str;
   };
 
-  const lines = [
+  return [
     headers.join(','),
     ...rows.map((row) => headers.map((header) => escapeCell(row[header])).join(',')),
-  ];
-
-  return lines.join('\n');
+  ].join('\n');
 }
 
 export function AdminShell<T extends Record<string, any>>({
@@ -113,8 +117,11 @@ export function AdminShell<T extends Record<string, any>>({
   const [query, setQuery] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<T | null>(null);
+  const [isBulkModalOpen, setIsBulkModalOpen] = useState(false);
+  const [bulkFormat, setBulkFormat] = useState<'csv' | 'json' | 'paste'>('csv');
+  const [pasteValue, setPasteValue] = useState('');
   const [isUploading, setIsUploading] = useState(false);
-  const inputRef = useRef<HTMLInputElement | null>(null);
+  const fileRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
     setRows(initialData);
@@ -123,21 +130,10 @@ export function AdminShell<T extends Record<string, any>>({
   const filteredRows = useMemo(() => {
     if (!query.trim()) return rows;
     const q = query.toLowerCase();
-
     return rows.filter((row) =>
       searchKeys.some((key) => String(row[String(key)] ?? '').toLowerCase().includes(q))
     );
   }, [rows, query, searchKeys]);
-
-  const handleCreate = () => {
-    setEditingItem(null);
-    setIsModalOpen(true);
-  };
-
-  const handleEdit = (item: T) => {
-    setEditingItem(item);
-    setIsModalOpen(true);
-  };
 
   const handleSaved = () => {
     setIsModalOpen(false);
@@ -145,7 +141,7 @@ export function AdminShell<T extends Record<string, any>>({
     window.location.reload();
   };
 
-  const handleExport = () => {
+  const exportCsv = () => {
     const fields = exportFields.length ? exportFields.map(String) : Object.keys(rows[0] ?? {});
     const mapped = rows.map((row) => {
       const entry: Record<string, any> = {};
@@ -157,34 +153,83 @@ export function AdminShell<T extends Record<string, any>>({
 
     const csv = toCsv(mapped);
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-    const anchor = document.createElement('a');
-    anchor.href = URL.createObjectURL(blob);
-    anchor.download = `${title.toLowerCase().replace(/\s+/g, '-')}.csv`;
-    anchor.click();
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `${title.toLowerCase().replace(/\s+/g, '-')}.csv`;
+    a.click();
   };
 
-  const handleBulkPick = () => {
-    inputRef.current?.click();
+  const templateFields =
+    exportFields.length ? exportFields.map(String) : Object.keys(initialData[0] ?? { title: '', published: '' });
+
+  const downloadTemplate = (format: 'csv' | 'json') => {
+    const sampleRow = Object.fromEntries(templateFields.map((field) => [field, '']));
+    const content =
+      format === 'csv'
+        ? toCsv([sampleRow])
+        : JSON.stringify([sampleRow], null, 2);
+
+    const type = format === 'csv' ? 'text/csv;charset=utf-8;' : 'application/json;charset=utf-8;';
+    const blob = new Blob([content], { type });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `${title.toLowerCase().replace(/\s+/g, '-')}-template.${format}`;
+    a.click();
   };
 
-  const handleFileChange = async (file: File) => {
+  const runBulkUpload = async (parsed: Record<string, string>[]) => {
     if (!onBulkUpload) return;
-
     setIsUploading(true);
     try {
-      const text = await file.text();
-      const parsed = parseCsv(text);
       await onBulkUpload(parsed);
+      setIsBulkModalOpen(false);
+      setPasteValue('');
       window.location.reload();
     } finally {
       setIsUploading(false);
     }
   };
 
+  const handleFileUpload = async (file: File) => {
+    const text = await file.text();
+    if (file.name.endsWith('.xlsx') || file.name.endsWith('.xls')) {
+  const buffer = await file.arrayBuffer();
+  const workbook = XLSX.read(buffer, { type: 'array' });
+  const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+  const json = XLSX.utils.sheet_to_json<Record<string, any>>(firstSheet, { defval: '' });
+  const parsed = json.map((row) =>
+    Object.fromEntries(Object.entries(row).map(([k, v]) => [k, String(v ?? '')]))
+  );
+  await runBulkUpload(parsed);
+  return;
+}
+    await runBulkUpload(parseCsv(text));
+  };
+
+  const handlePasteImport = async () => {
+    if (!pasteValue.trim()) return;
+
+    try {
+      const parsed = pasteValue.trim().startsWith('[')
+        ? parseJson(pasteValue)
+        : parseCsv(pasteValue);
+      await runBulkUpload(parsed);
+    } catch {
+      alert('Invalid pasted format. Use CSV with headers or JSON array.');
+    }
+  };
+
   return (
     <section className="admin-shell card">
-      <div className="admin-shell-toolbar">
-        <div className="admin-shell-left">
+      <div className="admin-shell-toolbar admin-shell-toolbar-top">
+        <div className="admin-shell-toolbar-stack">
+          <div className="admin-shell-headline">
+            <h2 className="admin-section-title">{title}</h2>
+            <p className="admin-section-subtitle">
+              Search, create, update, export, and bulk-manage {title.toLowerCase()}.
+            </p>
+          </div>
+
           <div className="admin-shell-search">
             <Search size={15} />
             <input
@@ -199,35 +244,25 @@ export function AdminShell<T extends Record<string, any>>({
 
         <div className="admin-shell-actions">
           {onBulkUpload && (
-            <>
-              <input
-                ref={inputRef}
-                type="file"
-                accept=".csv"
-                hidden
-                onChange={(e) => {
-                  const file = e.target.files?.[0];
-                  if (file) void handleFileChange(file);
-                }}
-              />
-              <button type="button" className="btn btn-secondary" onClick={handleBulkPick} disabled={isUploading}>
-                <Upload size={14} />
-                {isUploading ? 'Uploading...' : 'Bulk Upload'}
-              </button>
-            </>
+            <button type="button" className="btn btn-secondary" onClick={() => setIsBulkModalOpen(true)}>
+              <Upload size={14} />
+              Bulk Upload
+            </button>
           )}
 
-          <button
-            type="button"
-            className="btn btn-secondary"
-            onClick={handleExport}
-            disabled={!rows.length}
-          >
+          <button type="button" className="btn btn-secondary" onClick={exportCsv} disabled={!rows.length}>
             <Download size={14} />
             Export
           </button>
 
-          <button type="button" className="btn btn-primary" onClick={handleCreate}>
+          <button
+            type="button"
+            className="btn btn-primary"
+            onClick={() => {
+              setEditingItem(null);
+              setIsModalOpen(true);
+            }}
+          >
             <Plus size={14} />
             {addLabel ?? `Add ${title.endsWith('s') ? title.slice(0, -1) : title}`}
           </button>
@@ -258,7 +293,14 @@ export function AdminShell<T extends Record<string, any>>({
                   ))}
                   <td>
                     <div className="row-actions">
-                      <button type="button" className="btn btn-ghost btn-sm" onClick={() => handleEdit(row)}>
+                      <button
+                        type="button"
+                        className="btn btn-ghost btn-sm"
+                        onClick={() => {
+                          setEditingItem(row);
+                          setIsModalOpen(true);
+                        }}
+                      >
                         Edit
                       </button>
                       {extraActions?.(row)}
@@ -288,8 +330,139 @@ export function AdminShell<T extends Record<string, any>>({
             >
               <X size={16} />
             </button>
-
             {renderForm(editingItem, () => setIsModalOpen(false), handleSaved)}
+          </div>
+        </div>
+      )}
+
+      {isBulkModalOpen && (
+        <div className="admin-modal-backdrop" role="dialog" aria-modal="true">
+          <div className="admin-modal-panel bulk-modal-panel">
+            <button
+              type="button"
+              className="admin-modal-close"
+              onClick={() => setIsBulkModalOpen(false)}
+              aria-label="Close bulk upload"
+            >
+              <X size={16} />
+            </button>
+
+            <div className="bulk-modal-header">
+              <h2 className="modal-title">Bulk Upload {title}</h2>
+              <p className="admin-page-subtitle">
+                Download a template, upload CSV or JSON, or paste rows directly.
+              </p>
+            </div>
+
+            <div className="bulk-format-tabs">
+              <button
+                type="button"
+                className={`bulk-tab ${bulkFormat === 'csv' ? 'is-active' : ''}`}
+                onClick={() => setBulkFormat('csv')}
+              >
+                <FileSpreadsheet size={14} />
+                CSV
+              </button>
+              <button
+                type="button"
+                className={`bulk-tab ${bulkFormat === 'json' ? 'is-active' : ''}`}
+                onClick={() => setBulkFormat('json')}
+              >
+                <FileJson size={14} />
+                JSON
+              </button>
+              <button
+                type="button"
+                className={`bulk-tab ${bulkFormat === 'paste' ? 'is-active' : ''}`}
+                onClick={() => setBulkFormat('paste')}
+              >
+                <ClipboardPaste size={14} />
+                Paste
+              </button>
+            </div>
+
+            <div className="bulk-modal-grid">
+              <div className="bulk-card">
+                <h3 className="bulk-card-title">Template</h3>
+                <p className="bulk-card-text">
+                  Download a starter file with the required headers for {title.toLowerCase()}.
+                </p>
+
+                <div className="bulk-card-actions">
+                  <button type="button" className="btn btn-secondary" onClick={() => downloadTemplate('csv')}>
+                    Download CSV Template
+                  </button>
+                  <button type="button" className="btn btn-secondary" onClick={() => downloadTemplate('json')}>
+                    Download JSON Template
+                  </button>
+                </div>
+
+                <div className="bulk-fields-preview">
+                  <span className="bulk-fields-label">Expected fields</span>
+                  <div className="bulk-chip-wrap">
+                    {templateFields.map((field) => (
+                      <span key={field} className="bulk-chip">{field}</span>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              <div className="bulk-card">
+                <h3 className="bulk-card-title">Import</h3>
+
+                {(bulkFormat === 'csv' || bulkFormat === 'json') && (
+                  <>
+                    <p className="bulk-card-text">
+                      Upload {bulkFormat.toUpperCase()} files. Excel users can save sheets as CSV before upload.
+                    </p>
+
+                    <input
+                      ref={fileRef}
+                      type="file"
+                      hidden
+                      accept={bulkFormat === 'json' ? '.json' : '.csv,.txt'}
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) void handleFileUpload(file);
+                      }}
+                    />
+
+                    <button
+                      type="button"
+                      className="btn btn-primary"
+                      onClick={() => fileRef.current?.click()}
+                      disabled={isUploading}
+                    >
+                      {isUploading ? 'Uploading...' : `Upload ${bulkFormat.toUpperCase()}`}
+                    </button>
+                  </>
+                )}
+
+                {bulkFormat === 'paste' && (
+                  <>
+                    <p className="bulk-card-text">
+                      Paste CSV with headers or a JSON array of objects directly below.
+                    </p>
+
+                    <textarea
+                      className="form-input bulk-paste-area"
+                      placeholder={`Example CSV:\n${templateFields.join(',')}\n\nOr paste JSON array here...`}
+                      value={pasteValue}
+                      onChange={(e) => setPasteValue(e.target.value)}
+                    />
+
+                    <button
+                      type="button"
+                      className="btn btn-primary"
+                      onClick={handlePasteImport}
+                      disabled={isUploading || !pasteValue.trim()}
+                    >
+                      {isUploading ? 'Importing...' : 'Import Pasted Data'}
+                    </button>
+                  </>
+                )}
+              </div>
+            </div>
           </div>
         </div>
       )}
