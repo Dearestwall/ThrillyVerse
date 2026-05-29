@@ -1,22 +1,26 @@
 import { createClient } from '@/lib/supabase/server';
-import { ContactsAdminTable } from '@/components/sections/admin/admin-tables';
-import { SectionHeading } from '@/components/common/SectionHeading';
+import ContactsAdminTable from '@/components/sections/admin/ContactsAdminTable';
 
 export default async function AdminContactsPage() {
-  const supabase = createClient();
-  const { data } = await supabase.from('contacts').select('*').order('created_at', { ascending: false });
-  const unread = (data ?? []).filter(r => !r.read).length;
+  const supabase = await createClient();
+
+  const { data } = await supabase
+    .from('contacts')
+    .select('*')
+    .order('created_at', { ascending: false });
 
   return (
-    <div className="space-y-8 page-enter">
-      <SectionHeading
-        eyebrow="Inbox"
-        title={`Contact Messages ${unread > 0 ? `(${unread} unread)` : ''}`}
-        description="Messages submitted through the contact form on the website."
-      />
-      <div className="card p-6 section-reveal">
-        <ContactsAdminTable initialData={data ?? []} />
+    <div className="admin-page">
+      <div className="admin-page-header">
+        <div>
+          <h1 className="admin-page-title">Contacts</h1>
+          <p className="admin-page-subtitle">
+            Review, search, and manage contact submissions from your audience.
+          </p>
+        </div>
       </div>
+
+      <ContactsAdminTable initialData={(data ?? []) as any} />
     </div>
   );
 }

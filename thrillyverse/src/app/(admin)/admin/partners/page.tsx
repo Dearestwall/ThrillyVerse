@@ -1,30 +1,26 @@
 import { createClient } from '@/lib/supabase/server';
-import { PartnersAdminTable } from '@/components/sections/admin/admin-tables';
-import { SectionHeading } from '@/components/common/SectionHeading';
-import { CreatePartnerForm } from '@/components/sections/admin/forms';
+import PartnersAdminTable from '@/components/sections/admin/PartnersAdminTable';
 
 export default async function AdminPartnersPage() {
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data } = await supabase
     .from('partners')
     .select('*')
-    .order('sort_order');
+    .order('sort_order', { ascending: true })
+    .order('created_at', { ascending: false });
 
   return (
-    <div className="space-y-8 page-enter">
-      <SectionHeading
-        eyebrow="Home Page"
-        title="Partners"
-        description="Manage partner logos and links shown on the homepage."
-      />
-      <div className="card p-6 section-reveal">
-        <h2 className="font-semibold mb-4">Add New Partner</h2>
-        <CreatePartnerForm />
+    <div className="admin-page">
+      <div className="admin-page-header">
+        <div>
+          <h1 className="admin-page-title">Partners</h1>
+          <p className="admin-page-subtitle">
+            Control logos, links, ordering, and active homepage partner listings.
+          </p>
+        </div>
       </div>
-      <div className="card p-6 section-reveal">
-        <PartnersAdminTable initialData={data ?? []} />
-      </div>
+
+      <PartnersAdminTable initialPartners={(data ?? []) as any} />
     </div>
   );
 }
-

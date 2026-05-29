@@ -8,39 +8,34 @@ import { toast } from 'react-hot-toast';
 import { Eye, EyeOff, Star, Trash2 } from 'lucide-react';
 import { AdminShell } from './AdminShell';
 import {
-  createMovieAction,
-  updateMovieAction,
-  toggleMoviePublishedAction,
-  toggleMovieFeaturedAction,
+  createReviewAction,
+  updateReviewAction,
+  toggleReviewPublishedAction,
+  toggleReviewFeaturedAction,
   deleteRowAction,
 } from '@/app/actions/admin';
-import type { Movie } from '@/types';
+import type { Review } from '@/types';
 
 const schema = z.object({
-  title: z.string().min(1, 'Title is required'),
-  slug: z.string().optional(),
-  description: z.string().optional(),
-  poster_url: z.string().optional(),
-  trailer_url: z.string().optional(),
-  movie_link: z.string().optional(),
-  download_link: z.string().optional(),
-  category: z.string().optional(),
-  year: z.coerce.number().nullable().optional(),
-  rating: z.string().optional(),
-  tags: z.string().optional(),
+  name: z.string().min(1, 'Name is required'),
+  role: z.string().optional(),
+  avatar_url: z.string().optional(),
+  text: z.string().min(1, 'Review text is required'),
+  rating: z.coerce.number().min(1).max(5).default(5),
+  emoji: z.string().default('⭐'),
   featured: z.boolean().default(false),
-  published: z.boolean().default(false),
+  published: z.boolean().default(true),
   sort_order: z.coerce.number().default(0),
 });
 
 type FD = z.infer<typeof schema>;
 
-function MovieForm({
+function ReviewForm({
   item,
   onClose,
   onSaved,
 }: {
-  item: Movie | null;
+  item: Review | null;
   onClose: () => void;
   onSaved: () => void;
 }) {
@@ -48,35 +43,25 @@ function MovieForm({
     resolver: zodResolver(schema),
     defaultValues: item
       ? {
-          title: item.title ?? '',
-          slug: item.slug ?? '',
-          description: item.description ?? '',
-          poster_url: item.poster_url ?? '',
-          trailer_url: item.trailer_url ?? '',
-          movie_link: item.movie_link ?? '',
-          download_link: item.download_link ?? '',
-          category: item.category ?? '',
-          year: item.year ?? null,
-          rating: item.rating ?? '',
-          tags: Array.isArray(item.tags) ? item.tags.join(', ') : '',
+          name: item.name ?? '',
+          role: item.role ?? '',
+          avatar_url: item.avatar_url ?? '',
+          text: item.text ?? '',
+          rating: item.rating ?? 5,
+          emoji: item.emoji ?? '⭐',
           featured: !!item.featured,
           published: !!item.published,
           sort_order: item.sort_order ?? 0,
         }
       : {
-          title: '',
-          slug: '',
-          description: '',
-          poster_url: '',
-          trailer_url: '',
-          movie_link: '',
-          download_link: '',
-          category: '',
-          year: null,
-          rating: '',
-          tags: '',
+          name: '',
+          role: '',
+          avatar_url: '',
+          text: '',
+          rating: 5,
+          emoji: '⭐',
           featured: false,
-          published: false,
+          published: true,
           sort_order: 0,
         },
   });
@@ -89,76 +74,51 @@ function MovieForm({
 
     try {
       if (item) {
-        await updateMovieAction(item.id, fd);
-        toast.success('Movie updated');
+        await updateReviewAction(item.id, fd);
+        toast.success('Review updated');
       } else {
-        await createMovieAction(fd);
-        toast.success('Movie created');
+        await createReviewAction(fd);
+        toast.success('Review created');
       }
       onSaved();
     } catch (error: any) {
-      toast.error(error?.message || 'Failed to save movie');
+      toast.error(error?.message || 'Failed to save review');
     }
   };
 
   return (
     <form onSubmit={form.handleSubmit(onSubmit)} className="admin-form">
-      <h2 className="modal-title">{item ? 'Edit Movie' : 'Add Movie'}</h2>
+      <h2 className="modal-title">{item ? 'Edit Review' : 'Add Review'}</h2>
 
       <div className="form-grid-2">
-        <div className="form-group col-span-2">
-          <label className="form-label">Title</label>
-          <input className="form-input" {...form.register('title')} />
+        <div className="form-group">
+          <label className="form-label">Name</label>
+          <input className="form-input" {...form.register('name')} />
         </div>
 
         <div className="form-group">
-          <label className="form-label">Slug</label>
-          <input className="form-input" {...form.register('slug')} />
-        </div>
-
-        <div className="form-group">
-          <label className="form-label">Category</label>
-          <input className="form-input" {...form.register('category')} />
+          <label className="form-label">Role</label>
+          <input className="form-input" {...form.register('role')} />
         </div>
 
         <div className="form-group col-span-2">
-          <label className="form-label">Description</label>
-          <textarea rows={5} className="form-input" {...form.register('description')} />
+          <label className="form-label">Avatar URL</label>
+          <input className="form-input" {...form.register('avatar_url')} />
         </div>
 
-        <div className="form-group">
-          <label className="form-label">Poster URL</label>
-          <input className="form-input" {...form.register('poster_url')} />
-        </div>
-
-        <div className="form-group">
-          <label className="form-label">Trailer URL</label>
-          <input className="form-input" {...form.register('trailer_url')} />
-        </div>
-
-        <div className="form-group">
-          <label className="form-label">Movie Link</label>
-          <input className="form-input" {...form.register('movie_link')} />
-        </div>
-
-        <div className="form-group">
-          <label className="form-label">Download Link</label>
-          <input className="form-input" {...form.register('download_link')} />
-        </div>
-
-        <div className="form-group">
-          <label className="form-label">Year</label>
-          <input type="number" className="form-input" {...form.register('year')} />
+        <div className="form-group col-span-2">
+          <label className="form-label">Text</label>
+          <textarea rows={5} className="form-input" {...form.register('text')} />
         </div>
 
         <div className="form-group">
           <label className="form-label">Rating</label>
-          <input className="form-input" {...form.register('rating')} />
+          <input type="number" min={1} max={5} className="form-input" {...form.register('rating')} />
         </div>
 
-        <div className="form-group col-span-2">
-          <label className="form-label">Tags</label>
-          <input className="form-input" {...form.register('tags')} />
+        <div className="form-group">
+          <label className="form-label">Emoji</label>
+          <input className="form-input" {...form.register('emoji')} />
         </div>
 
         <div className="form-group">
@@ -189,7 +149,11 @@ function MovieForm({
   );
 }
 
-export default function MoviesAdminTable({ initialData }: { initialData: Movie[] }) {
+export default function ReviewsAdminTable({
+  initialReviews,
+}: {
+  initialReviews: Review[];
+}) {
   const [, startTransition] = useTransition();
 
   const bulkUpload = async (rows: Record<string, string>[]) => {
@@ -198,22 +162,22 @@ export default function MoviesAdminTable({ initialData }: { initialData: Movie[]
       Object.entries(row).forEach(([key, value]) => fd.append(key, String(value ?? '')));
       if (String(row.featured).toLowerCase() === 'true') fd.set('featured', 'on');
       if (String(row.published).toLowerCase() === 'true') fd.set('published', 'on');
-      await createMovieAction(fd);
+      await createReviewAction(fd);
     }
   };
 
   return (
-    <AdminShell<Movie>
-      title="Movies"
-      initialData={initialData}
-      searchKeys={['title', 'category', 'rating']}
-      exportFields={['id', 'title', 'slug', 'category', 'year', 'rating', 'featured', 'published']}
+    <AdminShell<Review>
+      title="Reviews"
+      initialData={initialReviews}
+      searchKeys={['name', 'role', 'text', 'emoji']}
+      exportFields={['id', 'name', 'role', 'rating', 'featured', 'published', 'sort_order']}
       onBulkUpload={bulkUpload}
       columns={[
-        { key: 'title', label: 'Title', render: (r) => <span className="font-medium">{r.title}</span> },
-        { key: 'category', label: 'Category', render: (r) => r.category || '—' },
-        { key: 'year', label: 'Year', render: (r) => r.year ?? '—' },
-        { key: 'rating', label: 'Rating', render: (r) => r.rating || '—' },
+        { key: 'name', label: 'Name', render: (r) => <span className="font-medium">{r.name}</span> },
+        { key: 'role', label: 'Role', render: (r) => r.role || '—' },
+        { key: 'rating', label: 'Rating', render: (r) => `${r.rating}/5` },
+        { key: 'emoji', label: 'Emoji', render: (r) => r.emoji || '—' },
         {
           key: 'published',
           label: 'Status',
@@ -231,7 +195,7 @@ export default function MoviesAdminTable({ initialData }: { initialData: Movie[]
             className="btn btn-ghost btn-sm"
             onClick={() =>
               startTransition(async () => {
-                await toggleMoviePublishedAction(row.id, !row.published);
+                await toggleReviewPublishedAction(row.id, !row.published);
                 window.location.reload();
               })
             }
@@ -244,7 +208,7 @@ export default function MoviesAdminTable({ initialData }: { initialData: Movie[]
             className={`btn btn-ghost btn-sm ${row.featured ? 'text-yellow-500' : ''}`}
             onClick={() =>
               startTransition(async () => {
-                await toggleMovieFeaturedAction(row.id, !row.featured);
+                await toggleReviewFeaturedAction(row.id, !row.featured);
                 window.location.reload();
               })
             }
@@ -257,7 +221,7 @@ export default function MoviesAdminTable({ initialData }: { initialData: Movie[]
             className="btn btn-ghost btn-sm danger"
             onClick={() =>
               startTransition(async () => {
-                await deleteRowAction('movies', row.id, ['/movies', '/admin/movies']);
+                await deleteRowAction('reviews', row.id, ['/', '/admin/reviews']);
                 window.location.reload();
               })
             }
@@ -267,7 +231,7 @@ export default function MoviesAdminTable({ initialData }: { initialData: Movie[]
         </>
       )}
       renderForm={(item, onClose, onSaved) => (
-        <MovieForm item={item} onClose={onClose} onSaved={onSaved} />
+        <ReviewForm item={item} onClose={onClose} onSaved={onSaved} />
       )}
     />
   );

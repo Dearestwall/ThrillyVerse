@@ -1,23 +1,25 @@
 import { createClient } from '@/lib/supabase/server';
-import { NotificationsAdminTable } from '@/components/sections/admin/admin-tables';
-import { CreateNotificationForm } from '@/components/sections/admin/forms';
-import { SectionHeading } from '@/components/common/SectionHeading';
+import NotificationsAdminTable from '@/components/sections/admin/NotificationsAdminTable';
 
 export default async function AdminNotificationsPage() {
-  const supabase = createClient();
-  const { data } = await supabase.from('notifications').select('*').order('created_at', { ascending: false });
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from('notifications')
+    .select('*')
+    .order('created_at', { ascending: false });
 
   return (
-    <div className="space-y-8 page-enter">
-      <SectionHeading eyebrow="Platform" title="Notifications" description="Push messages to students and viewers." />
-      <div className="card p-6 section-reveal">
-        <h2 className="font-semibold mb-4">Create New Notification</h2>
-        <CreateNotificationForm />
+    <div className="admin-page">
+      <div className="admin-page-header">
+        <div>
+          <h1 className="admin-page-title">Notifications</h1>
+          <p className="admin-page-subtitle">
+            Broadcast updates, alerts, and audience-targeted messages.
+          </p>
+        </div>
       </div>
-      <div className="card p-6 section-reveal">
-        <NotificationsAdminTable initialData={data ?? []} />
-      </div>
+
+      <NotificationsAdminTable initialNotifications={(data ?? []) as any} />
     </div>
   );
 }
-

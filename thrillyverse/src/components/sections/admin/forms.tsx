@@ -1,5 +1,7 @@
 'use client';
 
+import { useMemo, useState, useTransition } from 'react';
+import toast from 'react-hot-toast';
 import {
   createAnnouncementAction,
   createBlogAction,
@@ -12,8 +14,6 @@ import {
   createQuizAction,
   createReviewAction,
 } from '@/app/actions/admin';
-import { useMemo, useState, useTransition } from 'react';
-import toast from 'react-hot-toast';
 
 function FormCard({
   title,
@@ -25,18 +25,23 @@ function FormCard({
   children: React.ReactNode;
 }) {
   return (
-    <div className="admin-card p-5 md:p-6 space-y-4">
+    <div className="admin-card p-5 md:p-6 space-y-5 border border-divider/70 bg-surface/90 shadow-2xl rounded-3xl">
       <div className="space-y-1">
-        <h3 className="text-lg font-semibold text-white">{title}</h3>
-        {subtitle && <p className="text-sm text-text-muted">{subtitle}</p>}
+        <h3 className="text-lg md:text-xl font-semibold text-white">{title}</h3>
+        {subtitle && <p className="text-sm text-text-muted max-w-2xl">{subtitle}</p>}
       </div>
       {children}
     </div>
   );
 }
 
+function FieldLabel({ children }: { children: React.ReactNode }) {
+  return <label className="form-label mb-1.5 block">{children}</label>;
+}
+
 function PreviewImage({ url, label }: { url: string; label?: string }) {
-  if (!url) return null;
+  if (!url?.trim()) return null;
+
   return (
     <div className="rounded-2xl overflow-hidden border border-divider bg-black/20">
       {label && <div className="px-3 py-2 text-xs text-text-muted border-b border-divider">{label}</div>}
@@ -50,6 +55,14 @@ function PreviewImage({ url, label }: { url: string; label?: string }) {
       />
     </div>
   );
+}
+
+function HelpText({ children }: { children: React.ReactNode }) {
+  return <p className="mt-1.5 text-xs text-text-muted">{children}</p>;
+}
+
+function Grid({ children }: { children: React.ReactNode }) {
+  return <div className="grid gap-4 md:grid-cols-2">{children}</div>;
 }
 
 function useSmartFormSubmit(action: (fd: FormData) => Promise<void>, successMsg: string) {
@@ -74,350 +87,423 @@ function useSmartFormSubmit(action: (fd: FormData) => Promise<void>, successMsg:
   return { pending, onSubmit };
 }
 
-export function CreateProjectForm() {
+function ToggleRow({
+  name,
+  label,
+  defaultChecked,
+}: {
+  name: string;
+  label: string;
+  defaultChecked?: boolean;
+}) {
+  return (
+    <label className="flex items-center gap-2 rounded-xl border border-divider/80 bg-black/10 px-3 py-2.5">
+      <input type="checkbox" name={name} defaultChecked={defaultChecked} />
+      <span className="text-sm text-white">{label}</span>
+    </label>
+  );
+}
+
+function SelectField({
+  name,
+  label,
+  defaultValue,
+  options,
+  help,
+}: {
+  name: string;
+  label: string;
+  defaultValue?: string;
+  options: string[];
+  help?: string;
+}) {
+  return (
+    <div>
+      <FieldLabel>{label}</FieldLabel>
+      <select name={name} className="form-input" defaultValue={defaultValue ?? options[0]}>
+        {options.map((opt) => (
+          <option key={opt} value={opt}>
+            {opt}
+          </option>
+        ))}
+      </select>
+      {help && <HelpText>{help}</HelpText>}
+    </div>
+  );
+}
+
+function InputField({
+  name,
+  label,
+  placeholder,
+  type = 'text',
+  defaultValue,
+  required,
+  help,
+}: {
+  name: string;
+  label: string;
+  placeholder?: string;
+  type?: string;
+  defaultValue?: string | number;
+  required?: boolean;
+  help?: string;
+}) {
+  return (
+    <div>
+      <FieldLabel>
+        {label}
+        {required ? ' *' : ''}
+      </FieldLabel>
+      <input
+        name={name}
+        type={type}
+        defaultValue={defaultValue as any}
+        placeholder={placeholder}
+        className="form-input"
+        required={required}
+      />
+      {help && <HelpText>{help}</HelpText>}
+    </div>
+  );
+}
+
+function TextAreaField({
+  name,
+  label,
+  placeholder,
+  defaultValue,
+  rows = 4,
+  required,
+  help,
+}: {
+  name: string;
+  label: string;
+  placeholder?: string;
+  defaultValue?: string;
+  rows?: number;
+  required?: boolean;
+  help?: string;
+}) {
+  return (
+    <div className="md:col-span-2">
+      <FieldLabel>
+        {label}
+        {required ? ' *' : ''}
+      </FieldLabel>
+      <textarea
+        name={name}
+        rows={rows}
+        defaultValue={defaultValue}
+        placeholder={placeholder}
+        className="form-input min-h-32"
+        required={required}
+      />
+      {help && <HelpText>{help}</HelpText>}
+    </div>
+  );
+}
+
+function submitButton(pending: boolean, label: string) {
+  return (
+    <div className="md:col-span-2 flex justify-end pt-2">
+      <button type="submit" className="btn btn-primary min-w-[160px]" disabled={pending}>
+        {pending ? 'Saving...' : label}
+      </button>
+    </div>
+  );
+}
+
+function parseCommaList(v: unknown) {
+  if (!v) return '';
+  if (Array.isArray(v)) return v.join(', ');
+  return String(v);
+}
+
+export function CreateProjectForm({ onSuccess }: { onSuccess?: () => void } = {}) {
   const { pending, onSubmit } = useSmartFormSubmit(createProjectAction, 'Project created!');
   const [imageUrl, setImageUrl] = useState('');
 
   return (
     <FormCard title="Create Project" subtitle="Add a new project with live link, GitHub, and stack details.">
-      <form onSubmit={onSubmit} className="admin-form-grid">
-        <input name="title" placeholder="Project title" className="form-input" required />
-        <input name="summary" placeholder="Summary" className="form-input" />
-        <input
-          name="image_url"
-          placeholder="Image URL"
-          className="form-input"
-          value={imageUrl}
-          onChange={(e) => setImageUrl(e.target.value)}
+      <form
+        onSubmit={async (e) => {
+          onSubmit(e);
+          onSuccess?.();
+        }}
+        className="admin-form-grid"
+      >
+        <InputField name="title" label="Project title" placeholder="Project title" required />
+        <InputField name="slug" label="Slug" placeholder="project-slug" />
+        <TextAreaField name="summary" label="Summary" placeholder="Short summary" rows={3} />
+        <InputField name="image_url" label="Image URL" placeholder="https://..." defaultValue="" />
+        <InputField name="link" label="Live link" placeholder="https://..." />
+        <InputField name="github_url" label="GitHub URL" placeholder="https://github.com/..." />
+        <InputField name="sort_order" label="Sort Order" type="number" defaultValue={0} />
+        <InputField
+          name="tech_stack"
+          label="Tech Stack"
+          placeholder="Next.js, Supabase, Tailwind"
+          help="Comma-separated stack items are best."
         />
-        <input name="link" placeholder="Live link" className="form-input" />
-        <input name="github_url" placeholder="GitHub URL" className="form-input" />
-        <input name="tech_stack" placeholder="Next.js, Supabase, Tailwind" className="form-input" />
-        <textarea name="description" placeholder="Description" className="form-input min-h-32 md:col-span-2" />
+        <SelectField
+          name="status"
+          label="Status"
+          options={['draft', 'published', 'archived']}
+          help="Projects use status instead of published."
+        />
+        <TextAreaField name="description" label="Description" placeholder="Detailed description" rows={6} />
 
-        <div className="md:col-span-2">
-          <PreviewImage url={imageUrl} label="Image preview" />
+        <div className="md:col-span-2 space-y-3">
+          <FieldLabel>Image preview</FieldLabel>
+          <PreviewImage url={imageUrl} label="Project image preview" />
         </div>
 
-        <div className="md:col-span-2 flex justify-end">
-          <button type="submit" className="btn btn-primary" disabled={pending}>
-            {pending ? 'Creating...' : 'Create Project'}
-          </button>
+        <div className="md:col-span-2 flex flex-wrap gap-3">
+          <ToggleRow name="featured" label="Featured" />
         </div>
+
+        {submitButton(pending, 'Create Project')}
       </form>
     </FormCard>
   );
 }
 
-export function CreateMovieForm() {
+export function CreateMovieForm({ onSuccess }: { onSuccess?: () => void } = {}) {
   const { pending, onSubmit } = useSmartFormSubmit(createMovieAction, 'Movie created!');
   const [poster, setPoster] = useState('');
 
   return (
     <FormCard title="Create Movie" subtitle="Create a movie entry with links, tags, and publish flags.">
-      <form onSubmit={onSubmit} className="admin-form-grid">
-        <input name="title" placeholder="Movie title" className="form-input" required />
-        <input name="category" placeholder="Category" className="form-input" />
-        <input
-          name="poster_url"
-          placeholder="Poster URL"
-          className="form-input"
-          value={poster}
-          onChange={(e) => setPoster(e.target.value)}
-        />
-        <input name="movie_link" placeholder="Watch link" className="form-input" />
-        <input name="download_link" placeholder="Download link" className="form-input" />
-        <input name="trailer_url" placeholder="Trailer URL" className="form-input" />
-        <input name="year" placeholder="Year" className="form-input" />
-        <input name="rating" placeholder="Rating" className="form-input" />
-        <input name="language" placeholder="Language" className="form-input" />
-        <input name="duration" placeholder="Duration" className="form-input" />
-        <input name="tags" placeholder="Action, Thriller" className="form-input md:col-span-2" />
-        <textarea name="description" placeholder="Description" className="form-input min-h-32 md:col-span-2" />
+      <form
+        onSubmit={async (e) => {
+          onSubmit(e);
+          onSuccess?.();
+        }}
+        className="admin-form-grid"
+      >
+        <InputField name="title" label="Movie title" placeholder="Movie title" required />
+        <InputField name="slug" label="Slug" placeholder="movie-slug" />
+        <InputField name="category" label="Category" placeholder="Action" />
+        <InputField name="poster_url" label="Poster URL" placeholder="https://..." />
+        <InputField name="movie_link" label="Watch link" placeholder="https://..." />
+        <InputField name="download_link" label="Download link" placeholder="https://..." />
+        <InputField name="trailer_url" label="Trailer URL" placeholder="https://..." />
+        <InputField name="year" label="Year" type="number" />
+        <InputField name="rating" label="Rating" placeholder="8.5" />
+        <InputField name="language" label="Language" placeholder="Hindi" />
+        <InputField name="duration" label="Duration" placeholder="2h 10m" />
+        <InputField name="tags" label="Tags" placeholder="Action, Thriller" help="Comma-separated tags." />
+        <TextAreaField name="description" label="Description" placeholder="Movie description" rows={5} />
 
-        <div className="md:col-span-2">
+        <div className="md:col-span-2 flex flex-wrap gap-3">
+          <ToggleRow name="featured" label="Featured" />
+          <ToggleRow name="published" label="Published" />
+        </div>
+
+        <div className="md:col-span-2 space-y-3">
+          <FieldLabel>Poster preview</FieldLabel>
           <PreviewImage url={poster} label="Poster preview" />
         </div>
 
-        <label className="inline-flex items-center gap-2">
-          <input type="checkbox" name="featured" />
-          Featured
-        </label>
-        <label className="inline-flex items-center gap-2">
-          <input type="checkbox" name="published" />
-          Published
-        </label>
-
-        <div className="md:col-span-2 flex justify-end">
-          <button type="submit" className="btn btn-primary" disabled={pending}>
-            {pending ? 'Creating...' : 'Create Movie'}
-          </button>
-        </div>
+        {submitButton(pending, 'Create Movie')}
       </form>
     </FormCard>
   );
 }
 
-export function CreateMaterialForm() {
+export function CreateMaterialForm({ onSuccess }: { onSuccess?: () => void } = {}) {
   const { pending, onSubmit } = useSmartFormSubmit(createMaterialAction, 'Material created!');
-  const [cover, setCover] = useState('');
 
   return (
     <FormCard title="Create Material" subtitle="Add notes, PDFs, videos, links, or images.">
-      <form onSubmit={onSubmit} className="admin-form-grid">
-        <input name="title" placeholder="Material title" className="form-input" required />
-        <select name="board" className="form-input">
-          <option>ICSE</option>
-          <option>CBSE</option>
-          <option>ISC</option>
-          <option>State</option>
-          <option>Other</option>
-        </select>
-        <input name="class_level" placeholder="Class" className="form-input" required />
-        <input name="subject" placeholder="Subject" className="form-input" required />
-        <input name="topic" placeholder="Topic" className="form-input" />
-        <input
-          name="cover_image"
-          placeholder="Cover image URL"
-          className="form-input"
-          value={cover}
-          onChange={(e) => setCover(e.target.value)}
-        />
-        <select name="resource_type" className="form-input">
-          <option>notes</option>
-          <option>pdf</option>
-          <option>video</option>
-          <option>link</option>
-          <option>image</option>
-          <option>other</option>
-        </select>
-        <input name="resource_link" placeholder="Resource link" className="form-input" />
-        <input name="download_link" placeholder="Download link" className="form-input" />
-        <input name="file_size" placeholder="File size" className="form-input" />
-        <textarea name="description" placeholder="Description" className="form-input min-h-32 md:col-span-2" />
+      <form
+        onSubmit={async (e) => {
+          onSubmit(e);
+          onSuccess?.();
+        }}
+        className="admin-form-grid"
+      >
+        <InputField name="title" label="Material title" placeholder="Material title" required />
+        <SelectField name="board" label="Board" options={['ICSE', 'CBSE', 'ISC', 'State', 'Other']} />
+        <InputField name="class_level" label="Class" placeholder="10" required />
+        <InputField name="subject" label="Subject" placeholder="Maths" required />
+        <InputField name="topic" label="Topic" placeholder="Algebra" />
+        <InputField name="cover_image" label="Cover image URL" placeholder="https://..." />
+        <SelectField name="resource_type" label="Resource type" options={['notes', 'pdf', 'video', 'link', 'image', 'other']} />
+        <InputField name="resource_link" label="Resource link" placeholder="https://..." />
+        <InputField name="download_link" label="Download link" placeholder="https://..." />
+        <InputField name="file_size" label="File size" placeholder="12 MB" />
+        <TextAreaField name="description" label="Description" placeholder="Describe the material" rows={5} />
 
-        <div className="md:col-span-2">
-          <PreviewImage url={cover} label="Cover preview" />
+        <div className="md:col-span-2 flex flex-wrap gap-3">
+          <ToggleRow name="is_premium" label="Premium" />
+          <ToggleRow name="featured" label="Featured" />
+          <ToggleRow name="published" label="Published" />
         </div>
 
-        <label className="inline-flex items-center gap-2">
-          <input type="checkbox" name="is_premium" />
-          Premium
-        </label>
-        <label className="inline-flex items-center gap-2">
-          <input type="checkbox" name="featured" />
-          Featured
-        </label>
-        <label className="inline-flex items-center gap-2">
-          <input type="checkbox" name="published" />
-          Published
-        </label>
-
-        <div className="md:col-span-2 flex justify-end">
-          <button type="submit" className="btn btn-primary" disabled={pending}>
-            {pending ? 'Creating...' : 'Create Material'}
-          </button>
-        </div>
+        {submitButton(pending, 'Create Material')}
       </form>
     </FormCard>
   );
 }
 
-export function CreateBlogForm() {
+export function CreateBlogForm({ onSuccess }: { onSuccess?: () => void } = {}) {
   const { pending, onSubmit } = useSmartFormSubmit(createBlogAction, 'Blog created!');
-  const [cover, setCover] = useState('');
 
   return (
     <FormCard title="Create Blog" subtitle="Write a blog with featured and published flags.">
-      <form onSubmit={onSubmit} className="admin-form-grid">
-        <input name="title" placeholder="Blog title" className="form-input" required />
-        <input name="category" placeholder="Category" className="form-input" />
-        <input
-          name="cover_image"
-          placeholder="Cover image URL"
-          className="form-input"
-          value={cover}
-          onChange={(e) => setCover(e.target.value)}
-        />
-        <input name="tags" placeholder="Tag1, Tag2" className="form-input" />
-        <input name="read_time" placeholder="Read time" className="form-input" />
-        <input name="excerpt" placeholder="Excerpt" className="form-input md:col-span-2" />
-        <textarea name="content" placeholder="Full content" className="form-input min-h-40 md:col-span-2" />
+      <form
+        onSubmit={async (e) => {
+          onSubmit(e);
+          onSuccess?.();
+        }}
+        className="admin-form-grid"
+      >
+        <InputField name="title" label="Blog title" placeholder="Blog title" required />
+        <InputField name="slug" label="Slug" placeholder="blog-slug" />
+        <InputField name="category" label="Category" placeholder="News" />
+        <InputField name="cover_image" label="Cover image URL" placeholder="https://..." />
+        <InputField name="tags" label="Tags" placeholder="Tag1, Tag2" />
+        <InputField name="read_time" label="Read time" placeholder="5 min" />
+        <TextAreaField name="excerpt" label="Excerpt" placeholder="Short excerpt" rows={3} />
+        <TextAreaField name="content" label="Full content" placeholder="Full article content" rows={8} />
 
-        <div className="md:col-span-2">
-          <PreviewImage url={cover} label="Cover preview" />
+        <div className="md:col-span-2 flex flex-wrap gap-3">
+          <ToggleRow name="featured" label="Featured" />
+          <ToggleRow name="published" label="Published" />
         </div>
 
-        <label className="inline-flex items-center gap-2">
-          <input type="checkbox" name="featured" />
-          Featured
-        </label>
-        <label className="inline-flex items-center gap-2">
-          <input type="checkbox" name="published" />
-          Published
-        </label>
-
-        <div className="md:col-span-2 flex justify-end">
-          <button type="submit" className="btn btn-primary" disabled={pending}>
-            {pending ? 'Creating...' : 'Create Blog'}
-          </button>
-        </div>
+        {submitButton(pending, 'Create Blog')}
       </form>
     </FormCard>
   );
 }
 
-export function CreateAnnouncementForm() {
+export function CreateAnnouncementForm({ onSuccess }: { onSuccess?: () => void } = {}) {
   const { pending, onSubmit } = useSmartFormSubmit(createAnnouncementAction, 'Announcement created!');
 
   return (
     <FormCard title="Create Announcement" subtitle="Announcements can be active or inactive.">
-      <form onSubmit={onSubmit} className="admin-form-grid">
-        <input name="title" placeholder="Announcement title" className="form-input md:col-span-2" required />
-        <input name="badge" placeholder="Badge" className="form-input" />
-        <input name="priority" placeholder="Priority" className="form-input" />
-        <input name="cta_label" placeholder="CTA label" className="form-input" />
-        <input name="cta_url" placeholder="CTA URL" className="form-input" />
-        <textarea name="body" placeholder="Announcement body" className="form-input min-h-32 md:col-span-2" />
-        <label className="inline-flex items-center gap-2">
-          <input type="checkbox" name="active" defaultChecked />
-          Active
-        </label>
-        <div className="md:col-span-2 flex justify-end">
-          <button type="submit" className="btn btn-primary" disabled={pending}>
-            {pending ? 'Creating...' : 'Create Announcement'}
-          </button>
+      <form
+        onSubmit={async (e) => {
+          onSubmit(e);
+          onSuccess?.();
+        }}
+        className="admin-form-grid"
+      >
+        <InputField name="title" label="Announcement title" placeholder="Important update" required />
+        <InputField name="badge" label="Badge" placeholder="New" />
+        <InputField name="priority" label="Priority" type="number" defaultValue={0} />
+        <InputField name="cta_label" label="CTA label" placeholder="Read more" />
+        <InputField name="cta_url" label="CTA URL" placeholder="https://..." />
+        <TextAreaField name="body" label="Body" placeholder="Announcement body" rows={5} />
+
+        <div className="md:col-span-2 flex flex-wrap gap-3">
+          <ToggleRow name="active" label="Active" defaultChecked />
         </div>
+
+        {submitButton(pending, 'Create Announcement')}
       </form>
     </FormCard>
   );
 }
 
-export function CreateNotificationForm() {
+export function CreateNotificationForm({ onSuccess }: { onSuccess?: () => void } = {}) {
   const { pending, onSubmit } = useSmartFormSubmit(createNotificationAction, 'Notification created!');
 
   return (
     <FormCard title="Create Notification" subtitle="Send notifications by audience and type.">
-      <form onSubmit={onSubmit} className="admin-form-grid">
-        <input name="title" placeholder="Notification title" className="form-input" required />
-        <select name="type" className="form-input">
-          <option>info</option>
-          <option>success</option>
-          <option>warning</option>
-          <option>alert</option>
-          <option>new_material</option>
-          <option>new_movie</option>
-          <option>new_blog</option>
-          <option>quiz</option>
-        </select>
-        <select name="audience" className="form-input">
-          <option>all</option>
-          <option>students</option>
-          <option>viewers</option>
-        </select>
-        <input name="target_url" placeholder="Target URL" className="form-input" />
-        <textarea name="message" placeholder="Message" className="form-input min-h-32 md:col-span-2" required />
-        <label className="inline-flex items-center gap-2">
-          <input type="checkbox" name="is_active" defaultChecked />
-          Active
-        </label>
-        <div className="md:col-span-2 flex justify-end">
-          <button type="submit" className="btn btn-primary" disabled={pending}>
-            {pending ? 'Creating...' : 'Create Notification'}
-          </button>
+      <form
+        onSubmit={async (e) => {
+          onSubmit(e);
+          onSuccess?.();
+        }}
+        className="admin-form-grid"
+      >
+        <InputField name="title" label="Notification title" placeholder="New quiz available" required />
+        <SelectField
+          name="type"
+          label="Type"
+          options={['info', 'success', 'warning', 'alert', 'new_material', 'new_movie', 'new_blog', 'quiz']}
+        />
+        <SelectField name="audience" label="Audience" options={['all', 'students', 'viewers']} />
+        <InputField name="target_url" label="Target URL" placeholder="https://..." />
+        <TextAreaField name="message" label="Message" placeholder="Notification message" rows={5} required />
+
+        <div className="md:col-span-2 flex flex-wrap gap-3">
+          <ToggleRow name="is_active" label="Active" defaultChecked />
         </div>
+
+        {submitButton(pending, 'Create Notification')}
       </form>
     </FormCard>
   );
 }
 
-export function CreateQuizForm() {
+export function CreateQuizForm({ onSuccess }: { onSuccess?: () => void } = {}) {
   const { pending, onSubmit } = useSmartFormSubmit(createQuizAction, 'Quiz created!');
 
   return (
     <FormCard title="Create Quiz" subtitle="Add a quiz with board, class, difficulty and duration.">
-      <form onSubmit={onSubmit} className="admin-form-grid">
-        <input name="title" placeholder="Quiz title" className="form-input" required />
-        <input name="board" placeholder="Board" className="form-input" />
-        <input name="class_level" placeholder="Class" className="form-input" />
-        <input name="subject" placeholder="Subject" className="form-input" />
-        <input name="time_limit" placeholder="Time limit" className="form-input" />
-        <select name="difficulty" className="form-input">
-          <option>easy</option>
-          <option>medium</option>
-          <option>hard</option>
-        </select>
-        <textarea name="description" placeholder="Description" className="form-input min-h-32 md:col-span-2" />
-        <label className="inline-flex items-center gap-2">
-          <input type="checkbox" name="published" />
-          Published
-        </label>
-        <div className="md:col-span-2 flex justify-end">
-          <button type="submit" className="btn btn-primary" disabled={pending}>
-            {pending ? 'Creating...' : 'Create Quiz'}
-          </button>
+      <form
+        onSubmit={async (e) => {
+          onSubmit(e);
+          onSuccess?.();
+        }}
+        className="admin-form-grid"
+      >
+        <InputField name="title" label="Quiz title" placeholder="Quiz title" required />
+        <InputField name="slug" label="Slug" placeholder="quiz-slug" />
+        <InputField name="board" label="Board" placeholder="ICSE" />
+        <InputField name="class_level" label="Class" placeholder="10" />
+        <InputField name="subject" label="Subject" placeholder="Maths" />
+        <InputField name="time_limit" label="Time limit" placeholder="30" />
+        <SelectField name="difficulty" label="Difficulty" options={['easy', 'medium', 'hard']} />
+        <TextAreaField name="description" label="Description" placeholder="Quiz description" rows={4} />
+
+        <div className="md:col-span-2 flex flex-wrap gap-3">
+          <ToggleRow name="published" label="Published" />
         </div>
+
+        {submitButton(pending, 'Create Quiz')}
       </form>
     </FormCard>
   );
 }
 
-export function CreatePartnerForm() {
+export function CreatePartnerForm({ onSuccess }: { onSuccess?: () => void } = {}) {
   const { pending, onSubmit } = useSmartFormSubmit(createPartnerAction, 'Partner added!');
-  const [emoji, setEmoji] = useState('🤝');
   const [logoUrl, setLogoUrl] = useState('');
-
-  const preview = useMemo(() => logoUrl.trim(), [logoUrl]);
 
   return (
     <FormCard title="Create Partner" subtitle="Add partners with logo, website and visibility control.">
-      <form onSubmit={onSubmit} className="space-y-4">
+      <form
+        onSubmit={async (e) => {
+          onSubmit(e);
+          onSuccess?.();
+        }}
+        className="space-y-4"
+      >
         <div className="admin-form-grid">
-          <div>
-            <label className="form-label">Name *</label>
-            <input name="name" required className="form-input" placeholder="Google for Education" />
-          </div>
-          <div>
-            <label className="form-label">Emoji / Icon</label>
-            <input
-              name="emoji"
-              className="form-input"
-              placeholder="🤝"
-              value={emoji}
-              onChange={(e) => setEmoji(e.target.value)}
-            />
-          </div>
-          <div>
-            <label className="form-label">Logo URL</label>
-            <input
-              name="logo_url"
-              type="url"
-              className="form-input"
-              placeholder="https://..."
-              value={logoUrl}
-              onChange={(e) => setLogoUrl(e.target.value)}
-            />
-          </div>
-          <div>
-            <label className="form-label">Website URL</label>
-            <input name="website_url" type="url" className="form-input" placeholder="https://partner.com" />
-          </div>
-          <div>
-            <label className="form-label">Sort Order</label>
-            <input name="sort_order" type="number" className="form-input" defaultValue={0} />
-          </div>
-          <div className="flex items-center gap-3 pt-6">
-            <input name="active" type="checkbox" id="partner-active" defaultChecked />
-            <label htmlFor="partner-active" className="form-label mb-0 cursor-pointer">
-              Active (visible on homepage)
-            </label>
-          </div>
+          <InputField name="name" label="Name" placeholder="Google for Education" required />
+          <InputField name="emoji" label="Emoji / Icon" placeholder="🤝" defaultValue="🤝" />
+          <InputField name="logo_url" label="Logo URL" placeholder="https://..." />
+          <InputField name="website_url" label="Website URL" placeholder="https://partner.com" />
+          <InputField name="sort_order" label="Sort Order" type="number" defaultValue={0} />
         </div>
 
-        <PreviewImage url={preview} label="Logo preview" />
+        <div className="md:col-span-2 flex items-center gap-3 rounded-xl border border-divider/80 bg-black/10 px-3 py-2.5">
+          <input name="active" type="checkbox" id="partner-active" defaultChecked />
+          <label htmlFor="partner-active" className="text-sm text-white cursor-pointer">
+            Active (visible on homepage)
+          </label>
+        </div>
 
-        <div className="centered-button-row flex justify-end">
-          <button type="submit" disabled={pending} className="btn btn-primary">
+        <PreviewImage url={logoUrl} label="Logo preview" />
+
+        <div className="flex justify-end">
+          <button type="submit" disabled={pending} className="btn btn-primary min-w-[160px]">
             {pending ? 'Adding...' : 'Add Partner'}
           </button>
         </div>
@@ -426,80 +512,39 @@ export function CreatePartnerForm() {
   );
 }
 
-export function CreateReviewForm() {
+export function CreateReviewForm({ onSuccess }: { onSuccess?: () => void } = {}) {
   const { pending, onSubmit } = useSmartFormSubmit(createReviewAction, 'Review added!');
-  const [emoji, setEmoji] = useState('👤');
   const [avatarUrl, setAvatarUrl] = useState('');
 
   return (
     <FormCard title="Create Review" subtitle="Add testimonials with rating and featured flags.">
-      <form onSubmit={onSubmit} className="space-y-4">
+      <form
+        onSubmit={async (e) => {
+          onSubmit(e);
+          onSuccess?.();
+        }}
+        className="space-y-4"
+      >
         <div className="admin-form-grid">
-          <div>
-            <label className="form-label">Name *</label>
-            <input name="name" required className="form-input" placeholder="Priya S." />
-          </div>
-          <div>
-            <label className="form-label">Role / Description</label>
-            <input name="role" className="form-input" placeholder="Class 12, CBSE" />
-          </div>
-          <div>
-            <label className="form-label">Emoji Avatar</label>
-            <input
-              name="emoji"
-              className="form-input"
-              placeholder="👩‍🎓"
-              value={emoji}
-              onChange={(e) => setEmoji(e.target.value)}
-            />
-          </div>
-          <div>
-            <label className="form-label">Avatar URL (optional)</label>
-            <input
-              name="avatar_url"
-              type="url"
-              className="form-input"
-              placeholder="https://..."
-              value={avatarUrl}
-              onChange={(e) => setAvatarUrl(e.target.value)}
-            />
-          </div>
-          <div>
-            <label className="form-label">Rating (1–5)</label>
-            <select name="rating" className="form-input">
-              <option value="5">⭐⭐⭐⭐⭐ (5)</option>
-              <option value="4">⭐⭐⭐⭐ (4)</option>
-              <option value="3">⭐⭐⭐ (3)</option>
-              <option value="2">⭐⭐ (2)</option>
-              <option value="1">⭐ (1)</option>
-            </select>
-          </div>
-          <div>
-            <label className="form-label">Sort Order</label>
-            <input name="sort_order" type="number" className="form-input" defaultValue={0} />
-          </div>
+          <InputField name="name" label="Name" placeholder="Priya S." required />
+          <InputField name="role" label="Role / Description" placeholder="Class 12, CBSE" />
+          <InputField name="emoji" label="Emoji Avatar" placeholder="👩‍🎓" defaultValue="👤" />
+          <InputField name="avatar_url" label="Avatar URL" placeholder="https://..." />
+          <InputField name="rating" label="Rating (1–5)" type="number" defaultValue={5} />
+          <InputField name="sort_order" label="Sort Order" type="number" defaultValue={0} />
         </div>
 
         <PreviewImage url={avatarUrl} label="Avatar preview" />
 
-        <div>
-          <label className="form-label">Review Text *</label>
-          <textarea name="text" required rows={3} className="form-input" placeholder="Write the testimonial here..." />
+        <TextAreaField name="text" label="Review Text" placeholder="Write the testimonial here..." rows={5} required />
+
+        <div className="flex flex-wrap gap-3">
+          <ToggleRow name="published" label="Published" />
+          <ToggleRow name="featured" label="Featured" />
         </div>
 
-        <div className="flex gap-6">
-          <label className="flex items-center gap-2">
-            <input name="published" type="checkbox" id="review-published" />
-            <span className="form-label mb-0 cursor-pointer">Published</span>
-          </label>
-          <label className="flex items-center gap-2">
-            <input name="featured" type="checkbox" id="review-featured" />
-            <span className="form-label mb-0 cursor-pointer">Featured</span>
-          </label>
-        </div>
-
-        <div className="centered-button-row flex justify-end">
-          <button type="submit" disabled={pending} className="btn btn-primary">
+        <div className="flex justify-end">
+          <button type="submit" disabled={pending} className="btn btn-primary min-w-[160px]">
             {pending ? 'Adding...' : 'Add Review'}
           </button>
         </div>
@@ -508,48 +553,36 @@ export function CreateReviewForm() {
   );
 }
 
-export function CreateCertificationForm() {
+export function CreateCertificationForm({ onSuccess }: { onSuccess?: () => void } = {}) {
   const { pending, onSubmit } = useSmartFormSubmit(createCertificationAction, 'Certification added!');
 
   return (
     <FormCard title="Create Certification" subtitle="Add certifications with gradient branding.">
-      <form onSubmit={onSubmit} className="space-y-4">
+      <form
+        onSubmit={async (e) => {
+          onSubmit(e);
+          onSuccess?.();
+        }}
+        className="space-y-4"
+      >
         <div className="admin-form-grid">
-          <div>
-            <label className="form-label">Title *</label>
-            <input name="title" required className="form-input" placeholder="ISO 27001" />
-          </div>
-          <div>
-            <label className="form-label">Subtitle</label>
-            <input name="subtitle" className="form-input" placeholder="Information Security" />
-          </div>
-          <div>
-            <label className="form-label">Emoji / Icon</label>
-            <input name="emoji" className="form-input" placeholder="🏅" />
-          </div>
-          <div>
-            <label className="form-label">Sort Order</label>
-            <input name="sort_order" type="number" className="form-input" defaultValue={0} />
-          </div>
-          <div>
-            <label className="form-label">Gradient From</label>
-            <input name="color_from" type="color" className="form-input h-11 p-1" defaultValue="#7c3aed" />
-          </div>
-          <div>
-            <label className="form-label">Gradient To</label>
-            <input name="color_to" type="color" className="form-input h-11 p-1" defaultValue="#06b6d4" />
-          </div>
+          <InputField name="title" label="Title" placeholder="ISO 27001" required />
+          <InputField name="subtitle" label="Subtitle" placeholder="Information Security" />
+          <InputField name="emoji" label="Emoji / Icon" placeholder="🏅" defaultValue="🏅" />
+          <InputField name="sort_order" label="Sort Order" type="number" defaultValue={0} />
+          <InputField name="color_from" label="Gradient From" type="color" defaultValue="#7c3aed" />
+          <InputField name="color_to" label="Gradient To" type="color" defaultValue="#06b6d4" />
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3 rounded-xl border border-divider/80 bg-black/10 px-3 py-2.5">
           <input name="active" type="checkbox" id="cert-active" defaultChecked />
-          <label htmlFor="cert-active" className="form-label mb-0 cursor-pointer">
+          <label htmlFor="cert-active" className="text-sm text-white cursor-pointer">
             Active (visible on homepage)
           </label>
         </div>
 
-        <div className="centered-button-row flex justify-end">
-          <button type="submit" disabled={pending} className="btn btn-primary">
+        <div className="flex justify-end">
+          <button type="submit" disabled={pending} className="btn btn-primary min-w-[180px]">
             {pending ? 'Adding...' : 'Add Certification'}
           </button>
         </div>

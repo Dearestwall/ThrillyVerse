@@ -1,0 +1,280 @@
+.admin-page {
+  display: grid;
+  gap: 1.5rem;
+}
+
+.admin-page-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.admin-page-title {
+  font-size: var(--text-xl);
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+}
+
+.admin-page-subtitle {
+  margin-top: 0.35rem;
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+  max-width: 70ch;
+}
+
+.admin-shell {
+  padding: 1rem;
+  border-radius: 1.25rem;
+  overflow: hidden;
+}
+
+.admin-shell-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+}
+
+.admin-shell-left {
+  flex: 1 1 20rem;
+}
+
+.admin-shell-search {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+}
+
+.admin-shell-search .form-input {
+  width: 100%;
+  min-height: 2.75rem;
+}
+
+.admin-shell-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  flex-wrap: wrap;
+}
+
+.admin-table-wrap {
+  overflow: auto;
+  border-radius: 1rem;
+  border: 1px solid var(--color-border);
+  background: color-mix(in oklab, var(--color-surface) 92%, transparent);
+}
+
+.admin-table {
+  min-width: 920px;
+  width: 100%;
+}
+
+.admin-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  background: var(--color-surface-2);
+  color: var(--color-text);
+  font-size: var(--text-xs);
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  padding: 0.875rem 1rem;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.admin-table tbody td {
+  padding: 0.95rem 1rem;
+  border-bottom: 1px solid color-mix(in oklab, var(--color-border) 65%, transparent);
+  vertical-align: middle;
+  font-size: var(--text-sm);
+}
+
+.admin-table tbody tr {
+  transition: transform 180ms ease, background 180ms ease;
+}
+
+.admin-table tbody tr:hover {
+  background: color-mix(in oklab, var(--color-primary) 4%, var(--color-surface));
+}
+
+.row-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.45rem;
+  flex-wrap: wrap;
+}
+
+.empty-inline {
+  padding: 2.5rem 1rem;
+  text-align: center;
+  color: var(--color-text-muted);
+}
+
+.admin-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 70;
+  background: color-mix(in oklab, black 45%, transparent);
+  backdrop-filter: blur(12px);
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+}
+
+.admin-modal-panel {
+  width: min(100%, 980px);
+  max-height: min(92vh, 980px);
+  overflow: auto;
+  border-radius: 1.4rem;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-lg);
+  position: relative;
+  padding: 1.2rem;
+}
+
+.admin-modal-close {
+  position: sticky;
+  top: 0.5rem;
+  margin-left: auto;
+  width: 2.25rem;
+  height: 2.25rem;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-border);
+}
+
+.admin-form {
+  display: grid;
+  gap: 1rem;
+}
+
+.modal-title {
+  font-size: var(--text-lg);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  margin-bottom: 0.25rem;
+}
+
+.form-grid-2 {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.col-span-2 {
+  grid-column: span 2;
+}
+
+.check-row {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  min-height: 2.75rem;
+  font-size: var(--text-sm);
+}
+
+.modal-form-footer {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  padding-top: 0.4rem;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 1.85rem;
+  padding: 0.25rem 0.7rem;
+  border-radius: 999px;
+  border: 1px solid var(--color-border);
+  font-size: var(--text-xs);
+  font-weight: 700;
+}
+
+.badge-success {
+  background: color-mix(in oklab, var(--color-success) 14%, var(--color-surface));
+  color: var(--color-success);
+  border-color: color-mix(in oklab, var(--color-success) 30%, var(--color-border));
+}
+
+.badge-muted {
+  background: var(--color-surface-2);
+  color: var(--color-text-muted);
+}
+
+.btn.danger {
+  color: var(--color-error);
+}
+
+@media (max-width: 1024px) {
+  .admin-shell {
+    padding: 0.875rem;
+  }
+
+  .admin-modal-panel {
+    width: min(100%, 760px);
+  }
+}
+
+@media (max-width: 768px) {
+  .admin-page-header,
+  .admin-shell-toolbar,
+  .admin-shell-actions,
+  .modal-form-footer {
+    align-items: stretch;
+  }
+
+  .admin-shell-actions > *,
+  .modal-form-footer > * {
+    flex: 1 1 auto;
+  }
+
+  .form-grid-2 {
+    grid-template-columns: 1fr;
+  }
+
+  .col-span-2 {
+    grid-column: span 1;
+  }
+
+  .admin-modal-panel {
+    max-height: 94vh;
+    border-radius: 1rem;
+    padding: 0.95rem;
+  }
+
+  .admin-table {
+    min-width: 760px;
+  }
+}
+
+@media (max-width: 480px) {
+  .admin-page-title {
+    font-size: var(--text-lg);
+  }
+
+  .admin-shell {
+    padding: 0.75rem;
+  }
+
+  .admin-table {
+    min-width: 680px;
+  }
+
+  .badge {
+    min-height: 1.7rem;
+  }
+}

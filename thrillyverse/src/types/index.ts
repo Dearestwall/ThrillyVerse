@@ -15,6 +15,36 @@ export interface Announcement {
   active: boolean;
   published_at: string;
 }
+export interface Review {
+  id: string;
+  name: string;
+  role: string | null;
+  avatar_url: string | null;
+  text: string;
+  rating: number;
+  emoji: string;
+  featured: boolean;
+  published: boolean;
+  sort_order: number;
+}
+
+export interface Partner {
+  id: string;
+  name: string;
+  emoji: string | null;
+  logo_url: string | null;
+  sort_order: number;
+  active: boolean;
+}
+
+export interface Certification {
+  id: string;
+  title: string;
+  subtitle: string | null;
+  emoji: string | null;
+  sort_order: number;
+  active: boolean;
+}
 
 export interface Project {
   id: string;
@@ -32,6 +62,8 @@ export interface Project {
 }
 
 export interface Movie {
+  duration: undefined;
+  language: undefined;
   id: string;
   title: string;
   slug: string;

@@ -1,38 +1,27 @@
 import { createClient } from '@/lib/supabase/server';
-import { SectionHeading } from '@/components/common/SectionHeading';
-import { MaterialsAdminTable } from '@/components/sections/admin/admin-tables';
-import { CreateMaterialForm } from '@/components/sections/admin/forms';
+import MaterialsAdminTable from '@/components/sections/admin/MaterialsAdminTable';
 
 export default async function AdminMaterialsPage() {
-  const supabase = createClient();
+  const supabase = await createClient();
+
   const { data } = await supabase
     .from('materials')
     .select('*')
+    .order('sort_order', { ascending: true })
     .order('created_at', { ascending: false });
 
   return (
-    <div className="space-y-8 page-enter">
-      <SectionHeading
-        eyebrow="Education"
-        title="Study Materials"
-        description="Upload notes, PDFs, links, and learning resources."
-      />
-
-      <div className="admin-card p-6">
-        <div className="flex items-center justify-between gap-3 flex-wrap mb-4">
-          <div>
-            <h2 className="font-semibold text-lg">Manage Materials</h2>
-            <p className="text-sm text-text-muted">
-              Add, edit, publish, and bulk-manage resources.
-            </p>
-          </div>
+    <div className="admin-page">
+      <div className="admin-page-header">
+        <div>
+          <h1 className="admin-page-title">Materials</h1>
+          <p className="admin-page-subtitle">
+            Manage notes, PDFs, videos, links, premium resources, and featured study materials.
+          </p>
         </div>
-        <CreateMaterialForm />
       </div>
 
-      <div className="admin-card p-6">
-        <MaterialsAdminTable initialData={data ?? []} />
-      </div>
+      <MaterialsAdminTable initialData={(data ?? []) as any} />
     </div>
   );
 }

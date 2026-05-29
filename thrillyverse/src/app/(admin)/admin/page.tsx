@@ -1,264 +1,113 @@
 import { createClient } from '@/lib/supabase/server';
-import { AnimatedCounter } from '@/components/common/AnimatedCounter';
-import { SectionHeading } from '@/components/common/SectionHeading';
 import Link from 'next/link';
+import { Film, BookOpen, FileText, Folder, HelpCircle, Megaphone, Bell, Mail, Award, Handshake, Star, TrendingUp } from 'lucide-react';
+import { formatDate } from '@/utils';
 
 export default async function AdminDashboardPage() {
   const supabase = createClient();
 
-  const [
-    blogs,
-    movies,
-    materials,
-    quizzes,
-    announcements,
-    notifications,
-    contacts,
-    partners,
-    reviews,
-    certifications,
-  ] = await Promise.all([
-    supabase.from('blogs').select('id, published', { count: 'exact' }),
-    supabase.from('movies').select('id, published', { count: 'exact' }),
-    supabase.from('materials').select('id, published', { count: 'exact' }),
-    supabase.from('quizzes').select('id, published', { count: 'exact' }),
-    supabase.from('announcements').select('id, active', { count: 'exact' }),
-    supabase.from('notifications').select('id, is_active', { count: 'exact' }),
-    supabase.from('contacts').select('id, read', { count: 'exact' }),
-    supabase.from('partners').select('id, active', { count: 'exact' }),
-    supabase.from('reviews').select('id, published', { count: 'exact' }),
-    supabase.from('certifications').select('id, active', { count: 'exact' }),
-  ]);
+  const [movies, materials, blogs, projects, quizzes, announcements, notifications, contacts, certifications, partners, reviews] =
+    await Promise.all([
+      supabase.from('movies').select('id', { count: 'exact', head: true }),
+      supabase.from('materials').select('id', { count: 'exact', head: true }),
+      supabase.from('blogs').select('id', { count: 'exact', head: true }),
+      supabase.from('projects').select('id', { count: 'exact', head: true }),
+      supabase.from('quizzes').select('id', { count: 'exact', head: true }),
+      supabase.from('announcements').select('id', { count: 'exact', head: true }),
+      supabase.from('notifications').select('id', { count: 'exact', head: true }),
+      supabase.from('contacts').select('id', { count: 'exact', head: true }),
+      supabase.from('certifications').select('id', { count: 'exact', head: true }),
+      supabase.from('partners').select('id', { count: 'exact', head: true }),
+      supabase.from('reviews').select('id', { count: 'exact', head: true }),
+    ]);
+
+  const { data: recentContacts } = await supabase.from('contacts').select('id,name,email,subject,read,created_at').order('created_at', { ascending: false }).limit(5);
 
   const stats = [
-    {
-      label: 'Blogs',
-      total: blogs.count ?? 0,
-      published: (blogs.data ?? []).filter((r) => r.published).length,
-      color: 'from-violet-500 to-purple-600',
-      icon: '✍️',
-      href: '/admin/blogs',
-      publishedLabel: 'Live',
-      accent: 'violet',
-    },
-    {
-      label: 'Movies',
-      total: movies.count ?? 0,
-      published: (movies.data ?? []).filter((r) => r.published).length,
-      color: 'from-blue-500 to-cyan-600',
-      icon: '🎬',
-      href: '/admin/movies',
-      publishedLabel: 'Live',
-      accent: 'blue',
-    },
-    {
-      label: 'Materials',
-      total: materials.count ?? 0,
-      published: (materials.data ?? []).filter((r) => r.published).length,
-      color: 'from-emerald-500 to-teal-600',
-      icon: '📚',
-      href: '/admin/materials',
-      publishedLabel: 'Live',
-      accent: 'emerald',
-    },
-    {
-      label: 'Quizzes',
-      total: quizzes.count ?? 0,
-      published: (quizzes.data ?? []).filter((r) => r.published).length,
-      color: 'from-orange-500 to-amber-600',
-      icon: '🧠',
-      href: '/admin/quizzes',
-      publishedLabel: 'Live',
-      accent: 'orange',
-    },
-    {
-      label: 'Announcements',
-      total: announcements.count ?? 0,
-      published: (announcements.data ?? []).filter((r) => r.active).length,
-      color: 'from-pink-500 to-rose-600',
-      icon: '📣',
-      href: '/admin/announcements',
-      publishedLabel: 'Active',
-      accent: 'pink',
-    },
-    {
-      label: 'Notifications',
-      total: notifications.count ?? 0,
-      published: (notifications.data ?? []).filter((r) => r.is_active).length,
-      color: 'from-indigo-500 to-blue-600',
-      icon: '🔔',
-      href: '/admin/notifications',
-      publishedLabel: 'Active',
-      accent: 'indigo',
-    },
-    {
-      label: 'Contacts',
-      total: contacts.count ?? 0,
-      published: (contacts.data ?? []).filter((r) => !r.read).length,
-      color: 'from-red-500 to-pink-600',
-      icon: '📬',
-      href: '/admin/contacts',
-      publishedLabel: 'Unread',
-      accent: 'red',
-    },
-    {
-      label: 'Partners',
-      total: partners.count ?? 0,
-      published: (partners.data ?? []).filter((r) => r.active).length,
-      color: 'from-teal-500 to-cyan-600',
-      icon: '🤝',
-      href: '/admin/partners',
-      publishedLabel: 'Active',
-      accent: 'teal',
-    },
-    {
-      label: 'Reviews',
-      total: reviews.count ?? 0,
-      published: (reviews.data ?? []).filter((r) => r.published).length,
-      color: 'from-amber-500 to-yellow-600',
-      icon: '⭐',
-      href: '/admin/reviews',
-      publishedLabel: 'Live',
-      accent: 'amber',
-    },
-    {
-      label: 'Certifications',
-      total: certifications.count ?? 0,
-      published: (certifications.data ?? []).filter((r) => r.active).length,
-      color: 'from-rose-500 to-red-600',
-      icon: '🏅',
-      href: '/admin/certifications',
-      publishedLabel: 'Active',
-      accent: 'rose',
-    },
+    { label: 'Movies', count: movies.count ?? 0, icon: Film, href: '/admin/movies', color: '#e11d48' },
+    { label: 'Materials', count: materials.count ?? 0, icon: BookOpen, href: '/admin/materials', color: '#7c3aed' },
+    { label: 'Blogs', count: blogs.count ?? 0, icon: FileText, href: '/admin/blogs', color: '#0891b2' },
+    { label: 'Projects', count: projects.count ?? 0, icon: Folder, href: '/admin/projects', color: '#d97706' },
+    { label: 'Quizzes', count: quizzes.count ?? 0, icon: HelpCircle, href: '/admin/quizzes', color: '#16a34a' },
+    { label: 'Announcements', count: announcements.count ?? 0, icon: Megaphone, href: '/admin/announcements', color: '#ea580c' },
+    { label: 'Notifications', count: notifications.count ?? 0, icon: Bell, href: '/admin/notifications', color: '#8b5cf6' },
+    { label: 'Contacts', count: contacts.count ?? 0, icon: Mail, href: '/admin/contacts', color: '#06b6d4' },
+    { label: 'Certifications', count: certifications.count ?? 0, icon: Award, href: '/admin/certifications', color: '#f59e0b' },
+    { label: 'Partners', count: partners.count ?? 0, icon: Handshake, href: '/admin/partners', color: '#10b981' },
+    { label: 'Reviews', count: reviews.count ?? 0, icon: Star, href: '/admin/reviews', color: '#f43f5e' },
   ];
 
-  const liveCount = stats.reduce((acc, s) => acc + s.published, 0);
-  const totalCount = stats.reduce((acc, s) => acc + s.total, 0);
-  const unreadContacts = (contacts.data ?? []).filter((r) => !r.read).length;
-  const activeItems = stats.filter((s) => s.published > 0).length;
-
   return (
-    <div className="space-y-10 page-enter">
-      <div className="fade-up flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-        <SectionHeading
-          eyebrow="Admin Dashboard"
-          title="Welcome to ThrillyVerse Admin"
-          description="Manage content, users, and platform settings from a single control center."
-        />
-
-        <div className="flex flex-wrap gap-2">
-          <Link href="/admin/blogs" className="btn btn-secondary btn-sm">New Blog</Link>
-          <Link href="/admin/movies" className="btn btn-secondary btn-sm">New Movie</Link>
-          <Link href="/admin/materials" className="btn btn-secondary btn-sm">New Material</Link>
-          <Link href="/admin/quizzes" className="btn btn-secondary btn-sm">New Quiz</Link>
+    <div className="admin-page-root">
+      {/* Header */}
+      <div className="admin-page-header">
+        <div>
+          <h1 className="admin-page-title">
+            <TrendingUp size={22} className="admin-page-title-icon" />
+            Dashboard
+          </h1>
+          <p className="admin-page-subtitle">ThrillyVerse content overview</p>
         </div>
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-4">
-        <div className="admin-card p-5">
-          <div className="text-xs uppercase tracking-[0.16em] text-text-muted mb-2">Total Content</div>
-          <div className="text-3xl font-display font-bold tabular-nums">
-            <AnimatedCounter value={totalCount} />
-          </div>
-        </div>
-        <div className="admin-card p-5">
-          <div className="text-xs uppercase tracking-[0.16em] text-text-muted mb-2">Live / Active</div>
-          <div className="text-3xl font-display font-bold tabular-nums">
-            <AnimatedCounter value={liveCount} />
-          </div>
-        </div>
-        <div className="admin-card p-5">
-          <div className="text-xs uppercase tracking-[0.16em] text-text-muted mb-2">Sections Online</div>
-          <div className="text-3xl font-display font-bold tabular-nums">
-            <AnimatedCounter value={activeItems} />
-          </div>
-        </div>
-        <div className="admin-card p-5">
-          <div className="text-xs uppercase tracking-[0.16em] text-text-muted mb-2">Unread Contacts</div>
-          <div className="text-3xl font-display font-bold tabular-nums">
-            <AnimatedCounter value={unreadContacts} />
-          </div>
-        </div>
-        <div className="admin-card p-5">
-          <div className="text-xs uppercase tracking-[0.16em] text-text-muted mb-2">Platform Health</div>
-          <div className="text-3xl font-display font-bold tabular-nums">100%</div>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-4">
-        {stats.map((stat, i) => (
-          <Link
-            key={stat.label}
-            href={stat.href}
-            className="admin-card group relative overflow-hidden p-6 transition-transform duration-200 hover:-translate-y-1"
-            style={{ animationDelay: `${i * 60}ms` }}
-          >
-            <div className={`absolute inset-0 bg-gradient-to-br ${stat.color} opacity-0 group-hover:opacity-10 transition-opacity duration-300`} />
-            <div className="flex items-center justify-between mb-4">
-              <span className="text-3xl">{stat.icon}</span>
-              <span className={`badge bg-gradient-to-r ${stat.color} text-white text-[11px] px-2.5 py-1`}>
-                {stat.publishedLabel}: {stat.published}
-              </span>
+      {/* Stat Cards */}
+      <div className="dashboard-stats-grid">
+        {stats.map(({ label, count, icon: Icon, href, color }) => (
+          <Link key={label} href={href} className="dashboard-stat-card" style={{ '--card-accent': color } as React.CSSProperties}>
+            <div className="stat-card-icon" style={{ background: `${color}22` }}>
+              <Icon size={20} style={{ color }} />
             </div>
-            <div className="font-display text-3xl font-bold tabular-nums mb-1">
-              <AnimatedCounter value={stat.total} />
+            <div className="stat-card-body">
+              <p className="stat-card-count">{count}</p>
+              <p className="stat-card-label">{label}</p>
             </div>
-            <div className="text-sm text-text-muted font-medium">{stat.label}</div>
-            <div className={`absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r ${stat.color} scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left`} />
+            <div className="stat-card-bar" style={{ background: color }} />
           </Link>
         ))}
       </div>
 
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-        <div className="admin-card p-6 xl:col-span-2">
-          <h3 className="font-display font-bold text-lg mb-4">Quick Actions</h3>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-            {[
-              { label: 'New Blog', href: '/admin/blogs', icon: '✍️' },
-              { label: 'New Movie', href: '/admin/movies', icon: '🎬' },
-              { label: 'New Material', href: '/admin/materials', icon: '📚' },
-              { label: 'New Quiz', href: '/admin/quizzes', icon: '🧠' },
-              { label: 'Announce', href: '/admin/announcements', icon: '📣' },
-              { label: 'Notify', href: '/admin/notifications', icon: '🔔' },
-              { label: 'Partners', href: '/admin/partners', icon: '🤝' },
-              { label: 'Reviews', href: '/admin/reviews', icon: '⭐' },
-              { label: 'Contacts', href: '/admin/contacts', icon: '📬' },
-            ].map((q) => (
-              <Link key={q.label} href={q.href} className="btn btn-secondary flex items-center gap-2 justify-center text-sm">
-                <span>{q.icon}</span> {q.label}
-              </Link>
-            ))}
-          </div>
-        </div>
-
-        <div className="admin-card p-6">
-          <h3 className="font-display font-bold text-lg mb-4">Platform Overview</h3>
-          <ul className="space-y-3">
-            {stats.map((s) => (
-              <li key={s.label} className="flex items-center justify-between text-sm gap-3">
-                <span className="text-text-muted">{s.icon} {s.label}</span>
-                <span className="font-semibold tabular-nums text-right">
-                  {s.total} total · {s.published} {s.publishedLabel?.toLowerCase() ?? 'live'}
-                </span>
-              </li>
-            ))}
-          </ul>
+      {/* Quick Actions */}
+      <div className="admin-section-card">
+        <h2 className="admin-section-title">Quick Actions</h2>
+        <div className="quick-actions-grid">
+          {[
+            { href: '/admin/movies', label: '+ Add Movie', color: '#e11d48' },
+            { href: '/admin/materials', label: '+ Add Material', color: '#7c3aed' },
+            { href: '/admin/blogs', label: '+ New Blog', color: '#0891b2' },
+            { href: '/admin/announcements', label: '+ Announcement', color: '#ea580c' },
+            { href: '/admin/notifications', label: '+ Notification', color: '#8b5cf6' },
+            { href: '/admin/quizzes', label: '+ New Quiz', color: '#16a34a' },
+            { href: '/admin/projects', label: '+ Add Project', color: '#d97706' },
+            { href: '/admin/certifications', label: '+ Certification', color: '#f59e0b' },
+          ].map(({ href, label, color }) => (
+            <Link key={href} href={href} className="quick-action-btn" style={{ '--btn-color': color } as React.CSSProperties}>
+              {label}
+            </Link>
+          ))}
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="admin-card p-5">
-          <div className="text-sm text-text-muted mb-2">Blogs</div>
-          <div className="text-2xl font-bold tabular-nums">{blogs.count ?? 0}</div>
+      {/* Recent Contacts */}
+      <div className="admin-section-card">
+        <div className="admin-section-header">
+          <h2 className="admin-section-title">Recent Messages</h2>
+          <Link href="/admin/contacts" className="admin-section-link">View all →</Link>
         </div>
-        <div className="admin-card p-5">
-          <div className="text-sm text-text-muted mb-2">Movies</div>
-          <div className="text-2xl font-bold tabular-nums">{movies.count ?? 0}</div>
-        </div>
-        <div className="admin-card p-5">
-          <div className="text-sm text-text-muted mb-2">Materials</div>
-          <div className="text-2xl font-bold tabular-nums">{materials.count ?? 0}</div>
+        <div className="table-wrapper">
+          <table>
+            <thead><tr><th>Name</th><th>Email</th><th>Subject</th><th>Date</th><th>Status</th></tr></thead>
+            <tbody>
+              {(recentContacts ?? []).map(c => (
+                <tr key={c.id}>
+                  <td className="font-medium text-sm">{c.name}</td>
+                  <td className="text-sm text-muted">{c.email}</td>
+                  <td className="text-sm text-muted">{c.subject ?? '—'}</td>
+                  <td className="text-xs text-faint">{formatDate(c.created_at)}</td>
+                  <td><span className={`badge ${c.read ? 'badge-muted' : 'badge-primary'} text-xs`}>{c.read ? 'Read' : 'New'}</span></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       </div>
     </div>

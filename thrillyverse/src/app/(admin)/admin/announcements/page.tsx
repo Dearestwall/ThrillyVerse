@@ -1,38 +1,26 @@
 import { createClient } from '@/lib/supabase/server';
-import { SectionHeading } from '@/components/common/SectionHeading';
-import { AnnouncementsAdminTable } from '@/components/sections/admin/admin-tables';
-import { CreateAnnouncementForm } from '@/components/sections/admin/forms';
+import AnnouncementsAdminTable from '@/components/sections/admin/AnnouncementsAdminTable';
 
 export default async function AdminAnnouncementsPage() {
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data } = await supabase
     .from('announcements')
     .select('*')
-    .order('priority', { ascending: false });
+    .order('priority', { ascending: false })
+    .order('created_at', { ascending: false });
 
   return (
-    <div className="space-y-8 page-enter">
-      <SectionHeading
-        eyebrow="Platform"
-        title="Announcements"
-        description="Homepage banners, important notices, and CTA cards."
-      />
-
-      <div className="admin-card p-6">
-        <div className="flex items-center justify-between gap-3 flex-wrap mb-4">
-          <div>
-            <h2 className="font-semibold text-lg">Manage Announcements</h2>
-            <p className="text-sm text-text-muted">
-              Create, edit, activate, and bulk-manage announcements.
-            </p>
-          </div>
+    <div className="admin-page">
+      <div className="admin-page-header">
+        <div>
+          <h1 className="admin-page-title">Announcements</h1>
+          <p className="admin-page-subtitle">
+            Create, prioritize, activate, and manage homepage announcements.
+          </p>
         </div>
-        <CreateAnnouncementForm />
       </div>
 
-      <div className="admin-card p-6">
-        <AnnouncementsAdminTable initialData={data ?? []} />
-      </div>
+      <AnnouncementsAdminTable initialAnnouncements={(data ?? []) as any} />
     </div>
   );
 }

@@ -1,90 +1,115 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
-import { usePathname } from 'next/navigation';
-import { AdminSidebar } from './AdminSidebar';
+import { useEffect, useState } from 'react';
+import { usePathname, useRouter } from 'next/navigation';
+import { createClient } from '@/lib/supabase/client';
+import  AdminSidebar  from './AdminSidebar';
 import { ThemeToggle } from '@/components/common/ThemeToggle';
-import { Menu, X, PanelLeftClose, PanelLeftOpen } from 'lucide-react';
+import { Menu, X } from 'lucide-react';
 
-const SIDEBAR_KEY = 'thrillyverse-admin-sidebar-collapsed';
+const publicAdminPaths = ['/admin/login'];
 
 export function AdminShell({ children }: { children: React.ReactNode }) {
+  const router = useRouter();
   const pathname = usePathname();
-  const [mounted, setMounted] = useState(false);
+  const supabase = createClient();
+  const [ready, setReady] = useState(false);
+  const [allowed, setAllowed] = useState(false);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
-  const [collapsed, setCollapsed] = useState(false);
 
   useEffect(() => {
-    const saved = window.localStorage.getItem(SIDEBAR_KEY);
-    setCollapsed(saved === '1');
-    setMounted(true);
-  }, []);
+    let mounted = true;
 
-  useEffect(() => {
-    if (!mounted) return;
-    window.localStorage.setItem(SIDEBAR_KEY, collapsed ? '1' : '0');
-    document.body.classList.toggle('admin-sidebar-collapsed', collapsed);
-  }, [collapsed, mounted]);
+    async function check() {
+      if (publicAdminPaths.includes(pathname)) {
+        if (mounted) {
+          setAllowed(false);
+          setReady(true);
+        }
+        return;
+      }
+
+      try {
+        const { data, error } = await supabase.auth.getSession();
+        if (error || !data.session) {
+          if (mounted) {
+            setAllowed(false);
+            setReady(true);
+          }
+          router.replace('/admin/login');
+          return;
+        }
+
+        if (mounted) {
+          setAllowed(true);
+          setReady(true);
+        }
+      } catch {
+        if (mounted) {
+          setAllowed(false);
+          setReady(true);
+        }
+        router.replace('/admin/login');
+      }
+    }
+
+    check();
+    return () => {
+      mounted = false;
+    };
+  }, [pathname, router, supabase]);
 
   useEffect(() => {
     setMobileSidebarOpen(false);
   }, [pathname]);
 
-  const shellClass = useMemo(
-    () => `admin-shell ${collapsed ? 'admin-shell-collapsed' : ''}`,
-    [collapsed]
-  );
+  if (!ready) {
+    return (
+      <div className="min-h-screen flex items-center justify-center auth-grid-bg">
+        <div className="card p-8 w-full max-w-md text-center page-enter">
+          <p className="text-sm text-text-muted">Checking admin session...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (pathname === '/admin/login') return <>{children}</>;
+
+  if (!allowed) {
+    return (
+      <div className="min-h-screen flex items-center justify-center auth-grid-bg">
+        <div className="card p-8 w-full max-w-md text-center page-enter">
+          <p className="text-sm text-text-muted">Redirecting to login...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className={shellClass}>
-      <div
-        className={`admin-sidebar-backdrop ${mobileSidebarOpen ? 'open' : ''}`}
-        onClick={() => setMobileSidebarOpen(false)}
-      />
+    <div className="admin-shell">
+      <button
+        className="admin-mobile-toggle md:hidden"
+        onClick={() => setMobileSidebarOpen(true)}
+        aria-label="Open admin menu"
+      >
+        <Menu size={18} />
+      </button>
 
-      <aside className={`admin-sidebar ${mobileSidebarOpen ? 'open' : ''} ${collapsed ? 'collapsed' : ''}`}>
-        <div className="admin-sidebar-mobile-head md:hidden">
-          <button
-            className="btn btn-ghost btn-sm"
-            onClick={() => setMobileSidebarOpen(false)}
-            type="button"
-            aria-label="Close admin menu"
-          >
+      <div className={`admin-sidebar-backdrop ${mobileSidebarOpen ? 'open' : ''}`} onClick={() => setMobileSidebarOpen(false)} />
+
+      <aside className={`admin-sidebar ${mobileSidebarOpen ? 'open' : ''}`}>
+        <div className="md:hidden flex justify-end p-3">
+          <button className="btn btn-ghost btn-sm" onClick={() => setMobileSidebarOpen(false)} aria-label="Close admin menu">
             <X size={18} />
           </button>
         </div>
-        <AdminSidebar onNavigate={() => setMobileSidebarOpen(false)} />
+        <AdminSidebar role={''} userName={null} avatarUrl={null} />
       </aside>
 
       <div className="admin-main-shell">
         <header className="admin-topbar">
-          <div className="admin-topbar-left">
-            <button
-              type="button"
-              className="btn btn-secondary btn-sm admin-nav-toggle md:hidden"
-              onClick={() => setMobileSidebarOpen(true)}
-              aria-label="Open admin menu"
-            >
-              <Menu size={18} />
-            </button>
-
-            <button
-              type="button"
-              className="btn btn-secondary btn-sm hidden md:inline-flex admin-collapse-btn"
-              onClick={() => setCollapsed((v) => !v)}
-              aria-label="Toggle sidebar collapse"
-            >
-              {collapsed ? <PanelLeftOpen size={18} /> : <PanelLeftClose size={18} />}
-            </button>
-
-            <span className="admin-badge">Admin</span>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <ThemeToggle />
-          </div>
+          <ThemeToggle />
         </header>
-
         <main id="main-content" className="admin-content page-enter">
           {children}
         </main>

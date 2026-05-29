@@ -44,7 +44,7 @@ export function ImportExportBar({
   };
 
   return (
-    <div className="admin-card p-4 space-y-3">
+    <div className="admin-card p-4 space-y-3 border border-divider/70">
       <div className="flex flex-col lg:flex-row gap-3 lg:items-center lg:justify-between">
         <input
           className="form-input admin-search"
@@ -52,6 +52,7 @@ export function ImportExportBar({
           onChange={(e) => onChange(e.target.value)}
           placeholder={placeholder ?? 'Search...'}
         />
+
         <div className="flex flex-wrap gap-2">
           <button className="btn btn-secondary btn-sm" onClick={downloadTemplate} type="button">
             Download template
@@ -72,7 +73,7 @@ export function ImportExportBar({
             onChange={(e) => setText(e.target.value)}
             placeholder="Paste CSV / TSV here..."
           />
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-wrap">
             <button className="btn btn-primary btn-sm" onClick={handleImport} type="button" disabled={importing}>
               {importing ? 'Importing...' : 'Import pasted data'}
             </button>

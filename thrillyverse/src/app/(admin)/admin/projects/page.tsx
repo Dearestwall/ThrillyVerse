@@ -1,22 +1,26 @@
 import { createClient } from '@/lib/supabase/server';
-import { ProjectsAdminTable } from '@/components/sections/admin/admin-tables';
-import { CreateProjectForm } from '@/components/sections/admin/forms';
-import { SectionHeading } from '@/components/common/SectionHeading';
+import ProjectsAdminTable from '@/components/sections/admin/ProjectsAdminTable';
 
 export default async function AdminProjectsPage() {
-  const supabase = createClient();
-  const { data } = await supabase.from('projects').select('*').order('created_at', { ascending: false });
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from('projects')
+    .select('*')
+    .order('sort_order', { ascending: true })
+    .order('created_at', { ascending: false });
 
   return (
-    <div className="space-y-8 page-enter">
-      <SectionHeading eyebrow="Portfolio" title="Projects" description="Add and manage ThrillyVerse projects." />
-      <div className="card p-6 section-reveal">
-        <h2 className="font-semibold mb-4">Create New Project</h2>
-        <CreateProjectForm />
+    <div className="admin-page">
+      <div className="admin-page-header">
+        <div>
+          <h1 className="admin-page-title">Projects</h1>
+          <p className="admin-page-subtitle">
+            Manage tools, apps, featured work, links, and publishing status.
+          </p>
+        </div>
       </div>
-      <div className="card p-6 section-reveal">
-        <ProjectsAdminTable initialData={data ?? []} />
-      </div>
+
+      <ProjectsAdminTable initialProjects={(data ?? []) as any} />
     </div>
   );
 }

@@ -1,33 +1,26 @@
 import { createClient } from '@/lib/supabase/server';
-import { ReviewsAdminTable } from '@/components/sections/admin/admin-tables';
-import { SectionHeading } from '@/components/common/SectionHeading';
-import { CreateReviewForm } from '@/components/sections/admin/forms';
+import ReviewsAdminTable from '@/components/sections/admin/ReviewsAdminTable';
 
 export default async function AdminReviewsPage() {
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data } = await supabase
     .from('reviews')
     .select('*')
-    .order('sort_order');
-
-  const published = (data ?? []).filter(r => r.published).length;
-  const featured  = (data ?? []).filter(r => r.featured).length;
+    .order('sort_order', { ascending: true })
+    .order('created_at', { ascending: false });
 
   return (
-    <div className="space-y-8 page-enter">
-      <SectionHeading
-        eyebrow="Home Page"
-        title={`Reviews & Testimonials (${published} published Â· ${featured} featured)`}
-        description="Manage student, viewer, and parent testimonials shown on the homepage."
-      />
-      <div className="card p-6 section-reveal">
-        <h2 className="font-semibold mb-4">Add New Review</h2>
-        <CreateReviewForm />
+    <div className="admin-page">
+      <div className="admin-page-header">
+        <div>
+          <h1 className="admin-page-title">Reviews</h1>
+          <p className="admin-page-subtitle">
+            Manage testimonials, ratings, featured feedback, and homepage ordering.
+          </p>
+        </div>
       </div>
-      <div className="card p-6 section-reveal">
-        <ReviewsAdminTable initialData={data ?? []} />
-      </div>
+
+      <ReviewsAdminTable initialReviews={(data ?? []) as any} />
     </div>
   );
 }
-

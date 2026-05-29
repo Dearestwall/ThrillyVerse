@@ -1,29 +1,26 @@
 import { createClient } from '@/lib/supabase/server';
-import { CertificationsAdminTable } from '@/components/sections/admin/admin-tables';
-import { SectionHeading } from '@/components/common/SectionHeading';
-import { CreateCertificationForm } from '@/components/sections/admin/forms';
+import CertificationsAdminTable from '@/components/sections/admin/CertificationsAdminTable';
 
 export default async function AdminCertificationsPage() {
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data } = await supabase
     .from('certifications')
     .select('*')
-    .order('sort_order');
+    .order('sort_order', { ascending: true })
+    .order('created_at', { ascending: false });
 
   return (
-    <div className="space-y-8 page-enter">
-      <SectionHeading
-        eyebrow="Home Page"
-        title="Certifications & Trust Badges"
-        description="Manage security, compliance, and curriculum certifications shown on the homepage."
-      />
-      <div className="card p-6 section-reveal">
-        <h2 className="font-semibold mb-4">Add New Certification</h2>
-        <CreateCertificationForm />
+    <div className="admin-page">
+      <div className="admin-page-header">
+        <div>
+          <h1 className="admin-page-title">Certifications</h1>
+          <p className="admin-page-subtitle">
+            Manage homepage trust badges, highlights, and quality markers.
+          </p>
+        </div>
       </div>
-      <div className="card p-6 section-reveal">
-        <CertificationsAdminTable initialData={data ?? []} />
-      </div>
+
+      <CertificationsAdminTable initialCertifications={(data ?? []) as any} />
     </div>
   );
 }

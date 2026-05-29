@@ -1,23 +1,19 @@
 import { createClient } from '@/lib/supabase/server';
-import { QuizzesAdminTable } from '@/components/sections/admin/admin-tables';
-import { CreateQuizForm } from '@/components/sections/admin/forms';
-import { SectionHeading } from '@/components/common/SectionHeading';
+import QuizzesAdminTable from '@/components/sections/admin/QuizzesAdminTable';
 
 export default async function AdminQuizzesPage() {
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data } = await supabase.from('quizzes').select('*').order('created_at', { ascending: false });
 
   return (
-    <div className="space-y-8 page-enter">
-      <SectionHeading eyebrow="Education" title="Quizzes" description="Create board-wise, class-wise quizzes for students." />
-      <div className="card p-6 section-reveal">
-        <h2 className="font-semibold mb-4">Create New Quiz</h2>
-        <CreateQuizForm />
+    <div className="admin-page">
+      <div className="admin-page-header">
+        <div>
+          <h1 className="admin-page-title">Quizzes</h1>
+          <p className="admin-page-subtitle">Manage study quizzes, difficulty, and publishing.</p>
+        </div>
       </div>
-      <div className="card p-6 section-reveal">
-        <QuizzesAdminTable initialData={data ?? []} />
-      </div>
+      <QuizzesAdminTable initialData={(data ?? []) as any} />
     </div>
   );
 }
-
