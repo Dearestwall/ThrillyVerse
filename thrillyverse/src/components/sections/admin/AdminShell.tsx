@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useMemo, useState } from 'react';
-import { Download, Plus, Search, SlidersHorizontal, X } from 'lucide-react';
+import { Download, Plus, Search, SlidersHorizontal, Upload, X } from 'lucide-react';
 import AdminBulkUploadModal from './AdminBulkUploadModal';
 
 export type AdminColumn<T> = {
@@ -20,6 +20,16 @@ export type AdminStat<T> = {
   tone?: AdminStatTone;
 };
 
+export type AdminBulkTemplateField = {
+  key: string;
+  label: string;
+  type?: 'text' | 'textarea' | 'number' | 'checkbox' | 'url' | 'email' | 'date' | 'select' | 'tags';
+  required?: boolean;
+  placeholder?: string;
+  helpText?: string;
+  options?: { label: string; value: string }[];
+};
+
 type Props<T extends Record<string, any>> = {
   title: string;
   initialData?: T[] | null;
@@ -29,9 +39,12 @@ type Props<T extends Record<string, any>> = {
   renderForm: (item: T | null, onClose: () => void, onSaved: () => void) => React.ReactNode;
   extraActions?: (row: T) => React.ReactNode;
   onBulkUpload?: (rows: Record<string, string>[]) => Promise<void>;
+  bulkTemplateFields?: AdminBulkTemplateField[];
   getRowId?: (row: T) => string;
   addLabel?: string;
   stats?: AdminStat<T>[];
+  hideCreateButton?: boolean;
+  emptyMessage?: string;
 };
 
 function ensureArray<T>(value: T[] | null | undefined): T[] {
@@ -70,9 +83,12 @@ export function AdminShell<T extends Record<string, any>>({
   renderForm,
   extraActions,
   onBulkUpload,
+  bulkTemplateFields = [],
   getRowId = (row) => String(row.id),
   addLabel,
   stats = [],
+  hideCreateButton = false,
+  emptyMessage,
 }: Props<T>) {
   const normalizedInitialData = useMemo(() => ensureArray(initialData), [initialData]);
 
@@ -101,11 +117,29 @@ export function AdminShell<T extends Record<string, any>>({
 
   const templateFields = useMemo(
     () =>
-      exportFields.length
-        ? exportFields.map(String)
-        : Object.keys(normalizedInitialData[0] ?? { title: '', published: '' }),
-    [exportFields, normalizedInitialData]
+      bulkTemplateFields.length
+        ? bulkTemplateFields
+        : (
+            exportFields.length
+              ? exportFields.map((field) => ({
+                  key: String(field),
+                  label: String(field)
+                    .replace(/_/g, ' ')
+                    .replace(/\b\w/g, (m) => m.toUpperCase()),
+                  type: 'text' as const,
+                }))
+              : Object.keys(normalizedInitialData[0] ?? { title: '', published: '' }).map((field) => ({
+                  key: field,
+                  label: field
+                    .replace(/_/g, ' ')
+                    .replace(/\b\w/g, (m) => m.toUpperCase()),
+                  type: 'text' as const,
+                }))
+          ),
+    [bulkTemplateFields, exportFields, normalizedInitialData]
   );
+
+  const canBulkUpload = Boolean(onBulkUpload && templateFields.length > 0);
 
   const handleSaved = () => {
     setIsModalOpen(false);
@@ -192,8 +226,13 @@ export function AdminShell<T extends Record<string, any>>({
             </div>
 
             <div className="admin-toolbar-actions-row">
-              {onBulkUpload && (
-                <button type="button" className="btn btn-secondary" onClick={() => setIsBulkModalOpen(true)}>
+              {canBulkUpload && (
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  onClick={() => setIsBulkModalOpen(true)}
+                >
+                  <Upload size={14} />
                   Bulk Upload
                 </button>
               )}
@@ -208,10 +247,12 @@ export function AdminShell<T extends Record<string, any>>({
                 Export
               </button>
 
-              <button type="button" className="btn btn-primary" onClick={openCreateModal}>
-                <Plus size={14} />
-                {addLabel ?? `Add ${title.endsWith('s') ? title.slice(0, -1) : title}`}
-              </button>
+              {!hideCreateButton && (
+                <button type="button" className="btn btn-primary" onClick={openCreateModal}>
+                  <Plus size={14} />
+                  {addLabel ?? `Add ${title.endsWith('s') ? title.slice(0, -1) : title}`}
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -268,7 +309,9 @@ export function AdminShell<T extends Record<string, any>>({
                 ) : (
                   <tr>
                     <td colSpan={columns.length + 1}>
-                      <div className="empty-inline">No {title.toLowerCase()} found.</div>
+                      <div className="empty-inline">
+                        {emptyMessage ?? `No ${title.toLowerCase()} found.`}
+                      </div>
                     </td>
                   </tr>
                 )}
@@ -295,7 +338,7 @@ export function AdminShell<T extends Record<string, any>>({
         </div>
       )}
 
-      {onBulkUpload && (
+      {canBulkUpload && onBulkUpload && (
         <AdminBulkUploadModal
           open={isBulkModalOpen}
           onClose={() => setIsBulkModalOpen(false)}

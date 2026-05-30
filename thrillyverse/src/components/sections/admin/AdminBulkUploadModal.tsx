@@ -14,11 +14,21 @@ import * as XLSX from 'xlsx';
 
 type BulkFormat = 'csv' | 'json' | 'xlsx' | 'paste';
 
+export type AdminBulkTemplateField = {
+  key: string;
+  label: string;
+  type?: 'text' | 'textarea' | 'number' | 'checkbox' | 'url' | 'email' | 'date' | 'select' | 'tags';
+  required?: boolean;
+  placeholder?: string;
+  helpText?: string;
+  options?: { label: string; value: string }[];
+};
+
 type Props = {
   title: string;
   open: boolean;
   onClose: () => void;
-  templateFields: string[];
+  templateFields: string[] | AdminBulkTemplateField[];
   onBulkUpload: (rows: Record<string, string>[]) => Promise<void>;
 };
 
@@ -59,7 +69,7 @@ function parseCsv(text: string): Record<string, string>[] {
 
   if (lines.length < 2) return [];
 
-  const headers = parseCsvLine(lines[0]);
+  const headers = parseCsvLine(lines[0]).map((header) => header.trim());
 
   return lines.slice(1).map((line) => {
     const values = parseCsvLine(line);
@@ -78,7 +88,13 @@ function parseJson(text: string): Record<string, string>[] {
   return data.map((row) => {
     const mapped: Record<string, string> = {};
     Object.entries(row ?? {}).forEach(([key, value]) => {
-      mapped[key] = String(value ?? '');
+      if (Array.isArray(value)) {
+        mapped[key] = value.map((v) => String(v ?? '').trim()).filter(Boolean).join(', ');
+      } else if (value && typeof value === 'object') {
+        mapped[key] = JSON.stringify(value);
+      } else {
+        mapped[key] = String(value ?? '');
+      }
     });
     return mapped;
   });
@@ -103,6 +119,82 @@ function toCsv(rows: Record<string, any>[]): string {
   ].join('\n');
 }
 
+function normalizeTemplateFields(templateFields: string[] | AdminBulkTemplateField[]): AdminBulkTemplateField[] {
+  if (!templateFields.length) return [];
+
+  const first = templateFields[0];
+
+  if (typeof first === 'string') {
+    return (templateFields as string[]).map((field) => ({
+      key: field,
+      label: field
+        .replace(/_/g, ' ')
+        .replace(/\b\w/g, (m) => m.toUpperCase()),
+      type: 'text',
+    }));
+  }
+
+  return templateFields as AdminBulkTemplateField[];
+}
+
+function normalizeRowKeys(
+  rows: Record<string, string>[],
+  templateFields: AdminBulkTemplateField[]
+): Record<string, string>[] {
+  const fieldMap = new Map<string, string>();
+
+  templateFields.forEach((field) => {
+    fieldMap.set(field.key.toLowerCase().trim(), field.key);
+    fieldMap.set(field.label.toLowerCase().trim(), field.key);
+  });
+
+  return rows.map((row) => {
+    const normalized: Record<string, string> = {};
+
+    Object.entries(row).forEach(([key, value]) => {
+      const cleanKey = key.toLowerCase().trim();
+      const matchedField = fieldMap.get(cleanKey) ?? key.trim();
+      normalized[matchedField] = String(value ?? '').trim();
+    });
+
+    templateFields.forEach((field) => {
+      if (!(field.key in normalized)) normalized[field.key] = '';
+    });
+
+    return normalized;
+  });
+}
+
+function validateHeaders(rows: Record<string, string>[], templateFields: AdminBulkTemplateField[]) {
+  if (!rows.length) return;
+
+  const rowKeys = Object.keys(rows[0] ?? {}).map((key) => key.trim().toLowerCase());
+  const validFields = new Set<string>();
+
+  templateFields.forEach((field) => {
+    validFields.add(field.key.trim().toLowerCase());
+    validFields.add(field.label.trim().toLowerCase());
+  });
+
+  const requiredFields = templateFields.filter((field) => field.required);
+  const missingRequired = requiredFields.filter((field) => {
+    const key = field.key.trim().toLowerCase();
+    const label = field.label.trim().toLowerCase();
+    return !rowKeys.includes(key) && !rowKeys.includes(label);
+  });
+
+  if (missingRequired.length) {
+    throw new Error(
+      `Missing required headers: ${missingRequired.map((field) => field.label).join(', ')}`
+    );
+  }
+
+  const invalidHeaders = rowKeys.filter((key) => !validFields.has(key));
+  if (invalidHeaders.length) {
+    throw new Error(`Unexpected headers found: ${invalidHeaders.join(', ')}`);
+  }
+}
+
 export default function AdminBulkUploadModal({
   title,
   open,
@@ -122,10 +214,17 @@ export default function AdminBulkUploadModal({
     [title]
   );
 
+  const normalizedTemplateFields = useMemo(
+    () => normalizeTemplateFields(templateFields),
+    [templateFields]
+  );
+
   if (!open) return null;
 
   const downloadTemplate = (format: 'csv' | 'json' | 'xlsx') => {
-    const sampleRow = Object.fromEntries(templateFields.map((field) => [field, '']));
+    const sampleRow = Object.fromEntries(
+      normalizedTemplateFields.map((field) => [field.key, ''])
+    );
 
     if (format === 'xlsx') {
       const worksheet = XLSX.utils.json_to_sheet([sampleRow]);
@@ -151,8 +250,8 @@ export default function AdminBulkUploadModal({
     URL.revokeObjectURL(a.href);
   };
 
-  const runBulkUpload = async (parsed: Record<string, string>[]) => {
-    if (!parsed.length) {
+  const runBulkUpload = async (rawRows: Record<string, string>[]) => {
+    if (!rawRows.length) {
       setBulkError('No valid rows were found in the uploaded content.');
       return;
     }
@@ -162,8 +261,13 @@ export default function AdminBulkUploadModal({
     setBulkInfo('');
 
     try {
-      await onBulkUpload(parsed);
-      setBulkInfo(`Imported ${parsed.length} row${parsed.length > 1 ? 's' : ''} successfully.`);
+      validateHeaders(rawRows, normalizedTemplateFields);
+
+      const rows = normalizeRowKeys(rawRows, normalizedTemplateFields);
+
+      await onBulkUpload(rows);
+
+      setBulkInfo(`Imported ${rows.length} row${rows.length > 1 ? 's' : ''} successfully.`);
       setTimeout(() => {
         setPasteValue('');
         onClose();
@@ -195,7 +299,13 @@ export default function AdminBulkUploadModal({
         const json = XLSX.utils.sheet_to_json<Record<string, any>>(firstSheet, { defval: '' });
 
         const parsed = json.map((row) =>
-          Object.fromEntries(Object.entries(row ?? {}).map(([k, v]) => [k, String(v ?? '')]))
+          Object.fromEntries(
+            Object.entries(row ?? {}).map(([k, v]) => {
+              if (Array.isArray(v)) return [k, v.join(', ')];
+              if (v && typeof v === 'object') return [k, JSON.stringify(v)];
+              return [k, String(v ?? '')];
+            })
+          )
         );
 
         await runBulkUpload(parsed);
@@ -332,9 +442,10 @@ export default function AdminBulkUploadModal({
               <div className="bulk-fields-preview">
                 <span className="bulk-fields-label">Expected fields</span>
                 <div className="bulk-chip-wrap">
-                  {templateFields.map((field) => (
-                    <span key={field} className="bulk-chip">
-                      {field}
+                  {normalizedTemplateFields.map((field) => (
+                    <span key={field.key} className="bulk-chip">
+                      {field.label}
+                      {field.required ? ' *' : ''}
                     </span>
                   ))}
                 </div>
@@ -401,7 +512,7 @@ export default function AdminBulkUploadModal({
                 <>
                   <textarea
                     className="form-input bulk-paste-area"
-                    placeholder={`Example CSV:\n${templateFields.join(',')}\n\nOr paste JSON array here...`}
+                    placeholder={`Example CSV:\n${normalizedTemplateFields.map((field) => field.key).join(',')}\n\nOr paste JSON array here...`}
                     value={pasteValue}
                     onChange={(e) => setPasteValue(e.target.value)}
                   />

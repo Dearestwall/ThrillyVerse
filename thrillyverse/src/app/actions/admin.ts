@@ -20,6 +20,8 @@ const ALLOWED_TABLES = [
 
 type AllowedTable = (typeof ALLOWED_TABLES)[number];
 
+type BulkRow = Record<string, string | number | boolean | null | string[]>;
+
 function createSlug(value: string) {
   return value
     .toLowerCase()
@@ -29,25 +31,63 @@ function createSlug(value: string) {
     .replace(/^-+|-+$/g, '');
 }
 
-function toBool(value: FormDataEntryValue | null) {
-  return value === 'on' || value === 'true' || value === '1';
+function toBool(value: FormDataEntryValue | string | number | boolean | null) {
+  if (typeof value === 'boolean') return value;
+  if (typeof value === 'number') return value === 1;
+  const normalized = String(value ?? '')
+    .trim()
+    .toLowerCase();
+  return ['on', 'true', '1', 'yes', 'y'].includes(normalized);
 }
 
-function toNum(value: FormDataEntryValue | null, fallback = 0) {
+function toNum(value: FormDataEntryValue | string | number | null, fallback = 0) {
   const n = Number(value);
   return Number.isFinite(n) ? n : fallback;
 }
 
-function toText(value: FormDataEntryValue | null) {
+function toText(value: FormDataEntryValue | string | number | null) {
   const v = String(value ?? '').trim();
   return v ? v : null;
 }
 
-function toTags(value: FormDataEntryValue | null) {
+function toTags(value: FormDataEntryValue | string | string[] | null) {
+  if (Array.isArray(value)) {
+    return value.map((v) => String(v).trim()).filter(Boolean);
+  }
+
   return String(value ?? '')
     .split(',')
     .map((v) => v.trim())
     .filter(Boolean);
+}
+
+function normalizeProjectStatus(value: FormDataEntryValue | string | null) {
+  const raw = String(value ?? '')
+    .trim()
+    .toLowerCase();
+
+  if (['published', 'live', 'active'].includes(raw)) return 'published';
+  if (['archived', 'archive'].includes(raw)) return 'archived';
+
+  return 'published';
+}
+
+function normalizeNotificationType(value: FormDataEntryValue | string | null) {
+  const raw = String(value ?? 'info')
+    .trim()
+    .toLowerCase();
+
+  if (['success', 'warning', 'error', 'info'].includes(raw)) return raw;
+  return 'info';
+}
+
+function normalizeQuizDifficulty(value: FormDataEntryValue | string | null) {
+  const raw = String(value ?? 'medium')
+    .trim()
+    .toLowerCase();
+
+  if (['easy', 'medium', 'hard'].includes(raw)) return raw;
+  return 'medium';
 }
 
 async function requireAdmin() {
@@ -73,6 +113,38 @@ async function requireAdmin() {
   }
 
   return { supabase, user };
+}
+
+async function generateUniqueSlug(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  table: AllowedTable,
+  input: string,
+  excludeId?: string
+) {
+  const baseSlug = createSlug(input) || `item-${Date.now()}`;
+  let slug = baseSlug;
+  let counter = 2;
+
+  for (;;) {
+    let query = supabase.from(table).select('id').eq('slug', slug).limit(1);
+
+    if (excludeId) {
+      query = query.neq('id', excludeId);
+    }
+
+    const { data, error } = await query;
+
+    if (error) {
+      throw new Error(error.message);
+    }
+
+    if (!data || data.length === 0) {
+      return slug;
+    }
+
+    slug = `${baseSlug}-${counter}`;
+    counter += 1;
+  }
 }
 
 export async function deleteRowAction(table: AllowedTable, id: string, paths: string[] = []) {
@@ -384,7 +456,7 @@ export async function createNotificationAction(formData: FormData) {
   const payload = {
     title: String(formData.get('title') ?? '').trim(),
     message: String(formData.get('message') ?? '').trim(),
-    type: String(formData.get('type') ?? 'info'),
+    type: normalizeNotificationType(formData.get('type')),
     target_url: toText(formData.get('target_url')),
     audience: toText(formData.get('audience')) ?? 'all',
     is_active: toBool(formData.get('is_active')),
@@ -404,7 +476,7 @@ export async function updateNotificationAction(id: string, formData: FormData) {
   const payload = {
     title: String(formData.get('title') ?? '').trim(),
     message: String(formData.get('message') ?? '').trim(),
-    type: String(formData.get('type') ?? 'info'),
+    type: normalizeNotificationType(formData.get('type')),
     target_url: toText(formData.get('target_url')),
     audience: toText(formData.get('audience')) ?? 'all',
     is_active: toBool(formData.get('is_active')),
@@ -437,7 +509,7 @@ export async function createQuizAction(formData: FormData) {
     class_level: toText(formData.get('class_level')),
     subject: toText(formData.get('subject')),
     time_limit: toNum(formData.get('time_limit'), 10),
-    difficulty: String(formData.get('difficulty') ?? 'medium'),
+    difficulty: normalizeQuizDifficulty(formData.get('difficulty')),
     published: toBool(formData.get('published')),
     created_by: user.id,
   };
@@ -461,7 +533,7 @@ export async function updateQuizAction(id: string, formData: FormData) {
     class_level: toText(formData.get('class_level')),
     subject: toText(formData.get('subject')),
     time_limit: toNum(formData.get('time_limit'), 10),
-    difficulty: String(formData.get('difficulty') ?? 'medium'),
+    difficulty: normalizeQuizDifficulty(formData.get('difficulty')),
     published: toBool(formData.get('published')),
   };
 
@@ -544,10 +616,12 @@ export async function toggleReviewFeaturedAction(id: string, featured: boolean) 
 export async function createProjectAction(formData: FormData) {
   const { supabase, user } = await requireAdmin();
   const title = String(formData.get('title') ?? '').trim();
+  const requestedSlug = String(formData.get('slug') || title).trim();
+  const slug = await generateUniqueSlug(supabase, 'projects', requestedSlug);
 
   const payload = {
     title,
-    slug: createSlug(String(formData.get('slug') || title)),
+    slug,
     summary: toText(formData.get('summary')),
     description: toText(formData.get('description')),
     image_url: toText(formData.get('image_url')),
@@ -555,7 +629,7 @@ export async function createProjectAction(formData: FormData) {
     github_url: toText(formData.get('github_url')),
     tech_stack: toTags(formData.get('tech_stack')),
     featured: toBool(formData.get('featured')),
-    status: String(formData.get('status') ?? 'draft'),
+    status: normalizeProjectStatus(formData.get('status')),
     sort_order: toNum(formData.get('sort_order'), 0),
     created_by: user.id,
   };
@@ -570,10 +644,12 @@ export async function createProjectAction(formData: FormData) {
 export async function updateProjectAction(id: string, formData: FormData) {
   const { supabase } = await requireAdmin();
   const title = String(formData.get('title') ?? '').trim();
+  const requestedSlug = String(formData.get('slug') || title).trim();
+  const slug = await generateUniqueSlug(supabase, 'projects', requestedSlug, id);
 
   const payload = {
     title,
-    slug: createSlug(String(formData.get('slug') || title)),
+    slug,
     summary: toText(formData.get('summary')),
     description: toText(formData.get('description')),
     image_url: toText(formData.get('image_url')),
@@ -581,7 +657,7 @@ export async function updateProjectAction(id: string, formData: FormData) {
     github_url: toText(formData.get('github_url')),
     tech_stack: toTags(formData.get('tech_stack')),
     featured: toBool(formData.get('featured')),
-    status: String(formData.get('status') ?? 'draft'),
+    status: normalizeProjectStatus(formData.get('status')),
     sort_order: toNum(formData.get('sort_order'), 0),
   };
 
@@ -686,4 +762,336 @@ export async function toggleCertificationActiveAction(id: string, active: boolea
   if (error) throw new Error(error.message);
   revalidatePath('/');
   revalidatePath('/admin/certifications');
+}
+
+function mapBulkRow(table: AllowedTable, row: Record<string, string>, userId: string): BulkRow {
+  switch (table) {
+    case 'projects': {
+      const title = String(row.title ?? '').trim();
+      return {
+        title,
+        slug: createSlug(String(row.slug || title)),
+        summary: toText(row.summary),
+        description: toText(row.description),
+        image_url: toText(row.image_url),
+        link: toText(row.link),
+        github_url: toText(row.github_url),
+        tech_stack: toTags(row.tech_stack),
+        featured: toBool(row.featured),
+        status: normalizeProjectStatus(row.status),
+        sort_order: toNum(row.sort_order, 0),
+        created_by: userId,
+      };
+    }
+
+    case 'movies': {
+      const title = String(row.title ?? '').trim();
+      return {
+        title,
+        slug: createSlug(String(row.slug || title)),
+        description: toText(row.description),
+        poster_url: toText(row.poster_url),
+        trailer_url: toText(row.trailer_url),
+        movie_link: toText(row.movie_link),
+        download_link: toText(row.download_link),
+        category: toText(row.category),
+        year: toNum(row.year, 0) || null,
+        rating: toText(row.rating),
+        language: toText(row.language),
+        duration: toText(row.duration),
+        tags: toTags(row.tags),
+        featured: toBool(row.featured),
+        published: toBool(row.published),
+        sort_order: toNum(row.sort_order, 0),
+        created_by: userId,
+      };
+    }
+
+    case 'materials': {
+      const title = String(row.title ?? '').trim();
+      return {
+        title,
+        slug: createSlug(String(row.slug || title)),
+        board: toText(row.board),
+        class_level: toText(row.class_level),
+        subject: toText(row.subject),
+        topic: toText(row.topic),
+        description: toText(row.description),
+        cover_image: toText(row.cover_image),
+        resource_type: toText(row.resource_type),
+        resource_link: toText(row.resource_link),
+        download_link: toText(row.download_link),
+        file_size: toText(row.file_size),
+        is_premium: toBool(row.is_premium),
+        featured: toBool(row.featured),
+        published: toBool(row.published),
+        sort_order: toNum(row.sort_order, 0),
+        created_by: userId,
+      };
+    }
+
+    case 'blogs': {
+      const title = String(row.title ?? '').trim();
+      const published = toBool(row.published);
+      return {
+        title,
+        slug: createSlug(String(row.slug || title)),
+        excerpt: toText(row.excerpt),
+        content: toText(row.content),
+        cover_image: toText(row.cover_image),
+        category: toText(row.category),
+        tags: toTags(row.tags),
+        read_time: toNum(row.read_time, 5),
+        featured: toBool(row.featured),
+        published,
+        published_at: published ? new Date().toISOString() : null,
+        author_id: userId,
+      };
+    }
+
+    case 'announcements':
+      return {
+        title: String(row.title ?? '').trim(),
+        body: toText(row.body),
+        cta_label: toText(row.cta_label),
+        cta_url: toText(row.cta_url),
+        badge: toText(row.badge),
+        priority: toNum(row.priority, 0),
+        active: toBool(row.active),
+        created_by: userId,
+      };
+
+    case 'notifications':
+      return {
+        title: String(row.title ?? '').trim(),
+        message: String(row.message ?? '').trim(),
+        type: normalizeNotificationType(row.type),
+        target_url: toText(row.target_url),
+        audience: toText(row.audience) ?? 'all',
+        is_active: toBool(row.is_active),
+        created_by: userId,
+      };
+
+    case 'quizzes': {
+      const title = String(row.title ?? '').trim();
+      return {
+        title,
+        slug: createSlug(String(row.slug || title)),
+        description: toText(row.description),
+        board: toText(row.board),
+        class_level: toText(row.class_level),
+        subject: toText(row.subject),
+        time_limit: toNum(row.time_limit, 10),
+        difficulty: normalizeQuizDifficulty(row.difficulty),
+        published: toBool(row.published),
+        created_by: userId,
+      };
+    }
+
+    case 'contacts':
+      return {
+        name: toText(row.name),
+        email: toText(row.email),
+        phone: toText(row.phone),
+        subject: toText(row.subject),
+        message: toText(row.message),
+        read: toBool(row.read),
+      };
+
+    case 'reviews':
+      return {
+        name: String(row.name ?? '').trim(),
+        role: toText(row.role),
+        text: String(row.text ?? '').trim(),
+        avatar_url: toText(row.avatar_url),
+        emoji: toText(row.emoji) ?? '⭐',
+        rating: toNum(row.rating, 5),
+        featured: toBool(row.featured),
+        published: toBool(row.published),
+        sort_order: toNum(row.sort_order, 0),
+        created_by: userId,
+      };
+
+    case 'partners':
+      return {
+        name: String(row.name ?? '').trim(),
+        emoji: toText(row.emoji),
+        logo_url: toText(row.logo_url),
+        website_url: toText(row.website_url),
+        sort_order: toNum(row.sort_order, 0),
+        active: toBool(row.active),
+        created_by: userId,
+      };
+
+    case 'certifications':
+      return {
+        title: String(row.title ?? '').trim(),
+        subtitle: toText(row.subtitle),
+        emoji: toText(row.emoji),
+        color_from: toText(row.color_from),
+        color_to: toText(row.color_to),
+        sort_order: toNum(row.sort_order, 0),
+        active: toBool(row.active),
+        created_by: userId,
+      };
+
+    default:
+      throw new Error('Unsupported bulk upload table');
+  }
+}
+
+async function mapBulkRowsWithSlugSupport(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  table: AllowedTable,
+  rows: Record<string, string>[],
+  userId: string
+) {
+  const usedSlugs = new Set<string>();
+
+  const results: BulkRow[] = [];
+
+  for (const row of rows) {
+    const mapped = mapBulkRow(table, row, userId);
+
+    if ('slug' in mapped && typeof mapped.slug === 'string' && mapped.slug.trim()) {
+      let candidate = mapped.slug;
+      let counter = 2;
+
+      for (;;) {
+        const alreadyUsedInBatch = usedSlugs.has(candidate);
+
+        let existsInDb = false;
+        if (!alreadyUsedInBatch) {
+          const { data, error } = await supabase
+            .from(table)
+            .select('id')
+            .eq('slug', candidate)
+            .limit(1);
+
+          if (error) throw new Error(error.message);
+          existsInDb = Boolean(data && data.length);
+        }
+
+        if (!alreadyUsedInBatch && !existsInDb) {
+          mapped.slug = candidate;
+          usedSlugs.add(candidate);
+          break;
+        }
+
+        candidate = `${String(mapped.slug)}-${counter}`;
+        counter += 1;
+      }
+    }
+
+    results.push(mapped);
+  }
+
+  return results;
+}
+
+function validateBulkRow(table: AllowedTable, row: BulkRow, index: number) {
+  const rowNumber = index + 2;
+
+  const requireField = (field: string) => {
+    const value = row[field];
+    if (value === null || value === undefined || value === '') {
+      throw new Error(`Row ${rowNumber}: "${field}" is required for ${table}.`);
+    }
+  };
+
+  switch (table) {
+    case 'projects':
+    case 'movies':
+    case 'materials':
+    case 'blogs':
+    case 'quizzes':
+      requireField('title');
+      requireField('slug');
+      break;
+    case 'announcements':
+    case 'notifications':
+    case 'certifications':
+      requireField('title');
+      break;
+    case 'partners':
+    case 'reviews':
+      requireField('name');
+      break;
+    case 'contacts':
+      requireField('name');
+      requireField('email');
+      break;
+  }
+}
+
+export async function bulkUploadRowsAction(table: AllowedTable, rows: Record<string, string>[]) {
+  if (!ALLOWED_TABLES.includes(table)) throw new Error('Invalid table');
+
+  const { supabase, user } = await requireAdmin();
+
+  if (!Array.isArray(rows) || !rows.length) {
+    throw new Error('No rows were provided for bulk upload.');
+  }
+
+  const mappedRows = await mapBulkRowsWithSlugSupport(supabase, table, rows, user.id);
+
+  mappedRows.forEach((row, index) => {
+    validateBulkRow(table, row, index);
+  });
+
+  const chunkSize = 100;
+
+  for (let i = 0; i < mappedRows.length; i += chunkSize) {
+    const chunk = mappedRows.slice(i, i + chunkSize);
+    const { error } = await supabase.from(table).insert(chunk);
+    if (error) {
+      throw new Error(error.message);
+    }
+  }
+
+  switch (table) {
+    case 'projects':
+      revalidatePath('/');
+      revalidatePath('/admin/projects');
+      break;
+    case 'movies':
+      revalidatePath('/movies');
+      revalidatePath('/admin/movies');
+      break;
+    case 'materials':
+      revalidatePath('/materials');
+      revalidatePath('/admin/materials');
+      break;
+    case 'blogs':
+      revalidatePath('/blogs');
+      revalidatePath('/admin/blogs');
+      break;
+    case 'announcements':
+      revalidatePath('/');
+      revalidatePath('/admin/announcements');
+      break;
+    case 'notifications':
+      revalidatePath('/materials');
+      revalidatePath('/admin/notifications');
+      break;
+    case 'quizzes':
+      revalidatePath('/materials');
+      revalidatePath('/admin/quizzes');
+      break;
+    case 'contacts':
+      revalidatePath('/admin/contacts');
+      break;
+    case 'reviews':
+      revalidatePath('/');
+      revalidatePath('/admin/reviews');
+      break;
+    case 'partners':
+      revalidatePath('/');
+      revalidatePath('/admin/partners');
+      break;
+    case 'certifications':
+      revalidatePath('/');
+      revalidatePath('/admin/certifications');
+      break;
+  }
 }
