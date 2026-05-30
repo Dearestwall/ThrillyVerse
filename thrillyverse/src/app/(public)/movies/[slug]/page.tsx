@@ -2,8 +2,10 @@ import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 
+export const dynamic = 'force-dynamic';
+
 type Params = {
-  params: Promise<{ slug: string }>;
+  params: { slug: string };
 };
 
 async function getMovieBySlug(slug: string) {
@@ -19,21 +21,8 @@ async function getMovieBySlug(slug: string) {
   return data;
 }
 
-export async function generateStaticParams() {
-  const supabase = await createClient();
-
-  const { data } = await supabase
-    .from('movies')
-    .select('slug')
-    .eq('published', true);
-
-  return (data ?? []).map((item) => ({
-    slug: item.slug,
-  }));
-}
-
 export async function generateMetadata({ params }: Params): Promise<Metadata> {
-  const { slug } = await params;
+  const { slug } = params;
   const movie = await getMovieBySlug(slug);
 
   if (!movie) {
@@ -44,8 +33,7 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
   }
 
   const description =
-    movie.description ||
-    `Explore ${movie.title} on ThrillyVerse.`;
+    movie.description || `Explore ${movie.title} on ThrillyVerse.`;
 
   return {
     title: movie.title,
@@ -70,7 +58,7 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
 }
 
 export default async function MovieSlugPage({ params }: Params) {
-  const { slug } = await params;
+  const { slug } = params;
   const movie = await getMovieBySlug(slug);
 
   if (!movie) notFound();
@@ -123,12 +111,23 @@ export default async function MovieSlugPage({ params }: Params) {
                 <h2 className="text-xl font-bold mb-3">Links</h2>
                 <div className="flex flex-wrap gap-3">
                   {movie.watch_link ? (
-                    <a className="btn btn-primary" href={movie.watch_link} target="_blank" rel="noopener noreferrer">
+                    <a
+                      className="btn btn-primary"
+                      href={movie.watch_link}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
                       Watch Now
                     </a>
                   ) : null}
+
                   {movie.download_link ? (
-                    <a className="btn btn-secondary" href={movie.download_link} target="_blank" rel="noopener noreferrer">
+                    <a
+                      className="btn btn-secondary"
+                      href={movie.download_link}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
                       Download
                     </a>
                   ) : null}

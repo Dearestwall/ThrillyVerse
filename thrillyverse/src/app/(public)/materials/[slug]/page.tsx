@@ -2,8 +2,10 @@ import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 
+export const dynamic = 'force-dynamic';
+
 type Params = {
-  params: Promise<{ slug: string }>;
+  params: { slug: string };
 };
 
 async function getMaterialBySlug(slug: string) {
@@ -19,21 +21,8 @@ async function getMaterialBySlug(slug: string) {
   return data;
 }
 
-export async function generateStaticParams() {
-  const supabase = await createClient();
-
-  const { data } = await supabase
-    .from('materials')
-    .select('slug')
-    .eq('published', true);
-
-  return (data ?? []).map((item) => ({
-    slug: item.slug,
-  }));
-}
-
 export async function generateMetadata({ params }: Params): Promise<Metadata> {
-  const { slug } = await params;
+  const { slug } = params;
   const material = await getMaterialBySlug(slug);
 
   if (!material) {
@@ -44,8 +33,7 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
   }
 
   const description =
-    material.description ||
-    `Study ${material.title} on ThrillyVerse.`;
+    material.description || `Study ${material.title} on ThrillyVerse.`;
 
   return {
     title: material.title,
@@ -68,7 +56,7 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
 }
 
 export default async function MaterialSlugPage({ params }: Params) {
-  const { slug } = await params;
+  const { slug } = params;
   const material = await getMaterialBySlug(slug);
 
   if (!material) notFound();

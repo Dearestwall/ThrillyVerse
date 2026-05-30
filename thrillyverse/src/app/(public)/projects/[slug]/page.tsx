@@ -2,8 +2,10 @@ import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 
+export const dynamic = 'force-dynamic';
+
 type Params = {
-  params: Promise<{ slug: string }>;
+  params: { slug: string };
 };
 
 async function getProjectBySlug(slug: string) {
@@ -18,20 +20,8 @@ async function getProjectBySlug(slug: string) {
   return data;
 }
 
-export async function generateStaticParams() {
-  const supabase = await createClient();
-
-  const { data } = await supabase
-    .from('projects')
-    .select('slug');
-
-  return (data ?? []).map((item) => ({
-    slug: item.slug,
-  }));
-}
-
 export async function generateMetadata({ params }: Params): Promise<Metadata> {
-  const { slug } = await params;
+  const { slug } = params;
   const project = await getProjectBySlug(slug);
 
   if (!project) {
@@ -69,7 +59,7 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
 }
 
 export default async function ProjectSlugPage({ params }: Params) {
-  const { slug } = await params;
+  const { slug } = params;
   const project = await getProjectBySlug(slug);
 
   if (!project) notFound();
@@ -77,8 +67,11 @@ export default async function ProjectSlugPage({ params }: Params) {
   const techStack = Array.isArray(project.tech_stack)
     ? project.tech_stack
     : typeof project.tech_stack === 'string'
-    ? project.tech_stack.split(',').map((item: string) => item.trim()).filter(Boolean)
-    : [];
+      ? project.tech_stack
+          .split(',')
+          .map((item: string) => item.trim())
+          .filter(Boolean)
+      : [];
 
   return (
     <article className="page-wrapper">
@@ -126,7 +119,7 @@ export default async function ProjectSlugPage({ params }: Params) {
               </div>
             ) : null}
 
-            {(project.link || project.github_url) ? (
+            {project.link || project.github_url ? (
               <div className="card p-6">
                 <h2 className="text-xl font-bold mb-3">Links</h2>
                 <div className="flex flex-wrap gap-3">
@@ -140,6 +133,7 @@ export default async function ProjectSlugPage({ params }: Params) {
                       Live Project
                     </a>
                   ) : null}
+
                   {project.github_url ? (
                     <a
                       href={project.github_url}

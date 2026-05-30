@@ -2,8 +2,10 @@ import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 
+export const dynamic = 'force-dynamic';
+
 type Params = {
-  params: Promise<{ slug: string }>;
+  params: { slug: string };
 };
 
 async function getBlogBySlug(slug: string) {
@@ -19,21 +21,8 @@ async function getBlogBySlug(slug: string) {
   return data;
 }
 
-export async function generateStaticParams() {
-  const supabase = await createClient();
-
-  const { data } = await supabase
-    .from('blogs')
-    .select('slug')
-    .eq('published', true);
-
-  return (data ?? []).map((item) => ({
-    slug: item.slug,
-  }));
-}
-
 export async function generateMetadata({ params }: Params): Promise<Metadata> {
-  const { slug } = await params;
+  const { slug } = params;
   const blog = await getBlogBySlug(slug);
 
   if (!blog) {
@@ -44,8 +33,7 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
   }
 
   const description =
-    blog.excerpt ||
-    'Read the latest article on ThrillyVerse.';
+    blog.excerpt || 'Read the latest article on ThrillyVerse.';
 
   return {
     title: blog.title,
@@ -71,7 +59,7 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
 }
 
 export default async function BlogSlugPage({ params }: Params) {
-  const { slug } = await params;
+  const { slug } = params;
   const blog = await getBlogBySlug(slug);
 
   if (!blog) notFound();
