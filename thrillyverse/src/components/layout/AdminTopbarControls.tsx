@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import {
   LogOut,
@@ -25,7 +25,8 @@ type Props = {
 const pageMetaMap: Record<string, { title: string; subtitle: string }> = {
   '/admin': {
     title: 'Dashboard',
-    subtitle: 'Manage content, metrics, and the full platform from one place.',
+    subtitle:
+      'Manage content, metrics, and the full platform from one place.',
   },
   '/admin/movies': {
     title: 'Movies',
@@ -33,7 +34,8 @@ const pageMetaMap: Record<string, { title: string; subtitle: string }> = {
   },
   '/admin/materials': {
     title: 'Materials',
-    subtitle: 'Manage notes, PDFs, subjects, classes, and premium resources.',
+    subtitle:
+      'Manage notes, PDFs, subjects, classes, and premium resources.',
   },
   '/admin/blogs': {
     title: 'Blogs',
@@ -45,7 +47,8 @@ const pageMetaMap: Record<string, { title: string; subtitle: string }> = {
   },
   '/admin/announcements': {
     title: 'Announcements',
-    subtitle: 'Manage banners, CTAs, active messages, and priorities.',
+    subtitle:
+      'Manage banners, CTAs, active messages, and priorities.',
   },
   '/admin/notifications': {
     title: 'Notifications',
@@ -89,6 +92,7 @@ export default function AdminTopbarControls({
   const supabase = createClient();
 
   const [loggingOut, setLoggingOut] = useState(false);
+  const [theme, setTheme] = useState<'light' | 'dark'>('dark');
 
   const meta = useMemo(() => {
     if (title || subtitle) {
@@ -97,7 +101,6 @@ export default function AdminTopbarControls({
         subtitle: subtitle ?? 'Manage content, updates, and platform data.',
       };
     }
-
     return (
       pageMetaMap[pathname] ?? {
         title: 'Admin Panel',
@@ -106,26 +109,40 @@ export default function AdminTopbarControls({
     );
   }, [pathname, subtitle, title]);
 
-  const toggleTheme = () => {
+  useEffect(() => {
     const root = document.documentElement;
     const current = root.getAttribute('data-theme');
-    const next = current === 'dark' ? 'light' : 'dark';
+    if (current === 'light' || current === 'dark') {
+      setTheme(current);
+      return;
+    }
+    const prefersDark = window.matchMedia(
+      '(prefers-color-scheme: dark)'
+    ).matches;
+    const nextTheme = prefersDark ? 'dark' : 'light';
+    root.setAttribute('data-theme', nextTheme);
+    setTheme(nextTheme);
+  }, []);
+
+  const toggleTheme = () => {
+    const root = document.documentElement;
+    const next = theme === 'dark' ? 'light' : 'dark';
     root.setAttribute('data-theme', next);
+    setTheme(next);
+    try {
+      window.localStorage.setItem('tv-theme', next);
+    } catch {}
   };
 
   const handleLogout = async () => {
     if (loggingOut) return;
-
     setLoggingOut(true);
-
     try {
       const { error } = await supabase.auth.signOut();
-
       if (error) {
         toast.error(error.message);
         return;
       }
-
       toast.success('Logged out successfully');
       router.replace('/admin/login');
       router.refresh();
@@ -137,28 +154,39 @@ export default function AdminTopbarControls({
   };
 
   return (
-    <header className="admin-topbar">
+    <header className="admin-topbar-controls" role="banner">
+      {/* Left: hamburger / toggle + title */}
       <div className="admin-topbar-left">
+        {/* Mobile hamburger */}
         <button
           type="button"
-          className="admin-menu-btn"
+          className="admin-topbar-icon-btn admin-mobile-toggle"
           aria-label="Open menu"
+          title="Open menu"
           onClick={onOpenMobile}
         >
           <Menu size={18} />
         </button>
 
+        {/* Desktop sidebar toggle (topbar version) */}
         <button
           type="button"
-          className="admin-desktop-toggle-top"
+          className="admin-topbar-icon-btn admin-desktop-toggle-top"
           aria-label={desktopCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+          title={desktopCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
           onClick={onToggleDesktop}
         >
-          {desktopCollapsed ? <PanelLeftOpen size={18} /> : <PanelLeftClose size={18} />}
+          {desktopCollapsed ? (
+            <PanelLeftOpen size={18} />
+          ) : (
+            <PanelLeftClose size={18} />
+          )}
         </button>
 
+        {/* Page title group */}
         <div className="admin-topbar-title-group">
           <div className="admin-topbar-kicker">
+            <Sparkles size={12} />
             <span>ThrillyVerse Control Center</span>
           </div>
           <h1 className="admin-topbar-title">{meta.title}</h1>
@@ -166,26 +194,36 @@ export default function AdminTopbarControls({
         </div>
       </div>
 
+      {/* Right: theme toggle + logout */}
       <div className="admin-topbar-right">
+        {/* Theme toggle — always visible, never hidden */}
         <button
           type="button"
-          className="admin-theme-toggle"
-          aria-label="Toggle theme"
+          className="admin-topbar-icon-btn admin-theme-toggle"
+          aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
+          title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
           onClick={toggleTheme}
         >
-          <SunMedium size={16} className="theme-light-icon" />
-          <Moon size={16} className="theme-dark-icon" />
+          {theme === 'dark' ? (
+            <SunMedium size={16} />
+          ) : (
+            <Moon size={16} />
+          )}
         </button>
 
+        {/* Logout */}
         <button
           type="button"
           className="admin-logout-btn"
           onClick={handleLogout}
           disabled={loggingOut}
           aria-label="Logout"
+          title="Logout"
         >
           <LogOut size={16} />
-          <span>{loggingOut ? 'Logging out...' : 'Logout'}</span>
+          <span className="admin-logout-label">
+            {loggingOut ? 'Logging out...' : 'Logout'}
+          </span>
         </button>
       </div>
     </header>
