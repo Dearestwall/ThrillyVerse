@@ -3,7 +3,6 @@
    File: src/styles/admin-sidebar.css
    ============================================================= */
 
-/* ── Shell grid ── */
 .admin-shell-layout {
   min-height: 100dvh;
   display: grid;
@@ -13,46 +12,32 @@
 }
 
 .admin-shell-layout.sidebar-collapsed {
-  grid-template-columns: 72px minmax(0, 1fr);
+  grid-template-columns: 88px minmax(0, 1fr);
 }
 
-/* ── Desktop sidebar ── */
 .admin-sidebar-desktop {
   position: sticky;
   top: 0;
   height: 100dvh;
-  width: 272px;
   display: grid;
   grid-template-rows: auto minmax(0, 1fr) auto;
   border-right: 1px solid var(--color-border);
   background: color-mix(in oklab, var(--color-surface) 96%, transparent);
   overflow: hidden;
-  transition: width 220ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.admin-sidebar-desktop.is-collapsed {
-  width: 72px;
-}
-
-/* ── Brand row ── */
 .admin-sidebar-brand {
   display: flex;
   align-items: center;
-  justify-content: space-between;
   gap: 8px;
-  min-height: 64px;
-  padding: 10px 10px 10px 12px;
-  border-bottom: 1px solid
-    color-mix(in oklab, var(--color-border) 72%, transparent);
-  overflow: hidden;
+  min-height: 68px;
+  padding: 12px 10px;
+  border-bottom: 1px solid color-mix(in oklab, var(--color-border) 72%, transparent);
 }
 
-/* When collapsed: center the brand icon, keep the toggle button visible */
 .admin-sidebar-brand.is-collapsed {
-  justify-content: center;
-  padding: 10px 0;
-  flex-direction: column;
-  gap: 6px;
+  justify-content: space-between;
+  padding-inline: 10px;
 }
 
 .admin-brand-link {
@@ -63,17 +48,12 @@
   min-width: 0;
   color: inherit;
   text-decoration: none;
-  overflow: hidden;
 }
 
 .admin-sidebar-brand.is-collapsed .admin-brand-link {
   flex: 0 0 auto;
-  width: auto;
-  justify-content: center;
-  overflow: visible;
 }
 
-/* ── Brand mark / copy ── */
 .tv-admin-brand {
   display: flex;
   align-items: center;
@@ -95,11 +75,7 @@
   place-items: center;
   border-radius: 13px;
   flex-shrink: 0;
-  background: linear-gradient(
-    135deg,
-    var(--color-primary),
-    color-mix(in oklab, var(--color-primary) 58%, white)
-  );
+  background: linear-gradient(135deg, var(--color-primary), color-mix(in oklab, var(--color-primary) 58%, white));
   color: #fff;
   box-shadow:
     0 8px 24px color-mix(in oklab, var(--color-primary) 18%, transparent),
@@ -135,9 +111,8 @@
 }
 
 .brand-thrilly { color: var(--color-text); }
-.brand-verse   { color: var(--color-primary); }
+.brand-verse { color: var(--color-primary); }
 
-/* ── Collapse / icon buttons ── */
 .admin-desktop-collapse-btn,
 .admin-mobile-close,
 .admin-topbar-icon-btn,
@@ -155,16 +130,7 @@
   color: var(--color-text);
   cursor: pointer;
   flex-shrink: 0;
-  transition: background 160ms ease, color 160ms ease,
-    border-color 160ms ease;
-}
-
-/* When sidebar is collapsed the collapse btn sits centered below the brand */
-.admin-desktop-collapse-btn.is-collapsed {
-  width: 34px;
-  min-width: 34px;
-  height: 34px;
-  border-radius: 10px;
+  transition: background 160ms ease, color 160ms ease, border-color 160ms ease;
 }
 
 .admin-desktop-collapse-btn:hover,
@@ -173,32 +139,17 @@
 .admin-theme-toggle:hover,
 .admin-mobile-toggle:hover,
 .admin-desktop-toggle-top:hover {
-  background: color-mix(
-    in oklab,
-    var(--color-primary) 10%,
-    var(--color-surface-2)
-  );
+  background: color-mix(in oklab, var(--color-primary) 10%, var(--color-surface-2));
   color: var(--color-primary);
-  border-color: color-mix(
-    in oklab,
-    var(--color-primary) 24%,
-    var(--color-border)
-  );
+  border-color: color-mix(in oklab, var(--color-primary) 24%, var(--color-border));
 }
 
-/* ── Sidebar scroll ── */
 .admin-sidebar-scroll {
   overflow-y: auto;
-  overflow-x: clip;
   min-height: 0;
-  padding: 8px 6px 10px;
+  padding: 10px 8px 12px;
   scrollbar-width: thin;
-  scrollbar-color: color-mix(
-      in oklab,
-      var(--color-border) 82%,
-      transparent
-    )
-    transparent;
+  scrollbar-color: color-mix(in oklab, var(--color-border) 82%, transparent) transparent;
 }
 
 .admin-sidebar-scroll::-webkit-scrollbar,
@@ -212,15 +163,14 @@
   border-radius: 999px;
 }
 
-/* ── Nav groups ── */
 .admin-sidebar-nav {
   display: grid;
-  gap: 10px;
+  gap: 12px;
 }
 
 .admin-nav-group {
   display: grid;
-  gap: 4px;
+  gap: 6px;
 }
 
 .admin-nav-group-label {
@@ -237,68 +187,37 @@
 
 .admin-nav-group-links {
   display: grid;
-  gap: 3px;
+  gap: 4px;
 }
 
-/* Collapsed group links: center all items */
-.admin-nav-group-links.is-collapsed {
-  align-items: center;
-}
-
-/* ── Nav link (expanded) ── */
 .admin-nav-link {
   position: relative;
-  min-height: 42px;
+  min-height: 44px;
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 8px 10px;
+  padding: 9px 10px;
   border-radius: 12px;
-  color: color-mix(
-    in oklab,
-    var(--color-text) 78%,
-    var(--color-text-muted)
-  );
+  color: color-mix(in oklab, var(--color-text) 78%, var(--color-text-muted));
   text-decoration: none;
-  font-size: 0.88rem;
+  font-size: 0.9rem;
   font-weight: 650;
   white-space: nowrap;
   overflow: hidden;
-  transition: background 160ms ease, color 160ms ease,
-    box-shadow 160ms ease;
+  transition: background 160ms ease, color 160ms ease, box-shadow 160ms ease;
 }
 
 .admin-nav-link:hover {
-  background: color-mix(
-    in oklab,
-    var(--color-primary) 8%,
-    var(--color-surface)
-  );
+  background: color-mix(in oklab, var(--color-primary) 8%, var(--color-surface));
   color: var(--color-text);
 }
 
 .admin-nav-link.is-active {
-  background: color-mix(
-    in oklab,
-    var(--color-primary) 14%,
-    var(--color-surface)
-  );
+  background: color-mix(in oklab, var(--color-primary) 14%, var(--color-surface));
   color: var(--color-primary);
-  box-shadow: inset 0 0 0 1px
-    color-mix(in oklab, var(--color-primary) 28%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--color-primary) 28%, transparent);
 }
 
-/* ── Nav link (collapsed) — FIXED: overflow:visible so icon shows ── */
-.admin-nav-link.is-collapsed {
-  width: 100%;
-  justify-content: center;
-  gap: 0;
-  padding: 10px 0;
-  /* Must be visible so the icon isn't clipped by the sidebar width */
-  overflow: visible;
-}
-
-/* ── Nav icon ── */
 .admin-nav-icon {
   width: 22px;
   min-width: 22px;
@@ -307,7 +226,6 @@
   place-items: center;
   flex-shrink: 0;
   color: currentColor;
-  overflow: visible;
 }
 
 .admin-nav-icon svg {
@@ -325,8 +243,47 @@
   text-overflow: ellipsis;
 }
 
-/* ── Tooltip on collapsed nav link ── */
-.admin-nav-link.is-collapsed::after {
+/* Collapsed desktop nav */
+.admin-collapsed-nav {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+}
+
+.admin-collapsed-link {
+  position: relative;
+  width: 52px;
+  height: 52px;
+  display: grid;
+  place-items: center;
+  border-radius: 14px;
+  color: color-mix(in oklab, var(--color-text) 78%, var(--color-text-muted));
+  text-decoration: none;
+  background: transparent;
+  transition: background 160ms ease, color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
+}
+
+.admin-collapsed-link svg {
+  width: 20px;
+  height: 20px;
+  display: block;
+  stroke: currentColor;
+  flex-shrink: 0;
+}
+
+.admin-collapsed-link:hover {
+  background: color-mix(in oklab, var(--color-primary) 8%, var(--color-surface));
+  color: var(--color-text);
+  transform: translateY(-1px);
+}
+
+.admin-collapsed-link.is-active {
+  background: color-mix(in oklab, var(--color-primary) 14%, var(--color-surface));
+  color: var(--color-primary);
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--color-primary) 28%, transparent);
+}
+
+.admin-collapsed-link::after {
   content: attr(title);
   position: absolute;
   left: calc(100% + 10px);
@@ -347,23 +304,20 @@
   box-shadow: var(--shadow-md);
 }
 
-.admin-nav-link.is-collapsed:hover::after,
-.admin-nav-link.is-collapsed:focus-visible::after {
+.admin-collapsed-link:hover::after,
+.admin-collapsed-link:focus-visible::after {
   opacity: 1;
   transform: translateY(-50%) translateX(0);
 }
 
-/* ── Sidebar footer ── */
 .admin-sidebar-footer {
-  padding: 8px 6px 10px;
-  border-top: 1px solid
-    color-mix(in oklab, var(--color-border) 72%, transparent);
+  padding: 8px 8px 12px;
+  border-top: 1px solid color-mix(in oklab, var(--color-border) 72%, transparent);
 }
 
 .admin-sidebar-footer.is-collapsed {
-  display: flex;
-  justify-content: center;
-  padding: 8px 0 10px;
+  display: grid;
+  place-items: center;
 }
 
 .admin-sidebar-logout,
@@ -380,13 +334,19 @@
   font-weight: 700;
   font-size: 0.875rem;
   cursor: pointer;
-  transition: background 160ms ease, color 160ms ease,
-    border-color 160ms ease;
+  transition: background 160ms ease, color 160ms ease, border-color 160ms ease;
 }
 
 .admin-sidebar-logout {
   width: 100%;
   padding: 8px 12px;
+}
+
+.admin-sidebar-logout.is-collapsed {
+  width: 52px;
+  height: 52px;
+  min-height: 52px;
+  padding: 0;
 }
 
 .admin-logout-btn {
@@ -396,29 +356,11 @@
 
 .admin-sidebar-logout:hover,
 .admin-logout-btn:hover {
-  background: color-mix(
-    in oklab,
-    var(--color-error) 10%,
-    var(--color-surface-2)
-  );
+  background: color-mix(in oklab, var(--color-error) 10%, var(--color-surface-2));
   color: var(--color-error);
-  border-color: color-mix(
-    in oklab,
-    var(--color-error) 30%,
-    var(--color-border)
-  );
+  border-color: color-mix(in oklab, var(--color-error) 30%, var(--color-border));
 }
 
-/* Collapsed sidebar: logout becomes square icon button */
-.admin-sidebar-logout.is-collapsed {
-  width: 40px;
-  min-width: 40px;
-  height: 40px;
-  padding: 0;
-  border-radius: 12px;
-}
-
-/* ── Mobile drawer ── */
 .admin-mobile-drawer {
   position: fixed;
   inset: 0;
@@ -469,8 +411,7 @@
   justify-content: space-between;
   gap: 8px;
   padding: 10px;
-  border-bottom: 1px solid
-    color-mix(in oklab, var(--color-border) 72%, transparent);
+  border-bottom: 1px solid color-mix(in oklab, var(--color-border) 72%, transparent);
 }
 
 .admin-mobile-drawer-body {
@@ -481,11 +422,9 @@
 
 .admin-mobile-drawer-footer {
   padding: 10px;
-  border-top: 1px solid
-    color-mix(in oklab, var(--color-border) 72%, transparent);
+  border-top: 1px solid color-mix(in oklab, var(--color-border) 72%, transparent);
 }
 
-/* ── Main content area ── */
 .admin-main-wrap {
   min-width: 0;
   min-height: 100dvh;
@@ -500,7 +439,6 @@
   overflow: auto;
 }
 
-/* ── Topbar ── */
 .admin-topbar-controls {
   position: sticky;
   top: 0;
@@ -509,42 +447,35 @@
   align-items: center;
   justify-content: space-between;
   gap: 10px;
-  /* Prevent the bar itself from overflowing */
   min-width: 0;
   padding: 8px 10px;
   margin: 8px;
   border: 1px solid var(--color-border);
   border-radius: 14px;
-  background: color-mix(
-    in oklab,
-    var(--color-surface) 92%,
-    transparent
-  );
+  background: color-mix(in oklab, var(--color-surface) 92%, transparent);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
 }
 
-/* Left side: can grow but must not push right side off screen */
-.admin-topbar-left {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex: 1 1 auto;
-  min-width: 0; /* allow shrinking */
-  overflow: hidden;
-}
-
-/* Right side: never shrinks — always fully visible */
+.admin-topbar-left,
 .admin-topbar-right {
   display: flex;
   align-items: center;
   gap: 8px;
-  flex: 0 0 auto;   /* FIXED: never shrink/grow */
+  min-width: 0;
+}
+
+.admin-topbar-left {
+  flex: 1 1 auto;
+  overflow: hidden;
+}
+
+.admin-topbar-right {
+  flex: 0 0 auto;
   flex-shrink: 0;
   margin-left: auto;
 }
 
-/* Title group clips its own overflow, not the whole left block */
 .admin-topbar-title-group {
   min-width: 0;
   overflow: hidden;
@@ -585,13 +516,11 @@
   text-overflow: ellipsis;
 }
 
-/* ── Visibility defaults ── */
-.admin-mobile-toggle     { display: inline-grid; }
-.admin-desktop-toggle-top{ display: none; }
-.admin-logout-label      { display: inline; }
-.admin-mobile-menu-open  { overflow: hidden; }
+.admin-mobile-toggle { display: inline-grid; }
+.admin-desktop-toggle-top { display: none; }
+.admin-logout-label { display: inline; }
+.admin-mobile-menu-open { overflow: hidden; }
 
-/* ── Page header ── */
 .admin-page-header {
   display: flex;
   align-items: flex-start;
@@ -631,15 +560,11 @@
   max-width: 72ch;
 }
 
-/* ─────────── Responsive ─────────── */
-
-/* ≥ 1024px — desktop: hide hamburger, show panel toggle in topbar */
 @media (min-width: 1024px) {
-  .admin-mobile-toggle      { display: none; }
+  .admin-mobile-toggle { display: none; }
   .admin-desktop-toggle-top { display: inline-grid; }
 }
 
-/* < 1024px — tablet / mobile: hide desktop sidebar, full-width grid */
 @media (max-width: 1023px) {
   .admin-shell-layout,
   .admin-shell-layout.sidebar-collapsed {
@@ -660,15 +585,9 @@
   }
 }
 
-/* < 768px — small tablets / large phones */
 @media (max-width: 768px) {
-  /* Hide title kicker & subtitle text to save space */
   .admin-topbar-kicker,
-  .admin-topbar-subtitle {
-    display: none;
-  }
-
-  /* Logout: hide label text, keep icon */
+  .admin-topbar-subtitle,
   .admin-logout-label,
   .admin-logout-btn span {
     display: none;
@@ -677,9 +596,6 @@
   .admin-logout-btn {
     padding: 0 10px;
   }
-
-  /* NOTE: .admin-theme-toggle is intentionally NOT hidden here —
-     theme toggle is always visible on all screen sizes */
 
   .admin-page-header {
     align-items: center;
@@ -692,7 +608,6 @@
   }
 }
 
-/* < 480px — phones */
 @media (max-width: 480px) {
   .admin-main-content {
     padding: 8px;
