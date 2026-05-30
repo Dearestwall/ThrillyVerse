@@ -216,7 +216,6 @@ export default async function HomePage() {
     <>
       <AnnouncementsSection announcements={(announcements ?? []) as Announcement[]} />
       <HeroSection />
-      <StatsStrip stats={stats} />
       <PartnersSection partners={(partners ?? []) as Partner[]} />
       <ProjectsSection projects={(projects ?? []) as Project[]} />
       <FeaturedBlogsStrip blogs={(blogs ?? []) as Blog[]} />
