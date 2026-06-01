@@ -11,15 +11,6 @@ export default async function AdminCertificationsPage() {
 
   return (
     <div className="admin-page">
-      <div className="admin-page-header">
-        <div>
-          <h1 className="admin-page-title">Certifications</h1>
-          <p className="admin-page-subtitle">
-            Manage trust badges, certificates, issuers, and showcase order.
-          </p>
-        </div>
-      </div>
-
       <CertificationsAdminTable initialData={(data ?? []) as any} />
     </div>
   );

@@ -1,8 +1,18 @@
 'use client';
 
-import React, { useEffect, useMemo, useState } from 'react';
-import { Download, Plus, Search, SlidersHorizontal, Upload, X } from 'lucide-react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import {
+  Download,
+  Plus,
+  Search,
+  SlidersHorizontal,
+  Upload,
+  X,
+} from 'lucide-react';
 import AdminBulkUploadModal from './AdminBulkUploadModal';
+
+/* ── Types ────────────────────────────────────────────────── */
 
 export type AdminColumn<T> = {
   key: keyof T | string;
@@ -23,7 +33,16 @@ export type AdminStat<T> = {
 export type AdminBulkTemplateField = {
   key: string;
   label: string;
-  type?: 'text' | 'textarea' | 'number' | 'checkbox' | 'url' | 'email' | 'date' | 'select' | 'tags';
+  type?:
+    | 'text'
+    | 'textarea'
+    | 'number'
+    | 'checkbox'
+    | 'url'
+    | 'email'
+    | 'date'
+    | 'select'
+    | 'tags';
   required?: boolean;
   placeholder?: string;
   helpText?: string;
@@ -36,7 +55,11 @@ type Props<T extends Record<string, any>> = {
   columns: AdminColumn<T>[];
   searchKeys?: (keyof T | string)[];
   exportFields?: (keyof T | string)[];
-  renderForm: (item: T | null, onClose: () => void, onSaved: () => void) => React.ReactNode;
+  renderForm: (
+    item: T | null,
+    onClose: () => void,
+    onSaved: () => void
+  ) => React.ReactNode;
   extraActions?: (row: T) => React.ReactNode;
   onBulkUpload?: (rows: Record<string, string>[]) => Promise<void>;
   bulkTemplateFields?: AdminBulkTemplateField[];
@@ -47,13 +70,14 @@ type Props<T extends Record<string, any>> = {
   emptyMessage?: string;
 };
 
+/* ── Helpers ──────────────────────────────────────────────── */
+
 function ensureArray<T>(value: T[] | null | undefined): T[] {
   return Array.isArray(value) ? value : [];
 }
 
 function toCsv(rows: Record<string, any>[]): string {
   if (!rows.length) return '';
-
   const headers = Object.keys(rows[0] ?? {});
 
   const escapeCell = (value: unknown) => {
@@ -66,13 +90,17 @@ function toCsv(rows: Record<string, any>[]): string {
 
   return [
     headers.join(','),
-    ...rows.map((row) => headers.map((header) => escapeCell(row?.[header])).join(',')),
+    ...rows.map((row) =>
+      headers.map((h) => escapeCell(row?.[h])).join(',')
+    ),
   ].join('\n');
 }
 
 function getStatValue<T>(stat: AdminStat<T>, rows: T[]) {
   return typeof stat.value === 'function' ? stat.value(rows) : stat.value;
 }
+
+/* ── Component ────────────────────────────────────────────── */
 
 export function AdminShell<T extends Record<string, any>>({
   title,
@@ -90,7 +118,12 @@ export function AdminShell<T extends Record<string, any>>({
   hideCreateButton = false,
   emptyMessage,
 }: Props<T>) {
-  const normalizedInitialData = useMemo(() => ensureArray(initialData), [initialData]);
+  const router = useRouter();
+
+  const normalizedInitialData = useMemo(
+    () => ensureArray(initialData),
+    [initialData]
+  );
 
   const [rows, setRows] = useState<T[]>(normalizedInitialData);
   const [query, setQuery] = useState('');
@@ -98,66 +131,68 @@ export function AdminShell<T extends Record<string, any>>({
   const [editingItem, setEditingItem] = useState<T | null>(null);
   const [isBulkModalOpen, setIsBulkModalOpen] = useState(false);
 
+  /* Sync rows when server re-fetches (RSC re-render) */
   useEffect(() => {
     setRows(ensureArray(initialData));
   }, [initialData]);
 
   const safeRows = useMemo(() => ensureArray(rows), [rows]);
 
+  /* ── Search filter ── */
   const filteredRows = useMemo(() => {
     if (!query.trim()) return safeRows;
     const q = query.toLowerCase();
-
     return safeRows.filter((row) =>
-      searchKeys.some((key) => String(row?.[String(key)] ?? '').toLowerCase().includes(q))
+      searchKeys.some((key) =>
+        String(row?.[String(key)] ?? '')
+          .toLowerCase()
+          .includes(q)
+      )
     );
   }, [safeRows, query, searchKeys]);
 
   const hasRows = safeRows.length > 0;
 
-  const templateFields = useMemo(
-    () =>
-      bulkTemplateFields.length
-        ? bulkTemplateFields
-        : (
-            exportFields.length
-              ? exportFields.map((field) => ({
-                  key: String(field),
-                  label: String(field)
-                    .replace(/_/g, ' ')
-                    .replace(/\b\w/g, (m) => m.toUpperCase()),
-                  type: 'text' as const,
-                }))
-              : Object.keys(normalizedInitialData[0] ?? { title: '', published: '' }).map((field) => ({
-                  key: field,
-                  label: field
-                    .replace(/_/g, ' ')
-                    .replace(/\b\w/g, (m) => m.toUpperCase()),
-                  type: 'text' as const,
-                }))
-          ),
-    [bulkTemplateFields, exportFields, normalizedInitialData]
-  );
+  /* ── Bulk template fields ── */
+  const templateFields = useMemo<AdminBulkTemplateField[]>(() => {
+    if (bulkTemplateFields.length) return bulkTemplateFields;
+
+    const base =
+      exportFields.length > 0
+        ? exportFields.map(String)
+        : Object.keys(normalizedInitialData[0] ?? { title: '', published: '' });
+
+    return base.map((field) => ({
+      key: field,
+      label: field
+        .replace(/_/g, ' ')
+        .replace(/\b\w/g, (m) => m.toUpperCase()),
+      type: 'text' as const,
+    }));
+  }, [bulkTemplateFields, exportFields, normalizedInitialData]);
 
   const canBulkUpload = Boolean(onBulkUpload && templateFields.length > 0);
 
-  const handleSaved = () => {
+  /* ── Handlers ── */
+  const handleSaved = useCallback(() => {
     setIsModalOpen(false);
     setEditingItem(null);
-    window.location.reload();
-  };
+    // Soft refresh: re-runs RSC data fetch without full page reload
+    router.refresh();
+  }, [router]);
 
-  const exportCsv = () => {
+  const exportCsv = useCallback(() => {
     if (!hasRows) return;
 
-    const fields = exportFields.length
-      ? exportFields.map(String)
-      : Object.keys(safeRows[0] ?? {});
+    const fields =
+      exportFields.length > 0
+        ? exportFields.map(String)
+        : Object.keys(safeRows[0] ?? {});
 
     const mapped = safeRows.map((row) => {
       const entry: Record<string, any> = {};
-      fields.forEach((field) => {
-        entry[field] = row?.[field];
+      fields.forEach((f) => {
+        entry[f] = row?.[f];
       });
       return entry;
     });
@@ -169,21 +204,28 @@ export function AdminShell<T extends Record<string, any>>({
     a.download = `${title.toLowerCase().replace(/\s+/g, '-')}.csv`;
     a.click();
     URL.revokeObjectURL(a.href);
-  };
+  }, [hasRows, exportFields, safeRows, title]);
 
-  const openCreateModal = () => {
+  const openCreateModal = useCallback(() => {
     setEditingItem(null);
     setIsModalOpen(true);
-  };
+  }, []);
 
-  const openEditModal = (row: T) => {
+  const openEditModal = useCallback((row: T) => {
     setEditingItem(row);
     setIsModalOpen(true);
-  };
+  }, []);
 
+  const closeModal = useCallback(() => {
+    setIsModalOpen(false);
+    setEditingItem(null);
+  }, []);
+
+  /* ── Render ── */
   return (
     <>
       <section className="admin-shell-pro card">
+        {/* ── Stats ── */}
         {stats.length > 0 && (
           <div className="admin-stats-grid pro-stats-grid">
             {stats.map((stat) => (
@@ -192,12 +234,15 @@ export function AdminShell<T extends Record<string, any>>({
                 className={`admin-stat-card admin-stat-${stat.tone ?? 'default'}`}
               >
                 <span className="admin-stat-label">{stat.label}</span>
-                <strong className="admin-stat-value">{getStatValue(stat, safeRows)}</strong>
+                <strong className="admin-stat-value">
+                  {getStatValue(stat, safeRows)}
+                </strong>
               </div>
             ))}
           </div>
         )}
 
+        {/* ── Toolbar ── */}
         <div className="admin-toolbar-block">
           <div className="admin-toolbar-head">
             <div className="admin-shell-headline">
@@ -207,14 +252,18 @@ export function AdminShell<T extends Record<string, any>>({
               </div>
               <h2 className="admin-section-title">{title}</h2>
               <p className="admin-section-subtitle">
-                Search, create, update, export, and bulk-manage {title.toLowerCase()} from one workspace.
+                Search, create, update, export, and bulk-manage{' '}
+                {title.toLowerCase()} from one workspace.
               </p>
             </div>
           </div>
 
           <div className="admin-toolbar-controls">
             <div className="admin-toolbar-search-row">
-              <label className="admin-shell-search" aria-label={`Search ${title}`}>
+              <label
+                className="admin-shell-search"
+                aria-label={`Search ${title}`}
+              >
                 <Search size={16} />
                 <input
                   value={query}
@@ -248,19 +297,26 @@ export function AdminShell<T extends Record<string, any>>({
               </button>
 
               {!hideCreateButton && (
-                <button type="button" className="btn btn-primary" onClick={openCreateModal}>
+                <button
+                  type="button"
+                  className="btn btn-primary"
+                  onClick={openCreateModal}
+                >
                   <Plus size={14} />
-                  {addLabel ?? `Add ${title.endsWith('s') ? title.slice(0, -1) : title}`}
+                  {addLabel ??
+                    `Add ${title.endsWith('s') ? title.slice(0, -1) : title}`}
                 </button>
               )}
             </div>
           </div>
         </div>
 
+        {/* ── Table ── */}
         <div className="admin-table-section">
           <div className="admin-table-meta-row">
             <p className="admin-table-meta">
-              Showing <strong>{filteredRows.length}</strong> of <strong>{safeRows.length}</strong> entries
+              Showing <strong>{filteredRows.length}</strong> of{' '}
+              <strong>{safeRows.length}</strong> entries
             </p>
           </div>
 
@@ -268,12 +324,14 @@ export function AdminShell<T extends Record<string, any>>({
             <table className="admin-table">
               <thead>
                 <tr>
-                  {columns.map((column) => (
+                  {columns.map((col) => (
                     <th
-                      key={String(column.key)}
-                      className={`${column.className ?? ''} ${column.mobileHidden ? 'hide-mobile' : ''}`.trim()}
+                      key={String(col.key)}
+                      className={`${col.className ?? ''} ${
+                        col.mobileHidden ? 'hide-mobile' : ''
+                      }`.trim()}
                     >
-                      {column.label}
+                      {col.label}
                     </th>
                   ))}
                   <th className="actions-col">Actions</th>
@@ -284,12 +342,16 @@ export function AdminShell<T extends Record<string, any>>({
                 {filteredRows.length ? (
                   filteredRows.map((row) => (
                     <tr key={getRowId(row)}>
-                      {columns.map((column) => (
+                      {columns.map((col) => (
                         <td
-                          key={String(column.key)}
-                          className={`${column.className ?? ''} ${column.mobileHidden ? 'hide-mobile' : ''}`.trim()}
+                          key={String(col.key)}
+                          className={`${col.className ?? ''} ${
+                            col.mobileHidden ? 'hide-mobile' : ''
+                          }`.trim()}
                         >
-                          {column.render ? column.render(row) : String(row?.[String(column.key)] ?? '—')}
+                          {col.render
+                            ? col.render(row)
+                            : String(row?.[String(col.key)] ?? '—')}
                         </td>
                       ))}
                       <td>
@@ -310,7 +372,8 @@ export function AdminShell<T extends Record<string, any>>({
                   <tr>
                     <td colSpan={columns.length + 1}>
                       <div className="empty-inline">
-                        {emptyMessage ?? `No ${title.toLowerCase()} found.`}
+                        {emptyMessage ??
+                          `No ${title.toLowerCase()} found.`}
                       </div>
                     </td>
                   </tr>
@@ -321,23 +384,30 @@ export function AdminShell<T extends Record<string, any>>({
         </div>
       </section>
 
+      {/* ── Edit / Create modal ── */}
       {isModalOpen && (
-        <div className="admin-modal-backdrop" role="dialog" aria-modal="true">
+        <div
+          className="admin-modal-backdrop"
+          role="dialog"
+          aria-modal="true"
+          aria-label={`${editingItem ? 'Edit' : 'Create'} ${title}`}
+        >
           <div className="admin-modal-panel">
             <button
               type="button"
               className="admin-modal-close"
-              onClick={() => setIsModalOpen(false)}
+              onClick={closeModal}
               aria-label="Close modal"
             >
               <X size={16} />
             </button>
 
-            {renderForm(editingItem, () => setIsModalOpen(false), handleSaved)}
+            {renderForm(editingItem, closeModal, handleSaved)}
           </div>
         </div>
       )}
 
+      {/* ── Bulk upload modal ── */}
       {canBulkUpload && onBulkUpload && (
         <AdminBulkUploadModal
           open={isBulkModalOpen}

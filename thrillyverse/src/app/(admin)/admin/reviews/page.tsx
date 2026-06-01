@@ -3,6 +3,7 @@ import ReviewsAdminTable from '@/components/sections/admin/ReviewsAdminTable';
 
 export default async function AdminReviewsPage() {
   const supabase = await createClient();
+
   const { data } = await supabase
     .from('reviews')
     .select('*')
@@ -11,15 +12,6 @@ export default async function AdminReviewsPage() {
 
   return (
     <div className="admin-page">
-      <div className="admin-page-header">
-        <div>
-          <h1 className="admin-page-title">Reviews</h1>
-          <p className="admin-page-subtitle">
-            Manage testimonials, featured reviews, ordering, and publishing.
-          </p>
-        </div>
-      </div>
-
       <ReviewsAdminTable initialData={(data ?? []) as any} />
     </div>
   );

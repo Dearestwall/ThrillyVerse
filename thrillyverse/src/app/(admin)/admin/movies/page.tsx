@@ -12,15 +12,6 @@ export default async function AdminMoviesPage() {
 
   return (
     <div className="admin-page">
-      <div className="admin-page-header">
-        <div>
-          <h1 className="admin-page-title">Movies</h1>
-          <p className="admin-page-subtitle">
-            Manage featured films, links, posters, metadata, and publishing status.
-          </p>
-        </div>
-      </div>
-
       <MoviesAdminTable initialData={(data ?? []) as any} />
     </div>
   );

@@ -12,15 +12,6 @@ export default async function AdminMaterialsPage() {
 
   return (
     <div className="admin-page">
-      <div className="admin-page-header">
-        <div>
-          <h1 className="admin-page-title">Materials</h1>
-          <p className="admin-page-subtitle">
-            Manage notes, PDFs, videos, links, premium resources, and featured study materials.
-          </p>
-        </div>
-      </div>
-
       <MaterialsAdminTable initialData={(data ?? []) as any} />
     </div>
   );

@@ -13,15 +13,6 @@ export default async function AdminAnnouncementsPage() {
 
   return (
     <div className="admin-page">
-      <div className="admin-page-header">
-        <div>
-          <h1 className="admin-page-title">Announcements</h1>
-          <p className="admin-page-subtitle">
-            Create, publish, and manage platform announcements.
-          </p>
-        </div>
-      </div>
-
       <AnnouncementsAdminTable initialData={(data ?? []) as Announcement[]} />
     </div>
   );
