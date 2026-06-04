@@ -1,4 +1,4 @@
-import type { AdminBulkTemplateField } from '@/components/sections/admin/AdminBulkUploadModal';
+import type { AdminBulkTemplateField } from '@/lib/admin/bulkTypes';
 
 // ── Movies ──────────────────────────────────────────────────────────────────
 export const moviesBulkFields: AdminBulkTemplateField[] = [

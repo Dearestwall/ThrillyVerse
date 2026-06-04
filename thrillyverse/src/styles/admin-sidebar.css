@@ -644,3 +644,470 @@
     font-size: 1rem;
   }
 }
+/* =============================================================
+   ADMIN BULK UPLOAD MODAL
+   ============================================================= */
+
+.bulk-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: oklch(0 0 0 / 0.55);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  animation: bulk-fade-in 160ms ease both;
+}
+
+@keyframes bulk-fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.bulk-modal-panel {
+  position: relative;
+  width: 100%;
+  max-width: 760px;
+  max-height: 92dvh;
+  display: grid;
+  grid-template-rows: auto auto minmax(0, 1fr) auto;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 20px;
+  box-shadow: var(--shadow-lg);
+  overflow: hidden;
+  animation: bulk-slide-up 220ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes bulk-slide-up {
+  from { opacity: 0; transform: translateY(20px) scale(0.98); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* ── Header ── */
+.bulk-modal-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 20px 20px 16px;
+  border-bottom: 1px solid
+    color-mix(in oklab, var(--color-border) 72%, transparent);
+}
+
+.bulk-modal-header-left {
+  min-width: 0;
+}
+
+.bulk-modal-kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-bottom: 4px;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-primary);
+}
+
+.bulk-modal-title {
+  margin: 0;
+  font-size: clamp(1rem, 0.95rem + 0.3vw, 1.18rem);
+  font-weight: 900;
+  letter-spacing: -0.025em;
+  color: var(--color-text);
+}
+
+.bulk-modal-close {
+  width: 36px;
+  min-width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  border-radius: 10px;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface-2);
+  color: var(--color-text-muted);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 140ms ease, color 140ms ease;
+}
+
+.bulk-modal-close:hover {
+  background: color-mix(in oklab, var(--color-error) 10%, var(--color-surface-2));
+  color: var(--color-error);
+  border-color: color-mix(in oklab, var(--color-error) 30%, var(--color-border));
+}
+
+/* ── Tab bar ── */
+.bulk-tab-bar {
+  display: flex;
+  gap: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+  border-bottom: 1px solid
+    color-mix(in oklab, var(--color-border) 72%, transparent);
+  background: var(--color-surface);
+}
+
+.bulk-tab-bar::-webkit-scrollbar { display: none; }
+
+.bulk-tab {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  flex: 1 0 auto;
+  min-width: 100px;
+  padding: 10px 14px;
+  border: none;
+  border-bottom: 2px solid transparent;
+  background: none;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition: color 140ms ease, border-color 140ms ease,
+    background 140ms ease;
+  text-align: left;
+}
+
+.bulk-tab:hover {
+  color: var(--color-text);
+  background: color-mix(in oklab, var(--color-primary) 4%, transparent);
+}
+
+.bulk-tab.is-active {
+  color: var(--color-primary);
+  border-bottom-color: var(--color-primary);
+  background: color-mix(in oklab, var(--color-primary) 6%, var(--color-surface));
+}
+
+.bulk-tab svg {
+  flex-shrink: 0;
+}
+
+.bulk-tab-label {
+  font-size: 0.82rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.bulk-tab-hint {
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--color-text-faint);
+  white-space: nowrap;
+}
+
+.bulk-tab.is-active .bulk-tab-hint {
+  color: color-mix(in oklab, var(--color-primary) 70%, var(--color-text-faint));
+}
+
+/* ── Body ── */
+.bulk-modal-body {
+  overflow-y: auto;
+  padding: 16px 20px 4px;
+  display: grid;
+  gap: 16px;
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in oklab, var(--color-border) 80%, transparent)
+    transparent;
+}
+
+/* ── Section blocks ── */
+.bulk-section {
+  display: grid;
+  gap: 8px;
+}
+
+.bulk-section-label {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+.bulk-section-hint {
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+}
+
+.bulk-section-hint code {
+  font-size: 0.78rem;
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  padding: 1px 5px;
+  color: var(--color-primary);
+}
+
+/* ── Template download buttons ── */
+.bulk-template-btns {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+/* ── Expected field pills ── */
+.bulk-field-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.bulk-field-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface-2);
+  font-size: 0.76rem;
+  font-weight: 600;
+  color: var(--color-text);
+  white-space: nowrap;
+}
+
+.bulk-field-pill.is-required {
+  border-color: color-mix(in oklab, var(--color-primary) 30%, var(--color-border));
+  background: color-mix(in oklab, var(--color-primary) 6%, var(--color-surface-2));
+  color: var(--color-primary);
+}
+
+.bulk-pill-req {
+  color: var(--color-error);
+  font-weight: 900;
+  line-height: 1;
+  margin-left: 1px;
+}
+
+/* ── Drop zone ── */
+.bulk-drop-zone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 120px;
+  padding: 20px;
+  border: 2px dashed var(--color-border);
+  border-radius: 14px;
+  background: var(--color-surface-2);
+  cursor: pointer;
+  text-align: center;
+  transition: border-color 160ms ease, background 160ms ease, color 160ms ease;
+  width: 100%;
+}
+
+.bulk-drop-zone:hover,
+.bulk-drop-zone:focus-visible {
+  border-color: var(--color-primary);
+  background: color-mix(in oklab, var(--color-primary) 5%, var(--color-surface-2));
+  color: var(--color-primary);
+}
+
+.bulk-drop-zone.has-file {
+  border-color: var(--color-success);
+  background: color-mix(in oklab, var(--color-success) 6%, var(--color-surface-2));
+}
+
+.bulk-drop-zone:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.bulk-drop-icon {
+  color: var(--color-text-faint);
+  transition: color 160ms ease;
+}
+
+.bulk-drop-zone:hover .bulk-drop-icon,
+.bulk-drop-zone.has-file .bulk-drop-icon {
+  color: var(--color-primary);
+}
+
+.bulk-drop-cta {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.bulk-drop-sub {
+  font-size: 0.76rem;
+  color: var(--color-text-muted);
+}
+
+.bulk-drop-filename {
+  font-size: 0.84rem;
+  font-weight: 700;
+  color: var(--color-success);
+  word-break: break-all;
+}
+
+/* ── Paste textarea ── */
+.bulk-paste-area {
+  font-family: ui-monospace, 'Cascadia Code', 'Fira Code', monospace;
+  font-size: 0.78rem;
+  line-height: 1.6;
+  resize: vertical;
+  min-height: 160px;
+}
+
+/* ── Error / success banners ── */
+.bulk-error-banner,
+.bulk-success-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  font-size: 0.83rem;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.bulk-error-banner {
+  background: color-mix(in oklab, var(--color-error) 10%, var(--color-surface-2));
+  border: 1px solid color-mix(in oklab, var(--color-error) 30%, var(--color-border));
+  color: var(--color-error);
+}
+
+.bulk-error-banner svg { flex-shrink: 0; margin-top: 1px; }
+
+.bulk-success-banner {
+  background: color-mix(in oklab, var(--color-success) 10%, var(--color-surface-2));
+  border: 1px solid color-mix(in oklab, var(--color-success) 30%, var(--color-border));
+  color: var(--color-success);
+}
+
+.bulk-success-banner svg { flex-shrink: 0; margin-top: 1px; }
+
+/* ── Preview table ── */
+.bulk-preview-wrap {
+  overflow-x: auto;
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  scrollbar-width: thin;
+}
+
+.bulk-preview-table {
+  width: 100%;
+  min-width: 400px;
+  border-collapse: collapse;
+  font-size: 0.78rem;
+}
+
+.bulk-preview-table thead th {
+  padding: 7px 10px;
+  text-align: left;
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+  background: var(--color-surface-2);
+  border-bottom: 1px solid var(--color-border);
+  white-space: nowrap;
+}
+
+.bulk-preview-table tbody td {
+  padding: 6px 10px;
+  border-bottom: 1px solid
+    color-mix(in oklab, var(--color-border) 60%, transparent);
+  vertical-align: middle;
+  max-width: 180px;
+}
+
+.bulk-preview-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.bulk-preview-table tbody tr:hover td {
+  background: color-mix(in oklab, var(--color-primary) 4%, var(--color-surface));
+}
+
+.bulk-preview-row-num {
+  width: 32px;
+  min-width: 32px;
+  text-align: center;
+  color: var(--color-text-faint);
+  font-variant-numeric: tabular-nums;
+}
+
+.bulk-preview-cell {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 160px;
+  color: var(--color-text);
+}
+
+.bulk-preview-empty {
+  color: var(--color-text-faint);
+}
+
+.bulk-preview-more {
+  padding: 6px 10px;
+  font-size: 0.75rem;
+  color: var(--color-text-faint);
+  text-align: center;
+  border-top: 1px solid
+    color-mix(in oklab, var(--color-border) 60%, transparent);
+}
+
+/* ── Footer ── */
+.bulk-modal-footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 14px 20px;
+  border-top: 1px solid
+    color-mix(in oklab, var(--color-border) 72%, transparent);
+  background: var(--color-surface);
+}
+
+/* ── Spinner ── */
+.bulk-spin {
+  animation: bulk-rotate 700ms linear infinite;
+}
+
+@keyframes bulk-rotate {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+/* ── Mobile ── */
+@media (max-width: 600px) {
+  .bulk-modal-backdrop {
+    padding: 8px;
+    align-items: flex-end;
+  }
+
+  .bulk-modal-panel {
+    max-height: 96dvh;
+    border-radius: 20px 20px 12px 12px;
+    max-width: 100%;
+  }
+
+  .bulk-tab {
+    min-width: 80px;
+    padding: 8px 10px;
+  }
+
+  .bulk-tab-hint { display: none; }
+
+  .bulk-modal-body { padding: 12px 14px 4px; }
+  .bulk-modal-footer { padding: 12px 14px; }
+  .bulk-template-btns { gap: 6px; }
+}

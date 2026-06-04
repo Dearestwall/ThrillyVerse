@@ -11,6 +11,10 @@ import {
   X,
 } from 'lucide-react';
 import AdminBulkUploadModal from './AdminBulkUploadModal';
+import type { AdminBulkTemplateField } from '@/lib/admin/bulkTypes';
+
+/* ── Re-export so page files can import from one place if needed ── */
+export type { AdminBulkTemplateField } from '@/lib/admin/bulkTypes';
 
 /* ── Types ────────────────────────────────────────────────── */
 
@@ -28,25 +32,6 @@ export type AdminStat<T> = {
   label: string;
   value: number | string | ((rows: T[]) => number | string);
   tone?: AdminStatTone;
-};
-
-export type AdminBulkTemplateField = {
-  key: string;
-  label: string;
-  type?:
-    | 'text'
-    | 'textarea'
-    | 'number'
-    | 'checkbox'
-    | 'url'
-    | 'email'
-    | 'date'
-    | 'select'
-    | 'tags';
-  required?: boolean;
-  placeholder?: string;
-  helpText?: string;
-  options?: { label: string; value: string }[];
 };
 
 type Props<T extends Record<string, any>> = {
@@ -90,9 +75,7 @@ function toCsv(rows: Record<string, any>[]): string {
 
   return [
     headers.join(','),
-    ...rows.map((row) =>
-      headers.map((h) => escapeCell(row?.[h])).join(',')
-    ),
+    ...rows.map((row) => headers.map((h) => escapeCell(row?.[h])).join(',')),
   ].join('\n');
 }
 
@@ -144,16 +127,14 @@ export function AdminShell<T extends Record<string, any>>({
     const q = query.toLowerCase();
     return safeRows.filter((row) =>
       searchKeys.some((key) =>
-        String(row?.[String(key)] ?? '')
-          .toLowerCase()
-          .includes(q)
+        String(row?.[String(key)] ?? '').toLowerCase().includes(q)
       )
     );
   }, [safeRows, query, searchKeys]);
 
   const hasRows = safeRows.length > 0;
 
-  /* ── Bulk template fields ── */
+  /* ── Bulk template fields — derived dynamically if not provided ── */
   const templateFields = useMemo<AdminBulkTemplateField[]>(() => {
     if (bulkTemplateFields.length) return bulkTemplateFields;
 
@@ -177,7 +158,6 @@ export function AdminShell<T extends Record<string, any>>({
   const handleSaved = useCallback(() => {
     setIsModalOpen(false);
     setEditingItem(null);
-    // Soft refresh: re-runs RSC data fetch without full page reload
     router.refresh();
   }, [router]);
 
@@ -372,8 +352,7 @@ export function AdminShell<T extends Record<string, any>>({
                   <tr>
                     <td colSpan={columns.length + 1}>
                       <div className="empty-inline">
-                        {emptyMessage ??
-                          `No ${title.toLowerCase()} found.`}
+                        {emptyMessage ?? `No ${title.toLowerCase()} found.`}
                       </div>
                     </td>
                   </tr>
@@ -401,7 +380,6 @@ export function AdminShell<T extends Record<string, any>>({
             >
               <X size={16} />
             </button>
-
             {renderForm(editingItem, closeModal, handleSaved)}
           </div>
         </div>
