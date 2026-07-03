@@ -6,7 +6,7 @@ import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { toast } from 'react-hot-toast';
 import { MailOpen, Mail, Trash2, MessageSquareMore } from 'lucide-react';
-import { AdminShell } from './AdminShell';
+import { AdminBulkTemplateField, AdminShell } from './AdminShell';
 import { updateContactAction, deleteRowAction, toggleContactReadAction } from '@/app/actions/admin';
 import type { Contact } from '@/types';
 
@@ -19,6 +19,16 @@ const schema = z.object({
   source: z.string().default('website'),
   read: z.boolean().default(false),
 });
+
+export const contactsBulkFields: AdminBulkTemplateField[] = [
+  { key: 'name',    label: 'Name',    type: 'text',     required: true  },
+  { key: 'email',   label: 'Email',   type: 'email',    required: true  },
+  { key: 'phone',   label: 'Phone',   type: 'text'                      }, // ADD
+  { key: 'subject', label: 'Subject', type: 'text'                      },
+  { key: 'message', label: 'Message', type: 'textarea'                  },
+  { key: 'source',  label: 'Source',  type: 'text'                      }, // ADD
+  { key: 'read',    label: 'Is Read', type: 'checkbox', helpText: 'true/false' }, // was 'is_read'
+];
 
 type FD = z.infer<typeof schema>;
 
@@ -134,67 +144,65 @@ function ContactForm({
 export default function ContactsAdminTable({ initialData }: { initialData: Contact[] }) {
   const [, startTransition] = useTransition();
 
-  return (
-    <AdminShell<Contact>
-      title="Contacts"
-      initialData={initialData}
-      searchKeys={['name', 'email', 'subject', 'message', 'source']}
-      exportFields={['id', 'name', 'email', 'phone', 'subject', 'source', 'read', 'created_at']}
-      addLabel="Open Contact"
-      stats={[
-        { label: 'Total', value: (rows) => rows.length },
-        { label: 'Unread', value: (rows) => rows.filter((r) => !r.read).length, tone: 'warning' },
-        { label: 'Read', value: (rows) => rows.filter((r) => !!r.read).length, tone: 'success' },
-      ]}
-      columns={[
-        { key: 'name', label: 'Name', render: (r) => <span className="font-medium">{r.name}</span> },
-        { key: 'email', label: 'Email' },
-        { key: 'subject', label: 'Subject', render: (r) => r.subject || '—' },
-        { key: 'source', label: 'Source', mobileHidden: true },
-        {
-          key: 'read',
-          label: 'Status',
-          render: (r) => (
-            <span className={`badge ${r.read ? 'badge-success' : 'badge-muted'}`}>
-              {r.read ? 'Read' : 'Unread'}
-            </span>
-          ),
-        },
-      ]}
-      extraActions={(row) => (
-        <>
-          <button
-            type="button"
-            className="btn btn-ghost btn-sm"
-            onClick={() =>
-              startTransition(async () => {
-                await toggleContactReadAction(row.id, !row.read);
-                window.location.reload();
-              })
-            }
-            aria-label={row.read ? 'Mark unread' : 'Mark read'}
-          >
-            {row.read ? <MailOpen size={14} /> : <Mail size={14} />}
-          </button>
-
-          <button
-            type="button"
-            className="btn btn-ghost btn-sm danger"
-            onClick={() =>
-              startTransition(async () => {
-                await deleteRowAction('contacts', row.id, ['/admin/contacts']);
-                window.location.reload();
-              })
-            }
-            aria-label="Delete contact"
-          >
-            <Trash2 size={14} />
-          </button>
-        </>
-      )}
-      renderForm={(item, onClose, onSaved) => (
-        <ContactForm item={item} onClose={onClose} onSaved={onSaved} />
-      )}
-    />
-  );
+ return (
+  <AdminShell<Contact>
+    title="Contacts"
+    initialData={initialData}
+    searchKeys={['name', 'email', 'subject', 'message', 'source']}
+    exportFields={['id', 'name', 'email', 'phone', 'subject', 'source', 'read', 'created_at']}
+    addLabel="Open Contact"
+    stats={[
+      { label: 'Total', value: (rows) => rows.length },
+      { label: 'Unread', value: (rows) => rows.filter((r) => !r.read).length, tone: 'warning' },
+      { label: 'Read', value: (rows) => rows.filter((r) => !!r.read).length, tone: 'success' },
+    ]}
+    columns={[
+      { key: 'name', label: 'Name', render: (r) => <span className="font-medium">{r.name}</span> },
+      { key: 'email', label: 'Email' },
+      { key: 'phone', label: 'Phone', mobileHidden: true, render: (r) => r.phone ?? '—' },
+      { key: 'subject', label: 'Subject', render: (r) => r.subject ?? '—' },
+      { key: 'source', label: 'Source', mobileHidden: true },
+      {
+        key: 'read',
+        label: 'Status',
+        render: (r) => (
+          <span className={`badge ${r.read ? 'badge-success' : 'badge-muted'}`}>
+            {r.read ? 'Read' : 'Unread'}
+          </span>
+        ),
+      },
+    ]}
+    extraActions={(row) => (
+      <>
+        <button
+          type="button"
+          className="btn btn-ghost btn-sm"
+          onClick={() =>
+            startTransition(async () => {
+              await toggleContactReadAction(row.id, !row.read);
+              window.location.reload();
+            })
+          }
+          aria-label={row.read ? 'Mark unread' : 'Mark read'}
+        >
+          {row.read ? <MailOpen size={14} /> : <Mail size={14} />}
+        </button>
+        <button
+          type="button"
+          className="btn btn-ghost btn-sm danger"
+          onClick={() =>
+            startTransition(async () => {
+              await deleteRowAction('contacts', row.id, ['/admin/contacts']);
+              window.location.reload();
+            })
+          }
+          aria-label="Delete contact"
+        >
+          <Trash2 size={14} />
+        </button>
+      </>
+    )}
+    renderForm={(item, onClose, onSaved) => <ContactForm item={item} onClose={onClose} onSaved={onSaved} />}
+  />
+);
 }

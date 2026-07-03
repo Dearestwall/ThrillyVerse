@@ -159,65 +159,63 @@ export default function NotificationsAdminTable({
     }
   };
 
-  return (
-    <AdminShell<Notification>
-      title="Notifications"
-      initialData={initialData}
-      searchKeys={['title', 'message', 'type', 'audience']}
-      exportFields={['id', 'title', 'type', 'audience', 'is_active', 'created_at']}
-      onBulkUpload={bulkUpload}
-      columns={[
-        {
-          key: 'title',
-          label: 'Title',
-          render: (r) => <span className="font-medium">{r.title}</span>,
-        },
-        { key: 'type', label: 'Type' },
-        { key: 'audience', label: 'Audience' },
-        {
-          key: 'is_active',
-          label: 'Status',
-          render: (r) => (
-            <span className={`badge ${r.is_active ? 'badge-success' : 'badge-muted'}`}>
-              {r.is_active ? 'Active' : 'Inactive'}
-            </span>
-          ),
-        },
-      ]}
-      extraActions={(row) => (
-        <>
-          <button
-            type="button"
-            className="btn btn-ghost btn-sm"
-            onClick={() =>
-              startTransition(async () => {
-                await toggleNotificationActiveAction(row.id, !row.is_active);
-                window.location.reload();
-              })
-            }
-            aria-label={row.is_active ? 'Deactivate' : 'Activate'}
-          >
-            {row.is_active ? <ToggleRight size={14} /> : <ToggleLeft size={14} />}
-          </button>
-
-          <button
-            type="button"
-            className="btn btn-ghost btn-sm danger"
-            onClick={() =>
-              startTransition(async () => {
-                await deleteRowAction('notifications', row.id, ['/admin/notifications']);
-                window.location.reload();
-              })
-            }
-            aria-label="Delete notification"
-          >
-            <Trash2 size={14} />
-          </button>
-        </>
-      )}
-      renderForm={(item, onClose, onSaved) => (
-        <NotificationForm item={item} onClose={onClose} onSaved={onSaved} />
-      )}
-    />
-  );
+ return (
+  <AdminShell<Notification>
+    title="Notifications"
+    initialData={initialData}
+    searchKeys={['title', 'message', 'type', 'audience']}
+    exportFields={['id', 'title', 'type', 'audience', 'target_url', 'is_active', 'created_at']}
+    onBulkUpload={bulkUpload}
+    stats={[
+      { label: 'Total', value: (rows) => rows.length },
+      { label: 'Active', value: (rows) => rows.filter((r) => !!r.is_active).length, tone: 'success' },
+    ]}
+    columns={[
+      { key: 'title', label: 'Title', render: (r) => <span className="font-medium">{r.title}</span> },
+      { key: 'type', label: 'Type' },
+      { key: 'audience', label: 'Audience', mobileHidden: true },
+      { key: 'target_url', label: 'Target URL', mobileHidden: true, render: (r) => r.target_url ?? '—' },
+      {
+        key: 'is_active',
+        label: 'Status',
+        render: (r) => (
+          <span className={`badge ${r.is_active ? 'badge-success' : 'badge-muted'}`}>
+            {r.is_active ? 'Active' : 'Inactive'}
+          </span>
+        ),
+      },
+    ]}
+    extraActions={(row) => (
+      <>
+        <button
+          type="button"
+          className="btn btn-ghost btn-sm"
+          onClick={() =>
+            startTransition(async () => {
+              await toggleNotificationActiveAction(row.id, !row.is_active);
+              window.location.reload();
+            })
+          }
+          aria-label={row.is_active ? 'Deactivate' : 'Activate'}
+        >
+          {row.is_active ? <ToggleRight size={14} /> : <ToggleLeft size={14} />}
+        </button>
+        <button
+          type="button"
+          className="btn btn-ghost btn-sm danger"
+          onClick={() =>
+            startTransition(async () => {
+              await deleteRowAction('notifications', row.id, ['/admin/notifications']);
+              window.location.reload();
+            })
+          }
+          aria-label="Delete notification"
+        >
+          <Trash2 size={14} />
+        </button>
+      </>
+    )}
+    renderForm={(item, onClose, onSaved) => <NotificationForm item={item} onClose={onClose} onSaved={onSaved} />}
+  />
+);
 }

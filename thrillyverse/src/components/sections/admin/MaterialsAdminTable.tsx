@@ -253,17 +253,20 @@ export default function MaterialsAdminTable({ initialData }: { initialData: Mate
   };
 
   return (
-  <AdminShell<Material>
+ <AdminShell<Material>
   title="Materials"
   initialData={initialData}
   searchKeys={['title', 'board', 'class_level', 'subject', 'topic']}
   exportFields={[
     'id',
     'title',
+    'slug',
     'board',
     'class_level',
     'subject',
+    'topic',
     'resource_type',
+    'is_premium',
     'featured',
     'published',
     'sort_order',
@@ -277,9 +280,35 @@ export default function MaterialsAdminTable({ initialData }: { initialData: Mate
   ]}
   columns={[
     { key: 'title', label: 'Title', render: (r) => <span className="font-medium">{r.title}</span> },
+    { key: 'slug', label: 'Slug', mobileHidden: true },
     { key: 'board', label: 'Board' },
+    { key: 'class_level', label: 'Class', mobileHidden: true },
     { key: 'subject', label: 'Subject' },
+    { key: 'topic', label: 'Topic', mobileHidden: true },
     { key: 'resource_type', label: 'Type', mobileHidden: true },
+    { key: 'file_size', label: 'File Size', mobileHidden: true },
+    {
+      key: 'is_premium',
+      label: 'Premium',
+      mobileHidden: true,
+      render: (r) => (
+        <span className={`badge ${r.is_premium ? 'badge-warning' : 'badge-muted'}`}>
+          {r.is_premium ? 'Premium' : 'Free'}
+        </span>
+      ),
+    },
+    {
+      key: 'featured',
+      label: 'Featured',
+      mobileHidden: true,
+      render: (r) => (
+        <span className={`badge ${r.featured ? 'badge-success' : 'badge-muted'}`}>
+          {r.featured ? 'Yes' : 'No'}
+        </span>
+      ),
+    },
+    { key: 'view_count', label: 'Views', mobileHidden: true, render: (r) => r.view_count ?? 0 },
+    { key: 'sort_order', label: 'Order', mobileHidden: true, render: (r) => r.sort_order ?? 0 },
     {
       key: 'published',
       label: 'Status',
@@ -290,54 +319,54 @@ export default function MaterialsAdminTable({ initialData }: { initialData: Mate
       ),
     },
   ]}
-      extraActions={(row) => (
-        <>
-          <button
-            type="button"
-            className="btn btn-ghost btn-sm"
-            onClick={() =>
-              startTransition(async () => {
-                await toggleMaterialPublishedAction(row.id, !row.published);
-                window.location.reload();
-              })
-            }
-            aria-label={row.published ? 'Unpublish material' : 'Publish material'}
-          >
-            {row.published ? <EyeOff size={14} /> : <Eye size={14} />}
-          </button>
+  extraActions={(row) => (
+    <>
+      <button
+        type="button"
+        className="btn btn-ghost btn-sm"
+        onClick={() =>
+          startTransition(async () => {
+            await toggleMaterialPublishedAction(row.id, !row.published);
+            window.location.reload();
+          })
+        }
+        aria-label={row.published ? 'Unpublish material' : 'Publish material'}
+      >
+        {row.published ? <EyeOff size={14} /> : <Eye size={14} />}
+      </button>
 
-          <button
-            type="button"
-            className={`btn btn-ghost btn-sm ${row.featured ? 'text-yellow-500' : ''}`}
-            onClick={() =>
-              startTransition(async () => {
-                await toggleMaterialFeaturedAction(row.id, !row.featured);
-                window.location.reload();
-              })
-            }
-            aria-label={row.featured ? 'Remove featured' : 'Mark featured'}
-          >
-            <Star size={14} />
-          </button>
+      <button
+        type="button"
+        className={`btn btn-ghost btn-sm ${row.featured ? 'text-yellow-500' : ''}`}
+        onClick={() =>
+          startTransition(async () => {
+            await toggleMaterialFeaturedAction(row.id, !row.featured);
+            window.location.reload();
+          })
+        }
+        aria-label={row.featured ? 'Remove featured' : 'Mark featured'}
+      >
+        <Star size={14} />
+      </button>
 
-          <button
-            type="button"
-            className="btn btn-ghost btn-sm danger"
-            onClick={() =>
-              startTransition(async () => {
-                await deleteRowAction('materials', row.id, ['/materials', '/admin/materials']);
-                window.location.reload();
-              })
-            }
-            aria-label="Delete material"
-          >
-            <Trash2 size={14} />
-          </button>
-        </>
-      )}
-      renderForm={(item, onClose, onSaved) => (
-        <MaterialForm item={item} onClose={onClose} onSaved={onSaved} />
-      )}
-    />
+      <button
+        type="button"
+        className="btn btn-ghost btn-sm danger"
+        onClick={() =>
+          startTransition(async () => {
+            await deleteRowAction('materials', row.id, ['/materials', '/admin/materials']);
+            window.location.reload();
+          })
+        }
+        aria-label="Delete material"
+      >
+        <Trash2 size={14} />
+      </button>
+    </>
+  )}
+  renderForm={(item, onClose, onSaved) => (
+    <MaterialForm item={item} onClose={onClose} onSaved={onSaved} />
+  )}
+/>
   );
 }

@@ -6,7 +6,7 @@ import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { toast } from 'react-hot-toast';
 import { ToggleLeft, ToggleRight, Trash2, Award } from 'lucide-react';
-import { AdminShell } from './AdminShell';
+import { AdminBulkTemplateField, AdminShell } from './AdminShell';
 import {
   createCertificationAction,
   updateCertificationAction,
@@ -23,6 +23,17 @@ type CertificationLike = Certification & {
   description?: string | null;
   active?: boolean | null;
 };
+
+export const certificationsBulkFields: AdminBulkTemplateField[] = [
+  { key: 'title',          label: 'Title',          type: 'text',     required: true             },
+  { key: 'issuer',         label: 'Issuer',         type: 'text'                                 },
+  { key: 'issue_date',     label: 'Issue Date',     type: 'date'                                 },
+  { key: 'credential_url', label: 'Credential URL', type: 'url'                                  },
+  { key: 'image_url',      label: 'Image URL',      type: 'url'                                  },
+  { key: 'description',    label: 'Description',    type: 'textarea'                             },
+  { key: 'sort_order',     label: 'Sort Order',     type: 'number'                               },
+  { key: 'active',         label: 'Active',         type: 'checkbox', helpText: 'true/false'     },
+];
 
 const schema = z.object({
   title: z.string().min(1, 'Title is required'),
@@ -177,72 +188,67 @@ export default function CertificationsAdminTable({
     }
   };
 
-  return (
-    <AdminShell<CertificationLike>
-      title="Certifications"
-      initialData={initialData}
-      searchKeys={['title', 'issuer', 'description']}
-      exportFields={['id', 'title', 'issuer', 'issue_date', 'sort_order', 'active']}
-      onBulkUpload={bulkUpload}
-      addLabel="Add Certification"
-      stats={[
-        { label: 'Total', value: (rows) => rows.length },
-        { label: 'Active', value: (rows) => rows.filter((r) => !!r.active).length, tone: 'success' },
-        { label: 'Inactive', value: (rows) => rows.filter((r) => !r.active).length, tone: 'warning' },
-      ]}
-      columns={[
-        {
-          key: 'title',
-          label: 'Title',
-          render: (row) => <span className="font-medium">{row.title}</span>,
-        },
-        { key: 'issuer', label: 'Issuer', render: (row) => row.issuer || '—' },
-        { key: 'issue_date', label: 'Date', render: (row) => row.issue_date || '—', mobileHidden: true },
-        { key: 'sort_order', label: 'Order', render: (row) => row.sort_order ?? 0, mobileHidden: true },
-        {
-          key: 'active',
-          label: 'Status',
-          render: (row) => (
-            <span className={`badge ${row.active ? 'badge-success' : 'badge-muted'}`}>
-              {row.active ? 'Active' : 'Inactive'}
-            </span>
-          ),
-        },
-      ]}
-      extraActions={(row) => (
-        <>
-          <button
-            type="button"
-            className="btn btn-ghost btn-sm"
-            onClick={() =>
-              startTransition(async () => {
-                await toggleCertificationActiveAction(row.id, !row.active);
-                window.location.reload();
-              })
-            }
-            aria-label={row.active ? 'Deactivate certification' : 'Activate certification'}
-          >
-            {row.active ? <ToggleRight size={14} /> : <ToggleLeft size={14} />}
-          </button>
-
-          <button
-            type="button"
-            className="btn btn-ghost btn-sm danger"
-            onClick={() =>
-              startTransition(async () => {
-                await deleteRowAction('certifications', row.id, ['/', '/admin/certifications']);
-                window.location.reload();
-              })
-            }
-            aria-label="Delete certification"
-          >
-            <Trash2 size={14} />
-          </button>
-        </>
-      )}
-      renderForm={(item, onClose, onSaved) => (
-        <CertificationForm item={item} onClose={onClose} onSaved={onSaved} />
-      )}
-    />
-  );
+ return (
+  <AdminShell<CertificationLike>
+    title="Certifications"
+    initialData={initialData}
+    searchKeys={['title', 'issuer', 'description']}
+    exportFields={['id', 'title', 'issuer', 'issue_date', 'credential_url', 'sort_order', 'active']}
+    onBulkUpload={bulkUpload}
+    addLabel="Add Certification"
+    stats={[
+      { label: 'Total', value: (rows) => rows.length },
+      { label: 'Active', value: (rows) => rows.filter((r) => !!r.active).length, tone: 'success' },
+      { label: 'Inactive', value: (rows) => rows.filter((r) => !r.active).length, tone: 'warning' },
+    ]}
+    columns={[
+      { key: 'title', label: 'Title', render: (row) => <span className="font-medium">{row.title}</span> },
+      { key: 'issuer', label: 'Issuer', render: (row) => row.issuer ?? '—' },
+      { key: 'issue_date', label: 'Date', mobileHidden: true, render: (row) => row.issue_date ?? '—' },
+      { key: 'credential_url', label: 'Credential', mobileHidden: true, render: (row) => row.credential_url ?? '—' },
+      { key: 'image_url', label: 'Image', mobileHidden: true, render: (row) => row.image_url ?? '—' },
+      { key: 'sort_order', label: 'Order', mobileHidden: true, render: (row) => row.sort_order ?? 0 },
+      {
+        key: 'active',
+        label: 'Status',
+        render: (row) => (
+          <span className={`badge ${row.active ? 'badge-success' : 'badge-muted'}`}>
+            {row.active ? 'Active' : 'Inactive'}
+          </span>
+        ),
+      },
+    ]}
+    extraActions={(row) => (
+      <>
+        <button
+          type="button"
+          className="btn btn-ghost btn-sm"
+          onClick={() =>
+            startTransition(async () => {
+              await toggleCertificationActiveAction(row.id, !row.active);
+              window.location.reload();
+            })
+          }
+          aria-label={row.active ? 'Deactivate certification' : 'Activate certification'}
+        >
+          {row.active ? <ToggleRight size={14} /> : <ToggleLeft size={14} />}
+        </button>
+        <button
+          type="button"
+          className="btn btn-ghost btn-sm danger"
+          onClick={() =>
+            startTransition(async () => {
+              await deleteRowAction('certifications', row.id, ['/', '/admin/certifications']);
+              window.location.reload();
+            })
+          }
+          aria-label="Delete certification"
+        >
+          <Trash2 size={14} />
+        </button>
+      </>
+    )}
+    renderForm={(item, onClose, onSaved) => <CertificationForm item={item} onClose={onClose} onSaved={onSaved} />}
+  />
+);
 }

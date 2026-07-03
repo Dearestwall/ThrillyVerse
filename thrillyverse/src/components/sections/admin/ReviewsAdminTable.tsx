@@ -172,80 +172,89 @@ export default function ReviewsAdminTable({
     }
   };
 
-  return (
-    <AdminShell<Review>
-      title="Reviews"
-      initialData={initialData}
-      searchKeys={['name', 'role', 'text', 'emoji']}
-      exportFields={['id', 'name', 'role', 'rating', 'featured', 'published', 'sort_order']}
-      onBulkUpload={bulkUpload}
-      columns={[
-        {
-          key: 'name',
-          label: 'Name',
-          render: (r) => <span className="font-medium">{r.name}</span>,
-        },
-        { key: 'role', label: 'Role', render: (r) => r.role || '—' },
-        { key: 'rating', label: 'Rating', render: (r) => `${r.rating}/5` },
-        { key: 'emoji', label: 'Emoji', render: (r) => r.emoji || '—' },
-        {
-          key: 'published',
-          label: 'Status',
-          render: (r) => (
-            <span className={`badge ${r.published ? 'badge-success' : 'badge-muted'}`}>
-              {r.published ? 'Published' : 'Draft'}
-            </span>
-          ),
-        },
-      ]}
-      extraActions={(row) => (
-        <>
-          <button
-            type="button"
-            className="btn btn-ghost btn-sm"
-            onClick={() =>
-              startTransition(async () => {
-                await toggleReviewPublishedAction(row.id, !row.published);
-                window.location.reload();
-              })
-            }
-            aria-label={row.published ? 'Unpublish review' : 'Publish review'}
-          >
-            {row.published ? <EyeOff size={14} /> : <Eye size={14} />}
-          </button>
-
-          <button
-            type="button"
-            className={`btn btn-ghost btn-sm ${row.featured ? 'text-yellow-500' : ''}`}
-            onClick={() =>
-              startTransition(async () => {
-                await toggleReviewFeaturedAction(row.id, !row.featured);
-                window.location.reload();
-              })
-            }
-            aria-label={row.featured ? 'Remove featured review' : 'Feature review'}
-          >
-            <Star size={14} />
-          </button>
-
-          <button
-            type="button"
-            className="btn btn-ghost btn-sm danger"
-            onClick={() =>
-              startTransition(async () => {
-                await deleteRowAction('reviews', row.id, ['/', '/admin/reviews']);
-                window.location.reload();
-              })
-            }
-            aria-label="Delete review"
-          >
-            <Trash2 size={14} />
-          </button>
-        </>
-      )}
-      renderForm={(item, onClose, onSaved) => (
-        <ReviewForm item={item} onClose={onClose} onSaved={onSaved} />
-      )}
-    />
-  );
+ return (
+  <AdminShell<Review>
+    title="Reviews"
+    initialData={initialData}
+    searchKeys={['name', 'role', 'text', 'emoji']}
+    exportFields={['id', 'name', 'role', 'rating', 'featured', 'published', 'sort_order']}
+    onBulkUpload={bulkUpload}
+    stats={[
+      { label: 'Total', value: (rows) => rows.length },
+      { label: 'Published', value: (rows) => rows.filter((r) => !!r.published).length, tone: 'success' },
+      { label: 'Featured', value: (rows) => rows.filter((r) => !!r.featured).length, tone: 'warning' },
+    ]}
+    columns={[
+      { key: 'name', label: 'Name', render: (r) => <span className="font-medium">{r.name}</span> },
+      { key: 'role', label: 'Role', mobileHidden: true, render: (r) => r.role ?? '—' },
+      { key: 'text', label: 'Review', mobileHidden: true, render: (r) => (r.text?.length > 40 ? `${r.text.slice(0, 40)}…` : r.text) },
+      { key: 'rating', label: 'Rating', render: (r) => `${r.rating}/5` },
+      { key: 'emoji', label: 'Emoji', mobileHidden: true, render: (r) => r.emoji ?? '—' },
+      { key: 'sort_order', label: 'Order', mobileHidden: true, render: (r) => r.sort_order ?? 0 },
+      {
+        key: 'featured',
+        label: 'Featured',
+        mobileHidden: true,
+        render: (r) => (
+          <span className={`badge ${r.featured ? 'badge-success' : 'badge-muted'}`}>
+            {r.featured ? 'Yes' : 'No'}
+          </span>
+        ),
+      },
+      {
+        key: 'published',
+        label: 'Status',
+        render: (r) => (
+          <span className={`badge ${r.published ? 'badge-success' : 'badge-muted'}`}>
+            {r.published ? 'Published' : 'Draft'}
+          </span>
+        ),
+      },
+    ]}
+    extraActions={(row) => (
+      <>
+        <button
+          type="button"
+          className="btn btn-ghost btn-sm"
+          onClick={() =>
+            startTransition(async () => {
+              await toggleReviewPublishedAction(row.id, !row.published);
+              window.location.reload();
+            })
+          }
+          aria-label={row.published ? 'Unpublish review' : 'Publish review'}
+        >
+          {row.published ? <EyeOff size={14} /> : <Eye size={14} />}
+        </button>
+        <button
+          type="button"
+          className={`btn btn-ghost btn-sm ${row.featured ? 'text-yellow-500' : ''}`}
+          onClick={() =>
+            startTransition(async () => {
+              await toggleReviewFeaturedAction(row.id, !row.featured);
+              window.location.reload();
+            })
+          }
+          aria-label={row.featured ? 'Remove featured review' : 'Feature review'}
+        >
+          <Star size={14} />
+        </button>
+        <button
+          type="button"
+          className="btn btn-ghost btn-sm danger"
+          onClick={() =>
+            startTransition(async () => {
+              await deleteRowAction('reviews', row.id, ['/', '/admin/reviews']);
+              window.location.reload();
+            })
+          }
+          aria-label="Delete review"
+        >
+          <Trash2 size={14} />
+        </button>
+      </>
+    )}
+    renderForm={(item, onClose, onSaved) => <ReviewForm item={item} onClose={onClose} onSaved={onSaved} />}
+  />
+);
 }

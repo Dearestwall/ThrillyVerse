@@ -61,6 +61,11 @@ function ensureArray<T>(value: T[] | null | undefined): T[] {
   return Array.isArray(value) ? value : [];
 }
 
+// Internal/DB-generated fields to exclude from auto-derived bulk templates
+const INTERNAL_FIELD_KEYS = new Set([
+  'id', 'created_at', 'updated_at', 'user_id', 'author_id', 'owner_id',
+]);
+
 function toCsv(rows: Record<string, any>[]): string {
   if (!rows.length) return '';
   const headers = Object.keys(rows[0] ?? {});
@@ -81,6 +86,12 @@ function toCsv(rows: Record<string, any>[]): string {
 
 function getStatValue<T>(stat: AdminStat<T>, rows: T[]) {
   return typeof stat.value === 'function' ? stat.value(rows) : stat.value;
+}
+
+function humanizeLabel(field: string): string {
+  return field
+    .replace(/_/g, ' ')
+    .replace(/\b\w/g, (m) => m.toUpperCase());
 }
 
 /* ── Component ────────────────────────────────────────────── */
@@ -134,25 +145,36 @@ export function AdminShell<T extends Record<string, any>>({
 
   const hasRows = safeRows.length > 0;
 
-  /* ── Bulk template fields — derived dynamically if not provided ── */
+  /* ── Bulk template fields — explicit > exportFields > safe auto-derive ── */
   const templateFields = useMemo<AdminBulkTemplateField[]>(() => {
     if (bulkTemplateFields.length) return bulkTemplateFields;
 
-    const base =
-      exportFields.length > 0
-        ? exportFields.map(String)
-        : Object.keys(normalizedInitialData[0] ?? { title: '', published: '' });
+    if (exportFields.length > 0) {
+      return exportFields.map((field) => {
+        const key = String(field);
+        return {
+          key,
+          label: humanizeLabel(key),
+          type: 'text' as const,
+        };
+      });
+    }
 
-    return base.map((field) => ({
+    // Auto-derive from the first data row, excluding internal/system fields
+    const sourceKeys = Object.keys(normalizedInitialData[0] ?? {}).filter(
+      (k) => !INTERNAL_FIELD_KEYS.has(k)
+    );
+
+    if (!sourceKeys.length) return [];
+
+    return sourceKeys.map((field) => ({
       key: field,
-      label: field
-        .replace(/_/g, ' ')
-        .replace(/\b\w/g, (m) => m.toUpperCase()),
+      label: humanizeLabel(field),
       type: 'text' as const,
     }));
   }, [bulkTemplateFields, exportFields, normalizedInitialData]);
 
-  const canBulkUpload = Boolean(onBulkUpload && templateFields.length > 0);
+  const canBulkUpload = Boolean(onBulkUpload) && templateFields.length > 0;
 
   /* ── Handlers ── */
   const handleSaved = useCallback(() => {
@@ -168,6 +190,8 @@ export function AdminShell<T extends Record<string, any>>({
       exportFields.length > 0
         ? exportFields.map(String)
         : Object.keys(safeRows[0] ?? {});
+
+    if (!fields.length) return;
 
     const mapped = safeRows.map((row) => {
       const entry: Record<string, any> = {};

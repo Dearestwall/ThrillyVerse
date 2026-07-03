@@ -156,66 +156,65 @@ export default function PartnersAdminTable({
     }
   };
 
-  return (
-    <AdminShell<PartnerLike>
-      title="Partners"
-      initialData={initialData}
-      searchKeys={['name', 'emoji', 'description']}
-      exportFields={['id', 'name', 'emoji', 'logo_url', 'website_url', 'sort_order', 'active']}
-      onBulkUpload={bulkUpload}
-      columns={[
-        {
-          key: 'name',
-          label: 'Name',
-          render: (r) => <span className="font-medium">{r.name}</span>,
-        },
-        { key: 'emoji', label: 'Emoji', render: (r) => r.emoji || '—' },
-        { key: 'logo_url', label: 'Logo', render: (r) => r.logo_url || '—' },
-        { key: 'sort_order', label: 'Order', render: (r) => r.sort_order ?? 0 },
-        {
-          key: 'active',
-          label: 'Status',
-          render: (r) => (
-            <span className={`badge ${r.active ? 'badge-success' : 'badge-muted'}`}>
-              {r.active ? 'Active' : 'Inactive'}
-            </span>
-          ),
-        },
-      ]}
-      extraActions={(row) => (
-        <>
-          <button
-            type="button"
-            className="btn btn-ghost btn-sm"
-            onClick={() =>
-              startTransition(async () => {
-                await togglePartnerActiveAction(row.id, !row.active);
-                window.location.reload();
-              })
-            }
-            aria-label={row.active ? 'Deactivate partner' : 'Activate partner'}
-          >
-            {row.active ? <ToggleRight size={14} /> : <ToggleLeft size={14} />}
-          </button>
-
-          <button
-            type="button"
-            className="btn btn-ghost btn-sm danger"
-            onClick={() =>
-              startTransition(async () => {
-                await deleteRowAction('partners', row.id, ['/', '/admin/partners']);
-                window.location.reload();
-              })
-            }
-            aria-label="Delete partner"
-          >
-            <Trash2 size={14} />
-          </button>
-        </>
-      )}
-      renderForm={(item, onClose, onSaved) => (
-        <PartnerForm item={item} onClose={onClose} onSaved={onSaved} />
-      )}
-    />
-  );
+ return (
+  <AdminShell<PartnerLike>
+    title="Partners"
+    initialData={initialData}
+    searchKeys={['name', 'emoji', 'description']}
+    exportFields={['id', 'name', 'emoji', 'logo_url', 'website_url', 'sort_order', 'active']}
+    onBulkUpload={bulkUpload}
+    stats={[
+      { label: 'Total', value: (rows) => rows.length },
+      { label: 'Active', value: (rows) => rows.filter((r) => !!r.active).length, tone: 'success' },
+    ]}
+    columns={[
+      { key: 'name', label: 'Name', render: (r) => <span className="font-medium">{r.name}</span> },
+      { key: 'emoji', label: 'Emoji', mobileHidden: true, render: (r) => r.emoji ?? '—' },
+      { key: 'logo_url', label: 'Logo', mobileHidden: true, render: (r) => r.logo_url ?? '—' },
+      { key: 'website_url', label: 'Website', mobileHidden: true, render: (r) => r.website_url ?? '—' },
+      { key: 'description', label: 'Description', mobileHidden: true, render: (r) => r.description ?? '—' },
+      { key: 'sort_order', label: 'Order', mobileHidden: true, render: (r) => r.sort_order ?? 0 },
+      {
+        key: 'active',
+        label: 'Status',
+        render: (r) => (
+          <span className={`badge ${r.active ? 'badge-success' : 'badge-muted'}`}>
+            {r.active ? 'Active' : 'Inactive'}
+          </span>
+        ),
+      },
+    ]}
+    extraActions={(row) => (
+      <>
+        <button
+          type="button"
+          className="btn btn-ghost btn-sm"
+          onClick={() =>
+            startTransition(async () => {
+              await togglePartnerActiveAction(row.id, !row.active);
+              window.location.reload();
+            })
+          }
+          aria-label={row.active ? 'Deactivate partner' : 'Activate partner'}
+        >
+          {row.active ? <ToggleRight size={14} /> : <ToggleLeft size={14} />}
+        </button>
+        <button
+          type="button"
+          className="btn btn-ghost btn-sm danger"
+          onClick={() =>
+            startTransition(async () => {
+              await deleteRowAction('partners', row.id, ['/', '/admin/partners']);
+              window.location.reload();
+            })
+          }
+          aria-label="Delete partner"
+        >
+          <Trash2 size={14} />
+        </button>
+      </>
+    )}
+    renderForm={(item, onClose, onSaved) => <PartnerForm item={item} onClose={onClose} onSaved={onSaved} />}
+  />
+);
 }

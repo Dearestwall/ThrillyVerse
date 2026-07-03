@@ -14,6 +14,7 @@ import {
   deleteRowAction,
 } from '@/app/actions/admin';
 import type { Blog } from '@/types';
+import { blogsBulkFields } from '@/lib/admin/bulkTemplates';
 
 const schema = z.object({
   title: z.string().min(1, 'Required'),
@@ -162,12 +163,14 @@ export default function BlogsAdminTable({ initialData }: { initialData: Blog[] }
       title="Blogs"
       initialData={initialData}
       searchKeys={['title', 'category', 'excerpt']}
-      exportFields={['id', 'title', 'slug', 'category', 'read_time', 'published']}
+      exportFields={['id', 'title', 'slug', 'category', 'read_time', 'cover_image', 'published']}
       onBulkUpload={bulkUpload}
       columns={[
         { key: 'title', label: 'Title', render: (r) => <span className="font-medium">{r.title}</span> },
         { key: 'category', label: 'Category' },
         { key: 'read_time', label: 'Read Time', render: (r) => `${r.read_time ?? 0} min` },
+        { key: 'cover_image', label: 'Cover Image' },
+        { key: 'excerpt',      label: 'Excerpt'  },
         {
           key: 'published',
           label: 'Status',
@@ -206,6 +209,7 @@ export default function BlogsAdminTable({ initialData }: { initialData: Blog[] }
           </button>
         </>
       )}
+       bulkTemplateFields={blogsBulkFields}
       renderForm={(item, onClose, onSaved) => <BlogForm item={item} onClose={onClose} onSaved={onSaved} />}
     />
   );

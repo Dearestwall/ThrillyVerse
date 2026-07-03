@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server';
 import BlogsAdminTable from '@/components/sections/admin/BlogsAdminTable';
 
+
 export default async function AdminBlogsPage() {
   const supabase = await createClient();
 

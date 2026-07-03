@@ -6,7 +6,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { toast } from 'react-hot-toast';
 import { ToggleLeft, ToggleRight, Trash2, Megaphone } from 'lucide-react';
-import { AdminShell } from './AdminShell';
+import { AdminBulkTemplateField, AdminShell } from './AdminShell';
 import {
   createAnnouncementAction,
   updateAnnouncementAction,
@@ -24,6 +24,15 @@ const schema = z.object({
   priority: z.coerce.number().default(0),
   active: z.boolean().default(true),
 });
+export const announcementsBulkFields: AdminBulkTemplateField[] = [
+  { key: 'title',     label: 'Title',     type: 'text',     required: true                      },
+  { key: 'body',      label: 'Body',      type: 'textarea', required: true                      }, // was 'message'
+  { key: 'cta_label', label: 'CTA Label', type: 'text'                                          }, // was 'link_text'
+  { key: 'cta_url',   label: 'CTA URL',   type: 'url'                                           }, // was 'link'
+  { key: 'badge',     label: 'Badge',     type: 'text'                                          },
+  { key: 'priority',  label: 'Priority',  type: 'number',   helpText: 'Higher = shown first'    },
+  { key: 'active',    label: 'Active',    type: 'checkbox', helpText: 'true/false'              },
+];
 
 type FD = z.infer<typeof schema>;
 
@@ -159,79 +168,66 @@ export default function AnnouncementsAdminTable({
     }
   };
 
-  return (
-    <AdminShell<Announcement>
-      title="Announcements"
-      initialData={initialData}
-      searchKeys={['title', 'body', 'badge']}
-      exportFields={['id', 'title', 'badge', 'priority', 'active', 'created_at']}
-      onBulkUpload={bulkUpload}
-      addLabel="New Announcement"
-      stats={[
-        { label: 'Total', value: (rows) => rows.length },
-        { label: 'Active', value: (rows) => rows.filter((r) => !!r.active).length, tone: 'success' },
-        { label: 'Inactive', value: (rows) => rows.filter((r) => !r.active).length, tone: 'warning' },
-      ]}
-      columns={[
-        {
-          key: 'title',
-          label: 'Title',
-          render: (r) => <span className="font-medium">{r.title}</span>,
-        },
-        {
-          key: 'badge',
-          label: 'Badge',
-          render: (r) => r.badge || '—',
-        },
-        {
-          key: 'priority',
-          label: 'Priority',
-          render: (r) => r.priority ?? 0,
-        },
-        {
-          key: 'active',
-          label: 'Status',
-          render: (r) => (
-            <span className={`badge ${r.active ? 'badge-success' : 'badge-muted'}`}>
-              {r.active ? 'Active' : 'Inactive'}
-            </span>
-          ),
-        },
-      ]}
-      extraActions={(row) => (
-        <>
-          <button
-            type="button"
-            className="btn btn-ghost btn-sm"
-            onClick={() =>
-              startTransition(async () => {
-                await toggleAnnouncementActiveAction(row.id, !row.active);
-                window.location.reload();
-              })
-            }
-            aria-label={row.active ? 'Deactivate announcement' : 'Activate announcement'}
-          >
-            {row.active ? <ToggleRight size={14} /> : <ToggleLeft size={14} />}
-          </button>
-
-          <button
-            type="button"
-            className="btn btn-ghost btn-sm danger"
-            onClick={() =>
-              startTransition(async () => {
-                await deleteRowAction('announcements', row.id, ['/', '/admin/announcements']);
-                window.location.reload();
-              })
-            }
-            aria-label="Delete announcement"
-          >
-            <Trash2 size={14} />
-          </button>
-        </>
-      )}
-      renderForm={(item, onClose, onSaved) => (
-        <AnnouncementForm item={item} onClose={onClose} onSaved={onSaved} />
-      )}
-    />
-  );
+ return (
+  <AdminShell<Announcement>
+    title="Announcements"
+    initialData={initialData}
+    searchKeys={['title', 'body', 'badge']}
+    exportFields={['id', 'title', 'badge', 'cta_label', 'cta_url', 'priority', 'active', 'created_at']}
+    onBulkUpload={bulkUpload}
+    addLabel="New Announcement"
+    stats={[
+      { label: 'Total', value: (rows) => rows.length },
+      { label: 'Active', value: (rows) => rows.filter((r) => !!r.active).length, tone: 'success' },
+      { label: 'Inactive', value: (rows) => rows.filter((r) => !r.active).length, tone: 'warning' },
+    ]}
+    columns={[
+      { key: 'title', label: 'Title', render: (r) => <span className="font-medium">{r.title}</span> },
+      { key: 'badge', label: 'Badge', mobileHidden: true, render: (r) => r.badge ?? '—' },
+      { key: 'cta_label', label: 'CTA Label', mobileHidden: true, render: (r) => r.cta_label ?? '—' },
+      { key: 'cta_url', label: 'CTA URL', mobileHidden: true, render: (r) => r.cta_url ?? '—' },
+      { key: 'priority', label: 'Priority', mobileHidden: true, render: (r) => r.priority ?? 0 },
+      {
+        key: 'active',
+        label: 'Status',
+        render: (r) => (
+          <span className={`badge ${r.active ? 'badge-success' : 'badge-muted'}`}>
+            {r.active ? 'Active' : 'Inactive'}
+          </span>
+        ),
+      },
+    ]}
+    extraActions={(row) => (
+      <>
+        <button
+          type="button"
+          className="btn btn-ghost btn-sm"
+          onClick={() =>
+            startTransition(async () => {
+              await toggleAnnouncementActiveAction(row.id, !row.active);
+              window.location.reload();
+            })
+          }
+          aria-label={row.active ? 'Deactivate announcement' : 'Activate announcement'}
+        >
+          {row.active ? <ToggleRight size={14} /> : <ToggleLeft size={14} />}
+        </button>
+        <button
+          type="button"
+          className="btn btn-ghost btn-sm danger"
+          onClick={() =>
+            startTransition(async () => {
+              await deleteRowAction('announcements', row.id, ['/', '/admin/announcements']);
+              window.location.reload();
+            })
+          }
+          aria-label="Delete announcement"
+        >
+          <Trash2 size={14} />
+        </button>
+      </>
+    )}
+    renderForm={(item, onClose, onSaved) => <AnnouncementForm item={item} onClose={onClose} onSaved={onSaved} />}
+  />
+);
 }

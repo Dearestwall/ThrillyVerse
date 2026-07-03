@@ -202,73 +202,93 @@ export default function MoviesAdminTable({ initialData }: { initialData: Movie[]
     }
   };
 
-  return (
-    <AdminShell<Movie>
-      title="Movies"
-      initialData={initialData}
-      searchKeys={['title', 'category', 'rating']}
-      exportFields={['id', 'title', 'slug', 'category', 'year', 'rating', 'featured', 'published']}
-      onBulkUpload={bulkUpload}
-      columns={[
-        { key: 'title', label: 'Title', render: (r) => <span className="font-medium">{r.title}</span> },
-        { key: 'category', label: 'Category', render: (r) => r.category || '—' },
-        { key: 'year', label: 'Year', render: (r) => r.year ?? '—' },
-        { key: 'rating', label: 'Rating', render: (r) => r.rating || '—' },
-        {
-          key: 'published',
-          label: 'Status',
-          render: (r) => (
-            <span className={`badge ${r.published ? 'badge-success' : 'badge-muted'}`}>
-              {r.published ? 'Published' : 'Draft'}
-            </span>
-          ),
-        },
-      ]}
-      extraActions={(row) => (
-        <>
-          <button
-            type="button"
-            className="btn btn-ghost btn-sm"
-            onClick={() =>
-              startTransition(async () => {
-                await toggleMoviePublishedAction(row.id, !row.published);
-                window.location.reload();
-              })
-            }
-          >
-            {row.published ? <EyeOff size={14} /> : <Eye size={14} />}
-          </button>
-
-          <button
-            type="button"
-            className={`btn btn-ghost btn-sm ${row.featured ? 'text-yellow-500' : ''}`}
-            onClick={() =>
-              startTransition(async () => {
-                await toggleMovieFeaturedAction(row.id, !row.featured);
-                window.location.reload();
-              })
-            }
-          >
-            <Star size={14} />
-          </button>
-
-          <button
-            type="button"
-            className="btn btn-ghost btn-sm danger"
-            onClick={() =>
-              startTransition(async () => {
-                await deleteRowAction('movies', row.id, ['/movies', '/admin/movies']);
-                window.location.reload();
-              })
-            }
-          >
-            <Trash2 size={14} />
-          </button>
-        </>
-      )}
-      renderForm={(item, onClose, onSaved) => (
-        <MovieForm item={item} onClose={onClose} onSaved={onSaved} />
-      )}
-    />
-  );
+ return (
+  <AdminShell<Movie>
+    title="Movies"
+    initialData={initialData}
+    searchKeys={['title', 'category', 'rating']}
+    exportFields={[
+      'id', 'title', 'slug', 'category', 'year', 'rating',
+      'language', 'featured', 'published', 'sort_order',
+    ]}
+    onBulkUpload={bulkUpload}
+    stats={[
+      { label: 'Total', value: (rows) => rows.length },
+      { label: 'Published', value: (rows) => rows.filter((r) => !!r.published).length, tone: 'success' },
+      { label: 'Featured', value: (rows) => rows.filter((r) => !!r.featured).length, tone: 'warning' },
+    ]}
+    columns={[
+      { key: 'title', label: 'Title', render: (r) => <span className="font-medium">{r.title}</span> },
+      { key: 'slug', label: 'Slug', mobileHidden: true },
+      { key: 'category', label: 'Category' },
+      { key: 'year', label: 'Year', render: (r) => r.year ?? '—', mobileHidden: true },
+      { key: 'rating', label: 'Rating', mobileHidden: true },
+      { key: 'tags', label: 'Genre', mobileHidden: true, render: (r) => Array.isArray(r.tags) ? r.tags.join(', ') : (r.tags ?? '—') },
+      { key: 'sort_order', label: 'Order', mobileHidden: true, render: (r) => r.sort_order ?? 0 },
+      {
+        key: 'featured',
+        label: 'Featured',
+        mobileHidden: true,
+        render: (r) => (
+          <span className={`badge ${r.featured ? 'badge-success' : 'badge-muted'}`}>
+            {r.featured ? 'Yes' : 'No'}
+          </span>
+        ),
+      },
+      {
+        key: 'published',
+        label: 'Status',
+        render: (r) => (
+          <span className={`badge ${r.published ? 'badge-success' : 'badge-muted'}`}>
+            {r.published ? 'Published' : 'Draft'}
+          </span>
+        ),
+      },
+    ]}
+    extraActions={(row) => (
+      <>
+        <button
+          type="button"
+          className="btn btn-ghost btn-sm"
+          onClick={() =>
+            startTransition(async () => {
+              await toggleMoviePublishedAction(row.id, !row.published);
+              window.location.reload();
+            })
+          }
+          aria-label={row.published ? 'Unpublish movie' : 'Publish movie'}
+        >
+          {row.published ? <EyeOff size={14} /> : <Eye size={14} />}
+        </button>
+        <button
+          type="button"
+          className={`btn btn-ghost btn-sm ${row.featured ? 'text-yellow-500' : ''}`}
+          onClick={() =>
+            startTransition(async () => {
+              await toggleMovieFeaturedAction(row.id, !row.featured);
+              window.location.reload();
+            })
+          }
+          aria-label={row.featured ? 'Remove featured' : 'Mark featured'}
+        >
+          <Star size={14} />
+        </button>
+        <button
+          type="button"
+          className="btn btn-ghost btn-sm danger"
+          onClick={() =>
+            startTransition(async () => {
+              await deleteRowAction('movies', row.id, ['/movies', '/admin/movies']);
+              window.location.reload();
+            })
+          }
+          aria-label="Delete movie"
+        >
+          <Trash2 size={14} />
+        </button>
+      </>
+    )}
+    renderForm={(item, onClose, onSaved) => <MovieForm item={item} onClose={onClose} onSaved={onSaved} />}
+  />
+);
 }

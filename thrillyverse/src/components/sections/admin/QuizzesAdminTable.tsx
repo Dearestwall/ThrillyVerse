@@ -154,63 +154,65 @@ export default function QuizzesAdminTable({ initialData }: { initialData: Quiz[]
     }
   };
 
-  return (
-    <AdminShell<Quiz>
-      title="Quizzes"
-      initialData={initialData}
-      searchKeys={['title', 'subject', 'board']}
-      exportFields={['id', 'title', 'board', 'class_level', 'subject', 'difficulty', 'time_limit', 'published']}
-      onBulkUpload={bulkUpload}
-      columns={[
-        { key: 'title', label: 'Title' },
-        { key: 'board', label: 'Board' },
-        { key: 'subject', label: 'Subject' },
-        { key: 'difficulty', label: 'Difficulty' },
-        { key: 'time_limit', label: 'Time', render: (r) => `${r.time_limit} min` },
-        {
-          key: 'published',
-          label: 'Status',
-          render: (r) => (
-            <span className={`badge ${r.published ? 'badge-success' : 'badge-muted'}`}>
-              {r.published ? 'Live' : 'Draft'}
-            </span>
-          ),
-        },
-      ]}
-      extraActions={(row) => (
-        <>
-          <button
-            type="button"
-            className="btn btn-ghost btn-sm"
-            onClick={() =>
-              startTransition(async () => {
-                await toggleQuizPublishedAction(row.id, !row.published);
-                window.location.reload();
-              })
-            }
-            aria-label={row.published ? 'Unpublish quiz' : 'Publish quiz'}
-          >
-            {row.published ? <EyeOff size={14} /> : <Eye size={14} />}
-          </button>
-
-          <button
-            type="button"
-            className="btn btn-ghost btn-sm danger"
-            onClick={() =>
-              startTransition(async () => {
-                await deleteRowAction('quizzes', row.id, ['/materials', '/admin/quizzes']);
-                window.location.reload();
-              })
-            }
-            aria-label="Delete quiz"
-          >
-            <Trash2 size={14} />
-          </button>
-        </>
-      )}
-      renderForm={(item, onClose, onSaved) => (
-        <QuizForm item={item} onClose={onClose} onSaved={onSaved} />
-      )}
-    />
-  );
+ return (
+  <AdminShell<Quiz>
+    title="Quizzes"
+    initialData={initialData}
+    searchKeys={['title', 'subject', 'board']}
+    exportFields={['id', 'title', 'board', 'class_level', 'subject', 'difficulty', 'time_limit', 'published']}
+    onBulkUpload={bulkUpload}
+    stats={[
+      { label: 'Total', value: (rows) => rows.length },
+      { label: 'Published', value: (rows) => rows.filter((r) => !!r.published).length, tone: 'success' },
+    ]}
+    columns={[
+      { key: 'title', label: 'Title', render: (r) => <span className="font-medium">{r.title}</span> },
+      { key: 'board', label: 'Board', mobileHidden: true },
+      { key: 'class_level', label: 'Class', mobileHidden: true },
+      { key: 'subject', label: 'Subject' },
+      { key: 'difficulty', label: 'Difficulty', mobileHidden: true },
+      { key: 'time_limit', label: 'Time', mobileHidden: true, render: (r) => `${r.time_limit ?? 10} min` },
+      {
+        key: 'published',
+        label: 'Status',
+        render: (r) => (
+          <span className={`badge ${r.published ? 'badge-success' : 'badge-muted'}`}>
+            {r.published ? 'Live' : 'Draft'}
+          </span>
+        ),
+      },
+    ]}
+    extraActions={(row) => (
+      <>
+        <button
+          type="button"
+          className="btn btn-ghost btn-sm"
+          onClick={() =>
+            startTransition(async () => {
+              await toggleQuizPublishedAction(row.id, !row.published);
+              window.location.reload();
+            })
+          }
+          aria-label={row.published ? 'Unpublish quiz' : 'Publish quiz'}
+        >
+          {row.published ? <EyeOff size={14} /> : <Eye size={14} />}
+        </button>
+        <button
+          type="button"
+          className="btn btn-ghost btn-sm danger"
+          onClick={() =>
+            startTransition(async () => {
+              await deleteRowAction('quizzes', row.id, ['/materials', '/admin/quizzes']);
+              window.location.reload();
+            })
+          }
+          aria-label="Delete quiz"
+        >
+          <Trash2 size={14} />
+        </button>
+      </>
+    )}
+    renderForm={(item, onClose, onSaved) => <QuizForm item={item} onClose={onClose} onSaved={onSaved} />}
+  />
+);
 }

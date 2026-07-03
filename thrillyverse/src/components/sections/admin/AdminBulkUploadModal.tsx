@@ -37,7 +37,60 @@ type ParseResult =
   | { ok: true; rows: Record<string, string>[] }
   | { ok: false; error: string };
 
-/* ── Helpers ── */
+/* ── Key normalization helpers ──────────────────────────────
+   This is THE fix: every parsed row — no matter the source
+   (CSV header text, JSON object keys, Excel column headers,
+   or pasted text) — gets remapped to the EXACT `field.key`
+   defined in templateFields. This guarantees the final rows
+   sent to onBulkUpload always use consistent, predictable
+   keys that match what the Server Action / DB expects.
+──────────────────────────────────────────────────────────── */
+
+function normalizeKey(str: string): string {
+  return String(str ?? '')
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '_')
+    .replace(/^_+|_+$/g, '');
+}
+
+function buildFieldKeyMap(
+  fields: AdminBulkTemplateField[]
+): Record<string, string> {
+  const map: Record<string, string> = {};
+  fields.forEach((f) => {
+    map[normalizeKey(f.key)] = f.key;
+    map[normalizeKey(f.label)] = f.key;
+  });
+  return map;
+}
+
+function remapRowKeys(
+  row: Record<string, string>,
+  keyMap: Record<string, string>
+): Record<string, string> {
+  const out: Record<string, string> = {};
+  Object.entries(row).forEach(([rawKey, value]) => {
+    const norm = normalizeKey(rawKey);
+    const mappedKey = keyMap[norm] ?? rawKey;
+    // Don't silently overwrite an already-mapped field with an unmapped extra column
+    if (out[mappedKey] === undefined) {
+      out[mappedKey] = value;
+    }
+  });
+  return out;
+}
+
+function remapRows(
+  rows: Record<string, string>[],
+  fields: AdminBulkTemplateField[]
+): Record<string, string>[] {
+  if (!fields.length) return rows;
+  const keyMap = buildFieldKeyMap(fields);
+  return rows.map((row) => remapRowKeys(row, keyMap));
+}
+
+/* ── Parsing helpers ── */
 
 function cleanText(raw: string) {
   return raw.replace(/^\uFEFF/, '').replace(/\r\n/g, '\n').replace(/\r/g, '\n');
@@ -81,35 +134,36 @@ function csvToObjects(text: string): ParseResult {
   if (grid.length < 2)
     return { ok: false, error: 'CSV must have a header row and at least one data row.' };
 
-  const headers = grid[0].map((h) => h.toLowerCase().replace(/\s+/g, '_'));
-  const rows = grid.slice(1).map((cells) => {
-    const obj: Record<string, string> = {};
-    headers.forEach((h, i) => { obj[h] = cells[i] ?? ''; });
-    return obj;
-  });
+  const headers = grid[0].map((h) => normalizeKey(h));
+  const rows = grid.slice(1)
+    .filter((cells) => cells.some((c) => c.trim().length > 0))
+    .map((cells) => {
+      const obj: Record<string, string> = {};
+      headers.forEach((h, i) => { obj[h] = cells[i] ?? ''; });
+      return obj;
+    });
   return { ok: true, rows };
 }
 
 function jsonToObjects(text: string): ParseResult {
   try {
     const parsed = JSON.parse(text.trim());
-    if (!Array.isArray(parsed))
-      return { ok: false, error: 'JSON must be an array of objects.' };
-    if (parsed.length === 0)
+    const arr = Array.isArray(parsed) ? parsed : [parsed];
+    if (arr.length === 0)
       return { ok: false, error: 'JSON array is empty.' };
-    if (typeof parsed[0] !== 'object' || parsed[0] === null)
+    if (typeof arr[0] !== 'object' || arr[0] === null)
       return { ok: false, error: 'Each JSON element must be an object.' };
 
-    const rows = parsed.map((item: Record<string, unknown>) => {
+    const rows = arr.map((item: Record<string, unknown>) => {
       const obj: Record<string, string> = {};
       Object.entries(item).forEach(([k, v]) => {
-        obj[k.toLowerCase().replace(/\s+/g, '_')] = v == null ? '' : String(v);
+        obj[normalizeKey(k)] = v == null ? '' : String(v);
       });
       return obj;
     });
     return { ok: true, rows };
   } catch {
-    return { ok: false, error: 'Invalid JSON. Make sure it is a valid JSON array.' };
+    return { ok: false, error: 'Invalid JSON. Make sure it is a valid JSON array or object.' };
   }
 }
 
@@ -146,7 +200,7 @@ async function excelToObjects(file: File): Promise<ParseResult> {
         const rows = json.map((item) => {
           const obj: Record<string, string> = {};
           Object.entries(item).forEach(([k, v]) => {
-            obj[k.toLowerCase().replace(/\s+/g, '_')] = v == null ? '' : String(v);
+            obj[normalizeKey(k)] = v == null ? '' : String(v);
           });
           return obj;
         });
@@ -160,7 +214,7 @@ async function excelToObjects(file: File): Promise<ParseResult> {
   });
 }
 
-/* ── Template generators ── */
+/* ── Template generators (keyed by field.key, header row is human label) ── */
 
 function buildCsvTemplate(fields: AdminBulkTemplateField[]): string {
   const header = fields.map((f) => f.label).join(',');
@@ -285,7 +339,7 @@ export default function AdminBulkUploadModal({
 
   const slugTitle = title.toLowerCase().replace(/\s+/g, '-');
 
-  /* ── Parse + preview ── */
+  /* ── Parse + remap + preview ── */
   const parseAndPreview = useCallback(async () => {
     setParseError(null);
     setPreview(null);
@@ -310,8 +364,17 @@ export default function AdminBulkUploadModal({
 
     if (!result) return;
     if (!result.ok) { setParseError(result.error); return; }
-    setPreview(result.rows);
-  }, [activeTab, csvFile, jsonFile, excelFile, pasteText]);
+
+    // ✅ THE FIX — remap every row's keys to the exact field.key values
+    const remapped = remapRows(result.rows, templateFields);
+
+    if (!remapped.length) {
+      setParseError('No valid rows were found in the provided data.');
+      return;
+    }
+
+    setPreview(remapped);
+  }, [activeTab, csvFile, jsonFile, excelFile, pasteText, templateFields]);
 
   /* Auto-preview on input */
   useEffect(() => {
@@ -324,9 +387,25 @@ export default function AdminBulkUploadModal({
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [csvFile, jsonFile, excelFile, pasteText, activeTab]);
 
+  /* ── Required-field validation ── */
+  const validation = useMemo(() => {
+    if (!preview?.length) return { valid: true, missingRows: [] as number[] };
+    const requiredKeys = templateFields.filter((f) => f.required).map((f) => f.key);
+    if (!requiredKeys.length) return { valid: true, missingRows: [] as number[] };
+
+    const missingRows: number[] = [];
+    preview.forEach((row, i) => {
+      const isMissing = requiredKeys.some(
+        (k) => !row[k] || !String(row[k]).trim()
+      );
+      if (isMissing) missingRows.push(i + 1);
+    });
+    return { valid: missingRows.length === 0, missingRows };
+  }, [preview, templateFields]);
+
   /* ── Upload ── */
   const handleUpload = useCallback(async () => {
-    if (!preview?.length) return;
+    if (!preview?.length || !validation.valid) return;
     setUploading(true);
     setUploadError(null);
     try {
@@ -337,7 +416,7 @@ export default function AdminBulkUploadModal({
     } finally {
       setUploading(false);
     }
-  }, [preview, onBulkUpload]);
+  }, [preview, validation.valid, onBulkUpload]);
 
   /* ── Template downloads ── */
   const downloadCsvTemplate = () =>
@@ -355,19 +434,23 @@ export default function AdminBulkUploadModal({
     }
   };
 
-  /* ── Preview columns — ordered by templateFields, capped at 8 ── */
+  /* ── Preview columns — always ordered by templateFields, since rows
+     are now guaranteed to use field.key exactly ── */
   const previewColumns = useMemo(() => {
     if (!preview?.length) return [];
-    const knownKeys = new Set(
-      templateFields.map((f) => f.key.toLowerCase().replace(/\s+/g, '_'))
-    );
-    const rowKeys = Object.keys(preview[0]);
-    const ordered = templateFields
-      .map((f) => f.key.toLowerCase().replace(/\s+/g, '_'))
-      .filter((k) => rowKeys.includes(k));
-    const extras = rowKeys.filter((k) => !knownKeys.has(k));
-    return [...ordered, ...extras].slice(0, 8);
+    const rowKeys = new Set(Object.keys(preview[0]));
+    const ordered = templateFields.map((f) => f.key).filter((k) => rowKeys.has(k));
+    const knownKeys = new Set(templateFields.map((f) => f.key));
+    const extras = Object.keys(preview[0]).filter((k) => !knownKeys.has(k));
+    return [...ordered, ...extras.slice(0, 3)];
   }, [preview, templateFields]);
+
+  /* Map field.key -> label for readable preview headers */
+  const columnLabelMap = useMemo(() => {
+    const map: Record<string, string> = {};
+    templateFields.forEach((f) => { map[f.key] = f.label; });
+    return map;
+  }, [templateFields]);
 
   if (!open) return null;
 
@@ -608,12 +691,30 @@ export default function AdminBulkUploadModal({
             </div>
           )}
 
+          {/* Required-field validation error */}
+          {preview && !validation.valid && (
+            <div className="bulk-error-banner" role="alert">
+              <AlertCircle size={15} />
+              <span>
+                Row{validation.missingRows.length !== 1 ? 's' : ''}{' '}
+                {validation.missingRows.slice(0, 8).join(', ')}
+                {validation.missingRows.length > 8 ? '…' : ''} missing required
+                field{templateFields.filter((f) => f.required).length !== 1 ? 's' : ''}.
+                Fix the source data and re-upload before continuing.
+              </span>
+            </div>
+          )}
+
           {/* Preview table */}
           {preview && preview.length > 0 && !parseError && (
             <div className="bulk-section">
               <div className="bulk-section-label">
-                <CheckCircle2 size={13} style={{ color: 'var(--color-success)' }} />
-                Preview — {preview.length} row{preview.length !== 1 ? 's' : ''} ready
+                {validation.valid ? (
+                  <CheckCircle2 size={13} style={{ color: 'var(--color-success)' }} />
+                ) : (
+                  <AlertCircle size={13} style={{ color: 'var(--color-error)' }} />
+                )}
+                Preview — {preview.length} row{preview.length !== 1 ? 's' : ''} parsed
               </div>
               <div className="bulk-preview-wrap">
                 <table className="bulk-preview-table">
@@ -621,7 +722,7 @@ export default function AdminBulkUploadModal({
                     <tr>
                       <th className="bulk-preview-row-num">#</th>
                       {previewColumns.map((col) => (
-                        <th key={col}>{col}</th>
+                        <th key={col}>{columnLabelMap[col] ?? col}</th>
                       ))}
                     </tr>
                   </thead>
@@ -679,7 +780,7 @@ export default function AdminBulkUploadModal({
             <button
               type="button"
               className="btn btn-primary"
-              disabled={!preview?.length || uploading}
+              disabled={!preview?.length || uploading || !validation.valid}
               onClick={handleUpload}
             >
               {uploading ? (

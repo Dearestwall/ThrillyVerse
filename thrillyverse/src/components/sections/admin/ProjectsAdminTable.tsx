@@ -185,55 +185,53 @@ export default function ProjectsAdminTable({
     }
   };
 
-  return (
-    <AdminShell<Project>
-      title="Projects"
-      initialData={initialData}
-      searchKeys={['title', 'summary', 'status']}
-      exportFields={['id', 'title', 'slug', 'status', 'featured', 'sort_order']}
-      onBulkUpload={bulkUpload}
-      columns={[
-        {
-          key: 'title',
-          label: 'Title',
-          render: (r) => <span className="font-medium">{r.title}</span>,
-        },
-        {
-          key: 'tech_stack',
-          label: 'Stack',
-          render: (r) =>
-            Array.isArray(r.tech_stack) && r.tech_stack.length ? r.tech_stack.join(', ') : '—',
-        },
-        { key: 'status', label: 'Status' },
-        {
-          key: 'featured',
-          label: 'Featured',
-          render: (r) => (
-            <span className={`badge ${r.featured ? 'badge-success' : 'badge-muted'}`}>
-              {r.featured ? 'Yes' : 'No'}
-            </span>
-          ),
-        },
-        { key: 'sort_order', label: 'Order' },
-      ]}
-      extraActions={(row) => (
-        <button
-          type="button"
-          className="btn btn-ghost btn-sm danger"
-          onClick={() =>
-            startTransition(async () => {
-              await deleteRowAction('projects', row.id, ['/', '/admin/projects']);
-              window.location.reload();
-            })
-          }
-          aria-label="Delete project"
-        >
-          <Trash2 size={14} />
-        </button>
-      )}
-      renderForm={(item, onClose, onSaved) => (
-        <ProjectForm item={item} onClose={onClose} onSaved={onSaved} />
-      )}
-    />
-  );
+ return (
+  <AdminShell<Project>
+    title="Projects"
+    initialData={initialData}
+    searchKeys={['title', 'summary', 'status']}
+    exportFields={['id', 'title', 'slug', 'status', 'link', 'github_url', 'featured', 'sort_order']}
+    onBulkUpload={bulkUpload}
+    stats={[
+      { label: 'Total', value: (rows) => rows.length },
+      { label: 'Published', value: (rows) => rows.filter((r) => r.status === 'published').length, tone: 'success' },
+      { label: 'Featured', value: (rows) => rows.filter((r) => !!r.featured).length, tone: 'warning' },
+    ]}
+    columns={[
+      { key: 'title', label: 'Title', render: (r) => <span className="font-medium">{r.title}</span> },
+      { key: 'slug', label: 'Slug', mobileHidden: true },
+      { key: 'summary', label: 'Summary', mobileHidden: true, render: (r) => r.summary ?? '—' },
+      { key: 'tech_stack', label: 'Stack', mobileHidden: true, render: (r) => (Array.isArray(r.tech_stack) && r.tech_stack.length ? r.tech_stack.join(', ') : '—') },
+      { key: 'link', label: 'Live Link', mobileHidden: true, render: (r) => r.link ?? '—' },
+      { key: 'github_url', label: 'GitHub', mobileHidden: true, render: (r) => r.github_url ?? '—' },
+      { key: 'status', label: 'Status' },
+      {
+        key: 'featured',
+        label: 'Featured',
+        render: (r) => (
+          <span className={`badge ${r.featured ? 'badge-success' : 'badge-muted'}`}>
+            {r.featured ? 'Yes' : 'No'}
+          </span>
+        ),
+      },
+      { key: 'sort_order', label: 'Order', mobileHidden: true, render: (r) => r.sort_order ?? 0 },
+    ]}
+    extraActions={(row) => (
+      <button
+        type="button"
+        className="btn btn-ghost btn-sm danger"
+        onClick={() =>
+          startTransition(async () => {
+            await deleteRowAction('projects', row.id, ['/', '/admin/projects']);
+            window.location.reload();
+          })
+        }
+        aria-label="Delete project"
+      >
+        <Trash2 size={14} />
+      </button>
+    )}
+    renderForm={(item, onClose, onSaved) => <ProjectForm item={item} onClose={onClose} onSaved={onSaved} />}
+  />
+);
 }
