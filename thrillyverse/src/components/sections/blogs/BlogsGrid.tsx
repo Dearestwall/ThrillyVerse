@@ -2,7 +2,11 @@ import Link from 'next/link';
 import type { Blog } from '@/types';
 import { formatDate, truncate } from '@/utils';
 import { EmptyState } from '@/components/common/EmptyState';
-import { Clock, ArrowRight, BookOpen } from 'lucide-react';
+import {
+  ArrowRight,
+  BookOpen,
+  Clock,
+} from 'lucide-react';
 
 type BlogsGridProps = {
   blogs: Blog[];
@@ -34,9 +38,9 @@ export function BlogsGrid({
       "
     >
       {blogs.map((blog, index) => {
-        const image =
-          blog.cover_image ||
-          FALLBACK_IMAGE;
+        const hasImage =
+          typeof blog.cover_image === 'string' &&
+          blog.cover_image.trim().length > 0;
 
         const readingTime =
           Number(blog.read_time) > 0
@@ -52,6 +56,7 @@ export function BlogsGrid({
           <article
             key={blog.id}
             className="
+              section-reveal
               group
               flex
               h-full
@@ -72,97 +77,108 @@ export function BlogsGrid({
               animationDelay: `${index * 60}ms`,
             }}
           >
-            {/* Cover image */}
-            <Link
-              href={`/blogs/${blog.slug}`}
-              aria-label={`Read ${blog.title}`}
-              className="block"
-            >
-              <div className="relative aspect-[16/9] w-full overflow-hidden bg-muted">
-                <img
-                  src={image}
-                  alt={blog.title}
-                  width={800}
-                  height={450}
-                  loading={
-                    index < 3
-                      ? 'eager'
-                      : 'lazy'
-                  }
-                  decoding="async"
-                  className="
-                    h-full
-                    w-full
-                    object-cover
-                    transition-transform
-                    duration-500
-                    group-hover:scale-105
-                  "
-                  onError={(event) => {
-                    const target =
-                      event.currentTarget;
-
-                    if (
-                      target.src !==
-                      FALLBACK_IMAGE
-                    ) {
-                      target.src =
-                        FALLBACK_IMAGE;
+            {/* IMAGE
+                Completely separate from title/content.
+                Nothing is positioned over it. */}
+            {hasImage ? (
+              <Link
+                href={`/blogs/${blog.slug}`}
+                aria-label={`Read ${blog.title}`}
+                className="block shrink-0"
+              >
+                <div className="w-full overflow-hidden bg-muted">
+                  <img
+                    src={blog.cover_image!.trim()}
+                    alt={blog.title}
+                    width={800}
+                    height={450}
+                    loading={
+                      index < 3
+                        ? 'eager'
+                        : 'lazy'
                     }
-                  }}
-                />
-
-                {/* Image overlay */}
-                <div
-                  aria-hidden="true"
-                  className="
-                    absolute
-                    inset-0
-                    bg-gradient-to-t
-                    from-black/45
-                    via-transparent
-                    to-transparent
-                    opacity-60
-                  "
-                />
-
-                {/* Category */}
-                {blog.category ? (
-                  <span
+                    decoding="async"
                     className="
-                      absolute
-                      left-4
-                      top-4
-                      rounded-full
-                      border
-                      border-white/20
-                      bg-black/50
-                      px-3
-                      py-1.5
-                      text-xs
-                      font-bold
-                      text-white
-                      backdrop-blur-md
+                      block
+                      h-auto
+                      max-h-[340px]
+                      min-h-0
+                      w-full
+                      object-cover
+                      transition-transform
+                      duration-500
+                      group-hover:scale-[1.025]
                     "
-                  >
-                    {blog.category}
-                  </span>
-                ) : null}
-              </div>
-            </Link>
+                    onError={(event) => {
+                      const image =
+                        event.currentTarget;
 
-            {/* Content */}
+                      if (
+                        image.dataset.fallbackApplied ===
+                        'true'
+                      ) {
+                        return;
+                      }
+
+                      image.dataset.fallbackApplied =
+                        'true';
+
+                      image.src =
+                        FALLBACK_IMAGE;
+                    }}
+                  />
+                </div>
+              </Link>
+            ) : null}
+
+            {/* CONTENT
+                Always below the image in normal document flow. */}
             <div
               className="
                 flex
+                min-w-0
                 flex-1
                 flex-col
                 p-5
                 sm:p-6
               "
             >
+              {/* Category */}
+              {blog.category ? (
+                <div className="mb-3">
+                  <span
+                    className="
+                      inline-flex
+                      max-w-full
+                      rounded-full
+                      border
+                      border-border
+                      bg-muted/60
+                      px-3
+                      py-1
+                      text-xs
+                      font-bold
+                      text-text-muted
+                    "
+                  >
+                    {blog.category}
+                  </span>
+                </div>
+              ) : null}
+
               {/* Metadata */}
-              <div className="mb-3 flex items-center gap-3 text-xs text-text-faint">
+              <div
+                className="
+                  mb-3
+                  flex
+                  flex-wrap
+                  items-center
+                  gap-x-3
+                  gap-y-1
+                  text-xs
+                  text-text-faint
+                "
+              >
                 <span className="inline-flex items-center gap-1.5">
                   <BookOpen size={13} />
                   Article
@@ -181,18 +197,24 @@ export function BlogsGrid({
               </div>
 
               {/* Title */}
-              <h2 className="
-                mb-3
-                text-xl
-                font-bold
-                leading-tight
-                tracking-tight
-                transition-colors
-                group-hover:text-violet-500
-              ">
+              <h2
+                className="
+                  mb-3
+                  text-xl
+                  font-bold
+                  leading-tight
+                  tracking-tight
+                  break-words
+                "
+              >
                 <Link
                   href={`/blogs/${blog.slug}`}
-                  className="focus:outline-none"
+                  className="
+                    transition-colors
+                    hover:text-violet-500
+                    focus:outline-none
+                    focus-visible:underline
+                  "
                 >
                   {blog.title}
                 </Link>
@@ -205,6 +227,7 @@ export function BlogsGrid({
                     mb-5
                     line-clamp-3
                     flex-1
+                    break-words
                     text-sm
                     leading-6
                     text-text-muted
@@ -216,21 +239,10 @@ export function BlogsGrid({
                   )}
                 </p>
               ) : (
-                <p
-                  className="
-                    mb-5
-                    flex-1
-                    text-sm
-                    leading-6
-                    text-text-muted
-                  "
-                >
-                  Explore this article on
-                  ThrillyVerse.
-                </p>
+                <div className="flex-1" />
               )}
 
-              {/* Bottom information */}
+              {/* Footer */}
               <div
                 className="
                   mt-auto
@@ -239,15 +251,18 @@ export function BlogsGrid({
                   pt-4
                 "
               >
-                <div className="
-                  mb-4
-                  flex
-                  items-center
-                  justify-between
-                  gap-3
-                  text-xs
-                  text-text-faint
-                ">
+                <div
+                  className="
+                    mb-4
+                    flex
+                    flex-wrap
+                    items-center
+                    justify-between
+                    gap-2
+                    text-xs
+                    text-text-faint
+                  "
+                >
                   <span>
                     By ThrillyVerse
                   </span>
@@ -256,11 +271,7 @@ export function BlogsGrid({
                     <time>
                       {publishedDate}
                     </time>
-                  ) : (
-                    <span>
-                      Published
-                    </span>
-                  )}
+                  ) : null}
                 </div>
 
                 <Link
@@ -283,16 +294,15 @@ export function BlogsGrid({
                     duration-200
                     hover:bg-foreground
                     hover:text-background
+                    focus:outline-none
+                    focus-visible:ring-2
+                    focus-visible:ring-violet-500
                   "
                 >
                   Read article
                   <ArrowRight
                     size={16}
                     aria-hidden="true"
-                    className="
-                      transition-transform
-                      group-hover:translate-x-1
-                    "
                   />
                 </Link>
               </div>
