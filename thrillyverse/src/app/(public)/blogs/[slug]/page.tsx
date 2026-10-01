@@ -1,8 +1,6 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import Link from 'next/link';
 import { createClient } from '@/lib/supabase/server';
-import ViewCounter from '@/components/blogs/ViewCounter';
 
 const SITE_URL = 'https://thrillyverse.com';
 
@@ -56,7 +54,6 @@ export async function generateMetadata({ params }: Props): Promise {
       type: 'article',
       publishedTime: blog.published_at ?? blog.created_at,
       modifiedTime: blog.updated_at ?? blog.published_at,
-      authors: [blog.author_id ? `Author ID: ${blog.author_id}` : 'ThrillyVerse'],
       images: [
         {
           url: imageUrl,
@@ -85,7 +82,7 @@ export async function generateMetadata({ params }: Props): Promise {
   };
 }
 
-// Helper to parse tags safely whether stored as stringified JSON or JS array
+// Helper to parse tags safely
 function parseTags(tags: any): string[] {
   if (Array.isArray(tags)) return tags;
   if (typeof tags === 'string') {
@@ -114,7 +111,7 @@ function extractHeadings(contentHtml: string) {
   return headings;
 }
 
-// Helper to inject IDs into content HTML tags for internal anchor jumping
+// Helper to inject IDs into content HTML tags
 function addHeadingIds(contentHtml: string): string {
   return contentHtml.replace(/(.*?)<\/h[1-3]>/g, (_, level, text) => {
     const cleanText = text.replace(/<[^>]+>/g, '');
@@ -128,6 +125,13 @@ export default async function BlogSlugPage({ params }: Props) {
   const blog = await getBlogBySlug(slug);
 
   if (!blog) notFound();
+
+  // Increment view count directly on server load
+  const supabase = await createClient();
+  await supabase
+    .from('blogs')
+    .update({ view_count: (blog.view_count || 0) + 1 })
+    .eq('id', blog.id);
 
   const parsedTags = parseTags(blog.tags);
   const headings = extractHeadings(blog.content || '');
