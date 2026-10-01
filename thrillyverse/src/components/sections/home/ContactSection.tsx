@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -25,7 +25,9 @@ const formSchema = z.object({
   email: z.string().email('Enter a valid email'),
   phone: z.string().optional(),
   subject: z.string().optional(),
-  message: z.string().min(10, 'Message must be at least 10 characters'),
+  message: z
+    .string()
+    .min(10, 'Message must be at least 10 characters'),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -75,13 +77,78 @@ const socialIconMap = {
   telegram: SendHorizonal,
 };
 
-export function ContactSection({ settings }: { settings?: SiteSettings | null }) {
+export function ContactSection({
+  settings,
+}: {
+  settings?: SiteSettings | null;
+}) {
   const [loading, setLoading] = useState(false);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
-    defaultValues: { name: '', email: '', phone: '', subject: '', message: '' },
+    defaultValues: {
+      name: '',
+      email: '',
+      phone: '',
+      subject: '',
+      message: '',
+    },
   });
+
+  /*
+   * URL behaviour:
+   *
+   * #contact
+   *     → scrolls to the Contact section
+   *
+   * #contact-form
+   *     → scrolls directly to the Send a message form
+   */
+  useEffect(() => {
+    const scrollToHashTarget = () => {
+      const hash = window.location.hash;
+
+      if (hash !== '#contact' && hash !== '#contact-form') {
+        return;
+      }
+
+      /*
+       * Wait for the page/layout to finish rendering.
+       * This is particularly useful when the section is loaded
+       * after hydration or when Supabase settings are loading.
+       */
+      window.setTimeout(() => {
+        const targetId =
+          hash === '#contact-form'
+            ? 'contact-form'
+            : 'contact';
+
+        const target = document.getElementById(targetId);
+
+        if (!target) {
+          return;
+        }
+
+        target.scrollIntoView({
+          behavior: 'smooth',
+          block: 'start',
+        });
+      }, 100);
+    };
+
+    // Handle direct URL visits.
+    scrollToHashTarget();
+
+    // Handle navigation while already on the page.
+    window.addEventListener('hashchange', scrollToHashTarget);
+
+    return () => {
+      window.removeEventListener(
+        'hashchange',
+        scrollToHashTarget
+      );
+    };
+  }, []);
 
   const isConfigured = useMemo(
     () =>
@@ -93,6 +160,13 @@ export function ContactSection({ settings }: { settings?: SiteSettings | null })
     []
   );
 
+  /*
+   * Telegram is intentionally set to @iscverse_bot.
+   *
+   * If Supabase has a custom contact_info_items array,
+   * that array will still be used. Otherwise these defaults
+   * are used.
+   */
   const contactItems: ContactItem[] =
     settings?.contact_info_items?.length
       ? settings.contact_info_items
@@ -100,21 +174,28 @@ export function ContactSection({ settings }: { settings?: SiteSettings | null })
           {
             icon: 'mail',
             label: 'Email',
-            value: settings?.contact_email?.trim() || 'thrillyverse@gmail.com',
-            href: `mailto:${settings?.contact_email?.trim() || 'thrillyverse@gmail.com'}`,
+            value:
+              settings?.contact_email?.trim() ||
+              'thrillyverse@gmail.com',
+            href: `mailto:${
+              settings?.contact_email?.trim() ||
+              'thrillyverse@gmail.com'
+            }`,
           },
           {
             icon: 'telegram',
             label: 'Telegram',
-            value: '@ThrillyVerse',
+            value: '@iscverse_bot',
             href:
               settings?.contact_telegram?.trim() ||
-              'https://t.me/+LniQHT_ltBsyNmE1',
+              'https://t.me/iscverse_bot',
           },
           {
             icon: 'map',
             label: 'Based in',
-            value: settings?.contact_location?.trim() || 'Punjab, India',
+            value:
+              settings?.contact_location?.trim() ||
+              'Punjab, India',
             href: '#',
           },
           {
@@ -152,13 +233,14 @@ export function ContactSection({ settings }: { settings?: SiteSettings | null })
             sub: 'Fast updates',
             href:
               settings?.social_telegram?.trim() ||
-              'https://t.me/thrillmoviesverse',
+              'https://t.me/iscverse_bot',
             icon: 'telegram',
           },
         ];
 
   async function onSubmit(values: FormValues) {
     setLoading(true);
+
     try {
       const supabase = createClient();
 
@@ -182,25 +264,39 @@ export function ContactSection({ settings }: { settings?: SiteSettings | null })
         );
       }
 
-      toast.success("Message sent! We'll get back to you soon 🎉");
+      toast.success(
+        "Message sent! We'll get back to you soon 🎉"
+      );
+
       form.reset();
     } catch {
-      toast.error('Failed to send message. Please try again.');
+      toast.error(
+        'Failed to send message. Please try again.'
+      );
     } finally {
       setLoading(false);
     }
   }
 
   return (
-    <section id="contact" className="home-section contact-section-pro">
+    <section
+      id="contact"
+      className="home-section contact-section-pro"
+    >
       <div className="container-default">
+
+        {/* Contact heading */}
         <div className="text-center contact-intro-compact fade-up">
           <div className="section-eyebrow">
-            {settings?.contact_eyebrow?.trim() || 'Get in Touch'}
+            {settings?.contact_eyebrow?.trim() ||
+              'Get in Touch'}
           </div>
+
           <h2 className="section-title contact-title">
-            {settings?.contact_title?.trim() || 'Contact ThrillyVerse'}
+            {settings?.contact_title?.trim() ||
+              'Contact ThrillyVerse'}
           </h2>
+
           <p className="section-description contact-description-compact">
             {settings?.contact_description?.trim() ||
               'Questions, ideas, feedback or collaboration — reach out through the form or our official social channels.'}
@@ -208,52 +304,80 @@ export function ContactSection({ settings }: { settings?: SiteSettings | null })
         </div>
 
         <div className="contact-shell contact-shell--compact">
+
+          {/* LEFT CONTACT PANEL */}
           <div className="contact-side-panel slide-in-left">
+
             <div className="contact-panel-top">
               <div className="contact-panel-kicker">
-                {settings?.contact_panel_kicker?.trim() || 'Official Contact'}
+                {settings?.contact_panel_kicker?.trim() ||
+                  'Official Contact'}
               </div>
+
               <h3>
                 {settings?.contact_panel_title?.trim() ||
                   'We would love to hear from you'}
               </h3>
+
               <p>
                 {settings?.contact_panel_text?.trim() ||
                   'Use your preferred channel and we will guide you to the right place quickly.'}
               </p>
             </div>
 
+            {/* Contact information */}
             <div className="contact-info-grid contact-info-grid--compact">
-              {contactItems.map(({ icon, label, value, href }) => {
-                const Icon = contactIconMap[icon] ?? Mail;
+              {contactItems.map(
+                ({ icon, label, value, href }) => {
+                  const Icon =
+                    contactIconMap[icon] ?? Mail;
 
-                return (
-                  <a
-                    key={label}
-                    href={href}
-                    className="contact-info-item contact-info-item--compact group"
-                    target={href.startsWith('http') ? '_blank' : undefined}
-                    rel={href.startsWith('http') ? 'noopener noreferrer' : undefined}
-                  >
-                    <div className="contact-info-icon">
-                      <Icon size={16} />
-                    </div>
+                  return (
+                    <a
+                      key={label}
+                      href={href}
+                      className="contact-info-item contact-info-item--compact group"
+                      target={
+                        href.startsWith('http')
+                          ? '_blank'
+                          : undefined
+                      }
+                      rel={
+                        href.startsWith('http')
+                          ? 'noopener noreferrer'
+                          : undefined
+                      }
+                    >
+                      <div className="contact-info-icon">
+                        <Icon size={16} />
+                      </div>
 
-                    <div className="contact-info-content">
-                      <p className="contact-info-meta">{label}</p>
-                      <p className="contact-info-main">{value}</p>
-                    </div>
-                  </a>
-                );
-              })}
+                      <div className="contact-info-content">
+                        <p className="contact-info-meta">
+                          {label}
+                        </p>
+
+                        <p className="contact-info-main">
+                          {value}
+                        </p>
+                      </div>
+                    </a>
+                  );
+                }
+              )}
             </div>
 
+            {/* Social links */}
             <div className="contact-social-card card">
-              <div className="contact-social-title">Follow ThrillyVerse</div>
+              <div className="contact-social-title">
+                Follow ThrillyVerse
+              </div>
 
               <div className="contact-social-grid contact-social-grid--compact">
                 {socialItems.map((s) => {
-                  const Icon = socialIconMap[s.icon] ?? ArrowUpRight;
+                  const Icon =
+                    socialIconMap[s.icon] ??
+                    ArrowUpRight;
 
                   return (
                     <a
@@ -268,11 +392,19 @@ export function ContactSection({ settings }: { settings?: SiteSettings | null })
                       </span>
 
                       <span className="social-link-copy">
-                        <span className="social-link-label">{s.label}</span>
-                        <span className="social-link-sub">{s.sub}</span>
+                        <span className="social-link-label">
+                          {s.label}
+                        </span>
+
+                        <span className="social-link-sub">
+                          {s.sub}
+                        </span>
                       </span>
 
-                      <ArrowUpRight size={14} className="social-link-arrow" />
+                      <ArrowUpRight
+                        size={14}
+                        className="social-link-arrow"
+                      />
                     </a>
                   );
                 })}
@@ -280,51 +412,83 @@ export function ContactSection({ settings }: { settings?: SiteSettings | null })
             </div>
           </div>
 
+          {/* SEND MESSAGE FORM */}
           <form
+            id="contact-form"
             onSubmit={form.handleSubmit(onSubmit)}
             className="contact-form-pro card section-reveal contact-form-pro--compact"
+            style={{
+              scrollMarginTop: '90px',
+            }}
           >
             <div className="contact-form-head">
               <div>
-                <div className="contact-form-kicker">Send a message</div>
-                <h3>Tell us what you need</h3>
+                <div className="contact-form-kicker">
+                  Send a message
+                </div>
+
+                <h3>
+                  Tell us what you need
+                </h3>
               </div>
 
               {!isConfigured && (
-                <span className="contact-config-pill">EmailJS optional</span>
+                <span className="contact-config-pill">
+                  EmailJS optional
+                </span>
               )}
             </div>
 
+            {/* Name + Email */}
             <div className="grid sm:grid-cols-2 gap-3 md:gap-4">
+
               <div className="form-group">
-                <label className="form-label">Name *</label>
+                <label className="form-label">
+                  Name *
+                </label>
+
                 <input
                   className="form-input"
                   placeholder="Your name"
                   {...form.register('name')}
                 />
+
                 {form.formState.errors.name && (
-                  <p className="form-error">{form.formState.errors.name.message}</p>
+                  <p className="form-error">
+                    {form.formState.errors.name.message}
+                  </p>
                 )}
               </div>
 
               <div className="form-group">
-                <label className="form-label">Email *</label>
+                <label className="form-label">
+                  Email *
+                </label>
+
                 <input
                   className="form-input"
                   type="email"
                   placeholder="you@email.com"
                   {...form.register('email')}
                 />
+
                 {form.formState.errors.email && (
-                  <p className="form-error">{form.formState.errors.email.message}</p>
+                  <p className="form-error">
+                    {form.formState.errors.email.message}
+                  </p>
                 )}
               </div>
+
             </div>
 
+            {/* Phone + Subject */}
             <div className="grid sm:grid-cols-2 gap-3 md:gap-4">
+
               <div className="form-group">
-                <label className="form-label">Phone</label>
+                <label className="form-label">
+                  Phone
+                </label>
+
                 <input
                   className="form-input"
                   placeholder="+91 XXXXX XXXXX"
@@ -333,28 +497,40 @@ export function ContactSection({ settings }: { settings?: SiteSettings | null })
               </div>
 
               <div className="form-group">
-                <label className="form-label">Subject</label>
+                <label className="form-label">
+                  Subject
+                </label>
+
                 <input
                   className="form-input"
                   placeholder="What's it about?"
                   {...form.register('subject')}
                 />
               </div>
+
             </div>
 
+            {/* Message */}
             <div className="form-group">
-              <label className="form-label">Message *</label>
+              <label className="form-label">
+                Message *
+              </label>
+
               <textarea
                 className="form-input"
                 rows={5}
                 placeholder="Write your message here…"
                 {...form.register('message')}
               />
+
               {form.formState.errors.message && (
-                <p className="form-error">{form.formState.errors.message.message}</p>
+                <p className="form-error">
+                  {form.formState.errors.message.message}
+                </p>
               )}
             </div>
 
+            {/* Submit */}
             <div className="contact-form-actions">
               <button
                 className="btn btn-primary w-full btn-lg"
@@ -363,6 +539,7 @@ export function ContactSection({ settings }: { settings?: SiteSettings | null })
               >
                 {loading ? (
                   <span className="flex items-center justify-center gap-2">
+
                     <svg
                       className="animate-spin"
                       width="16"
@@ -375,16 +552,22 @@ export function ContactSection({ settings }: { settings?: SiteSettings | null })
                     >
                       <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" />
                     </svg>
+
                     Sending…
+
                   </span>
                 ) : (
                   <span className="flex items-center justify-center gap-2">
+
                     <Send size={16} />
+
                     Send Message
+
                   </span>
                 )}
               </button>
             </div>
+
           </form>
         </div>
       </div>
