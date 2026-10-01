@@ -3,12 +3,16 @@ import Script from 'next/script';
 import { notFound } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 
-const SITE_URL = 'https://thrillyverse.com';
+export const dynamic = 'force-dynamic';
+
+const SITE_URL =
+  process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/+$/, '') ||
+  'https://thrillyverse.com';
+
+const SITE_NAME = 'ThrillyVerse';
 const DEFAULT_IMAGE = `${SITE_URL}/logo-192.png`;
 
-export const revalidate = 3600;
-
-type Props = {
+type Params = {
   params: {
     slug: string;
   };
@@ -34,7 +38,7 @@ type Blog = {
 };
 
 type Heading = {
-  level: number;
+  level: 2 | 3;
   text: string;
   id: string;
 };
@@ -55,6 +59,38 @@ async function getBlogBySlug(slug: string): Promise<Blog | null> {
   }
 
   return (data as Blog | null) ?? null;
+}
+
+async function getRelatedBlogs(
+  currentId: string,
+  category: string | null
+): Promise<Blog[]> {
+  const supabase = await createClient();
+
+  let query = supabase
+    .from('blogs')
+    .select(
+      'id,title,slug,excerpt,content,cover_image,category,tags,read_time,featured,published,published_at,view_count,author_id,created_at,updated_at'
+    )
+    .eq('published', true)
+    .neq('id', currentId)
+    .order('published_at', {
+      ascending: false,
+    })
+    .limit(6);
+
+  if (category) {
+    query = query.eq('category', category);
+  }
+
+  const { data, error } = await query;
+
+  if (error) {
+    console.error('Related blogs query error:', error);
+    return [];
+  }
+
+  return (data as Blog[]) ?? [];
 }
 
 function parseTags(tags: unknown): string[] {
@@ -85,7 +121,17 @@ function parseTags(tags: unknown): string[] {
         .filter(Boolean);
     }
   } catch {
-    // Not JSON. Try comma-separated tags below.
+    // Continue with comma-separated parsing.
+  }
+
+  // Supports PostgreSQL-style arrays such as:
+  // {Instagram,SEO,YouTube}
+  if (value.startsWith('{') && value.endsWith('}')) {
+    return value
+      .slice(1, -1)
+      .split(',')
+      .map((tag) => tag.trim().replace(/^"|"$/g, ''))
+      .filter(Boolean);
   }
 
   return value
@@ -98,6 +144,10 @@ function stripHtml(value: string): string {
   return value
     .replace(/<script[\s\S]*?<\/script>/gi, '')
     .replace(/<style[\s\S]*?<\/style>/gi, '')
+    .replace(/<noscript[\s\S]*?<\/noscript>/gi, '')
+    .replace(/<iframe[\s\S]*?<\/iframe>/gi, '')
+    .replace(/<object[\s\S]*?<\/object>/gi, '')
+    .replace(/<embed\b[^>]*>/gi, '')
     .replace(/<[^>]+>/g, '')
     .replace(/\s+/g, ' ')
     .trim();
@@ -126,27 +176,58 @@ function createHeadingId(text: string): string {
   return id || 'section';
 }
 
-function processContent(content: string): {
+function prepareArticleHtml(
+  content: string
+): {
   html: string;
   headings: Heading[];
 } {
   const headings: Heading[] = [];
   const usedIds = new Map<string, number>();
 
+  /*
+   * This strips content that should never be part of an article.
+   *
+   * For true application-wide XSS protection, sanitize article HTML
+   * before it is stored in Supabase as well.
+   */
+  let safeHtml = content
+    .replace(
+      /<(script|style|noscript|iframe|object)\b[^>]*>[\s\S]*?<\/\1>/gi,
+      ''
+    )
+    .replace(/<(embed|base|meta|link)\b[^>]*>/gi, '')
+    .replace(/\s+on[a-z]+\s*=\s*(["']).*?\1/gi, '')
+    .replace(
+      /\s+(href|src)\s*=\s*(["'])\s*javascript:[\s\S]*?\2/gi,
+      ''
+    );
+
+  /*
+   * Add IDs to H1/H2/H3 automatically.
+   *
+   * The page already contains the article title as the main H1,
+   * so an H1 inside stored content is converted to H2.
+   */
   const headingRegex =
     /<h([1-3])([^>]*)>([\s\S]*?)<\/h\1>/gi;
 
-  const html = content.replace(
+  safeHtml = safeHtml.replace(
     headingRegex,
     (
-      fullMatch: string,
+      _fullMatch: string,
       levelText: string,
       attributes: string,
       innerHtml: string
     ) => {
-      const level = Number(levelText);
+      const originalLevel = Number(levelText);
 
-      const headingText = decodeHtml(stripHtml(innerHtml));
+      const level: 2 | 3 =
+        originalLevel <= 2 ? 2 : 3;
+
+      const headingText = decodeHtml(
+        stripHtml(innerHtml)
+      );
 
       const baseId = createHeadingId(headingText);
 
@@ -172,21 +253,23 @@ function processContent(content: string): {
         )
         .trim();
 
-      const attributesOutput = cleanedAttributes
+      const attributeOutput = cleanedAttributes
         ? ` ${cleanedAttributes}`
         : '';
 
-      return `<h${level} id="${id}"${attributesOutput}>${innerHtml}</h${level}>`;
+      return `<h${level} id="${id}"${attributeOutput}>${innerHtml}</h${level}>`;
     }
   );
 
   return {
-    html,
+    html: safeHtml,
     headings,
   };
 }
 
-function formatDate(value: string | null): string | null {
+function formatDate(
+  value: string | null
+): string | null {
   if (!value) {
     return null;
   }
@@ -197,10 +280,10 @@ function formatDate(value: string | null): string | null {
     return null;
   }
 
-  return date.toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'long',
+  return date.toLocaleDateString('en-IN', {
     day: 'numeric',
+    month: 'long',
+    year: 'numeric',
   });
 }
 
@@ -223,46 +306,51 @@ function toIsoDate(
   return date.toISOString();
 }
 
-async function getRelatedBlogs(
-  currentId: string,
-  category: string | null
-): Promise<Blog[]> {
-  const supabase = await createClient();
+function getWordCount(content: string): number {
+  const text = stripHtml(content);
 
-  let query = supabase
-    .from('blogs')
-    .select('*')
-    .eq('published', true)
-    .neq('id', currentId)
-    .order('published_at', {
-      ascending: false,
-    })
-    .limit(4);
-
-  if (category) {
-    query = query.eq('category', category);
+  if (!text) {
+    return 0;
   }
 
-  const { data, error } = await query;
+  return text
+    .split(/\s+/)
+    .filter(Boolean).length;
+}
 
-  if (error) {
-    console.error('Related blogs error:', error);
-    return [];
+function getReadingTime(
+  readTime: number | null,
+  wordCount: number
+): number {
+  if (Number(readTime) > 0) {
+    return Number(readTime);
   }
 
-  return (data as Blog[]) ?? [];
+  return Math.max(
+    1,
+    Math.ceil(wordCount / 200)
+  );
+}
+
+function safeJsonLd(
+  value: unknown
+): string {
+  return JSON.stringify(value)
+    .replace(/</g, '\\u003c')
+    .replace(/>/g, '\\u003e')
+    .replace(/&/g, '\\u0026');
 }
 
 export async function generateMetadata({
   params,
-}: Props): Promise<Metadata> {
+}: Params): Promise<Metadata> {
   const blog = await getBlogBySlug(params.slug);
 
   if (!blog) {
     return {
       title: 'Blog Not Found | ThrillyVerse',
       description:
-        'The requested ThrillyVerse article could not be found.',
+        'The requested article could not be found on ThrillyVerse.',
       robots: {
         index: false,
         follow: false,
@@ -272,11 +360,14 @@ export async function generateMetadata({
 
   const tags = parseTags(blog.tags);
 
-  const description =
-    blog.excerpt ||
-    `Read ${blog.title} on ThrillyVerse.`;
+  const title = blog.title.trim();
 
-  const pageUrl =
+  const description = (
+    blog.excerpt ||
+    `Read ${title} on ThrillyVerse.`
+  ).trim();
+
+  const canonicalUrl =
     `${SITE_URL}/blogs/${blog.slug}`;
 
   const imageUrl =
@@ -293,23 +384,48 @@ export async function generateMetadata({
   );
 
   return {
-    title: `${blog.title} | ThrillyVerse`,
+    metadataBase: new URL(SITE_URL),
+
+    title: `${title} | ${SITE_NAME}`,
 
     description,
 
     keywords: tags,
 
+    authors: [
+      {
+        name: SITE_NAME,
+        url: SITE_URL,
+      },
+    ],
+
+    creator: SITE_NAME,
+
+    publisher: SITE_NAME,
+
     alternates: {
-      canonical: pageUrl,
+      canonical: canonicalUrl,
+    },
+
+    robots: {
+      index: true,
+      follow: true,
+      googleBot: {
+        index: true,
+        follow: true,
+        'max-image-preview': 'large',
+        'max-snippet': -1,
+        'max-video-preview': -1,
+      },
     },
 
     openGraph: {
-      title: `${blog.title} | ThrillyVerse`,
+      title: `${title} | ${SITE_NAME}`,
       description,
-      url: pageUrl,
-      siteName: 'ThrillyVerse',
-      type: 'article',
+      url: canonicalUrl,
+      siteName: SITE_NAME,
       locale: 'en_IN',
+      type: 'article',
 
       ...(publishedTime
         ? {
@@ -323,105 +439,61 @@ export async function generateMetadata({
           }
         : {}),
 
-      authors: ['ThrillyVerse'],
+      authors: [SITE_URL],
+
+      section:
+        blog.category || 'Blog',
 
       images: [
         {
           url: imageUrl,
           width: 1200,
           height: 630,
-          alt: blog.title,
+          alt: title,
         },
       ],
     },
 
     twitter: {
       card: 'summary_large_image',
-      title: `${blog.title} | ThrillyVerse`,
+      title: `${title} | ${SITE_NAME}`,
       description,
       images: [imageUrl],
     },
 
-    robots: {
-      index: true,
-      follow: true,
-
-      googleBot: {
-        index: true,
-        follow: true,
-        'max-image-preview': 'large',
-        'max-snippet': -1,
-        'max-video-preview': -1,
-      },
+    icons: {
+      icon: '/favicon.ico',
     },
   };
 }
 
 export default async function BlogSlugPage({
   params,
-}: Props) {
+}: Params) {
   const blog = await getBlogBySlug(params.slug);
 
   if (!blog) {
     notFound();
   }
 
-  const supabase = await createClient();
-
-  const currentViews = Number(blog.view_count || 0);
-
-  const { error: viewError } = await supabase
-    .from('blogs')
-    .update({
-      view_count: currentViews + 1,
-    })
-    .eq('id', blog.id);
-
-  if (viewError) {
-    console.error(
-      'View count update failed:',
-      viewError
-    );
-  }
-
   const tags = parseTags(blog.tags);
 
   const rawContent = blog.content || '';
 
-  const processed = processContent(rawContent);
-
-  const contentHtml = processed.html;
-
-  const headings = processed.headings;
+  const {
+    html: articleHtml,
+    headings,
+  } = prepareArticleHtml(rawContent);
 
   const publishedDate = formatDate(
     blog.published_at || blog.created_at
   );
 
-  const pageUrl =
-    `${SITE_URL}/blogs/${blog.slug}`;
-
-  const imageUrl =
-    blog.cover_image || DEFAULT_IMAGE;
-
-  const wordCount =
-    stripHtml(rawContent)
-      .split(/\s+/)
-      .filter(Boolean).length;
-
-  const readingTime =
-    Number(blog.read_time) > 0
-      ? Number(blog.read_time)
-      : Math.max(
-          1,
-          Math.ceil(wordCount / 200)
-        );
-
-  const relatedBlogs =
-    await getRelatedBlogs(
-      blog.id,
-      blog.category
-    );
+  const modifiedDate =
+    blog.updated_at &&
+    blog.updated_at !== blog.published_at
+      ? formatDate(blog.updated_at)
+      : null;
 
   const publishedTime = toIsoDate(
     blog.published_at,
@@ -433,37 +505,61 @@ export default async function BlogSlugPage({
     blog.published_at || blog.created_at
   );
 
-  const jsonLd = {
-    '@context': 'https://schema.org',
+  const wordCount = getWordCount(
+    rawContent
+  );
 
+  const readingTime = getReadingTime(
+    blog.read_time,
+    wordCount
+  );
+
+  const canonicalUrl =
+    `${SITE_URL}/blogs/${blog.slug}`;
+
+  const imageUrl =
+    blog.cover_image || DEFAULT_IMAGE;
+
+  const relatedBlogs =
+    await getRelatedBlogs(
+      blog.id,
+      blog.category
+    );
+
+  const visibleRelatedBlogs =
+    relatedBlogs.slice(0, 3);
+
+  const articleJsonLd = {
+    '@context': 'https://schema.org',
     '@type': 'BlogPosting',
+
+    '@id': `${canonicalUrl}#article`,
 
     headline: blog.title,
 
     description:
       blog.excerpt ||
-      `Read ${blog.title} on ThrillyVerse.`,
+      `Read ${blog.title} on ${SITE_NAME}.`,
+
+    url: canonicalUrl,
 
     image: [imageUrl],
 
-    url: pageUrl,
-
     mainEntityOfPage: {
       '@type': 'WebPage',
-      '@id': pageUrl,
+      '@id': canonicalUrl,
     },
 
     author: {
       '@type': 'Organization',
-      name: 'ThrillyVerse',
+      name: SITE_NAME,
       url: SITE_URL,
     },
 
     publisher: {
       '@type': 'Organization',
-      name: 'ThrillyVerse',
+      name: SITE_NAME,
       url: SITE_URL,
-
       logo: {
         '@type': 'ImageObject',
         url: DEFAULT_IMAGE,
@@ -472,476 +568,279 @@ export default async function BlogSlugPage({
 
     ...(publishedTime
       ? {
-          datePublished: publishedTime,
+          datePublished:
+            publishedTime,
         }
       : {}),
 
     ...(modifiedTime
       ? {
-          dateModified: modifiedTime,
+          dateModified:
+            modifiedTime,
         }
       : {}),
 
     ...(tags.length
       ? {
-          keywords: tags.join(', '),
+          keywords:
+            tags.join(', '),
         }
       : {}),
 
     ...(blog.category
       ? {
-          articleSection: blog.category,
+          articleSection:
+            blog.category,
         }
       : {}),
 
+    wordCount,
+
     timeRequired:
       `PT${readingTime}M`,
+
+    inLanguage: 'en-IN',
+  };
+
+  const breadcrumbJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+
+    itemListElement: [
+      {
+        '@type': 'ListItem',
+        position: 1,
+        name: 'Home',
+        item: SITE_URL,
+      },
+      {
+        '@type': 'ListItem',
+        position: 2,
+        name: 'Blogs',
+        item: `${SITE_URL}/blogs`,
+      },
+      {
+        '@type': 'ListItem',
+        position: 3,
+        name: blog.title,
+        item: canonicalUrl,
+      },
+    ],
   };
 
   return (
     <>
       <Script
-        id="thrillyverse-blog-jsonld"
+        id="blog-posting-jsonld"
         type="application/ld+json"
         dangerouslySetInnerHTML={{
-          __html: JSON.stringify(jsonLd),
+          __html: safeJsonLd(
+            articleJsonLd
+          ),
         }}
       />
 
-      <main
-        style={{
-          minHeight: '100vh',
-          background: '#f7f8fc',
-          color: '#171a21',
+      <Script
+        id="blog-breadcrumb-jsonld"
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: safeJsonLd(
+            breadcrumbJsonLd
+          ),
         }}
-      >
+      />
+
+      <main className="min-h-screen bg-background text-foreground">
+        {/* Decorative background */}
         <div
-          style={{
-            width: 'min(1200px, calc(100% - 32px))',
-            margin: '0 auto',
-            padding: '32px 0 70px',
-          }}
+          aria-hidden="true"
+          className="pointer-events-none fixed inset-0 -z-10 overflow-hidden"
         >
+          <div className="absolute left-[-140px] top-[-140px] h-[320px] w-[320px] rounded-full bg-violet-500/10 blur-3xl" />
+          <div className="absolute right-[-120px] top-[20%] h-[300px] w-[300px] rounded-full bg-fuchsia-500/10 blur-3xl" />
+          <div className="absolute bottom-[-140px] left-[25%] h-[320px] w-[320px] rounded-full bg-blue-500/10 blur-3xl" />
+        </div>
+
+        {/* Breadcrumb */}
+        <div className="container mx-auto px-4 pt-6 sm:px-6 lg:px-8">
           <nav
             aria-label="Breadcrumb"
-            style={{
-              display: 'flex',
-              flexWrap: 'wrap',
-              gap: '8px',
-              marginBottom: '22px',
-              fontSize: '14px',
-              color: '#667085',
-            }}
+            className="mx-auto flex max-w-7xl flex-wrap items-center gap-2 text-sm text-muted-foreground"
           >
             <a
               href="/"
-              style={{
-                color: 'inherit',
-                textDecoration: 'none',
-              }}
+              className="transition-colors hover:text-foreground"
             >
               Home
             </a>
 
-            <span>/</span>
+            <span aria-hidden="true">/</span>
 
             <a
               href="/blogs"
-              style={{
-                color: 'inherit',
-                textDecoration: 'none',
-              }}
+              className="transition-colors hover:text-foreground"
             >
               Blogs
             </a>
 
-            <span>/</span>
+            <span aria-hidden="true">/</span>
 
-            <span>{blog.title}</span>
-          </nav>
-
-          <header
-            style={{
-              overflow: 'hidden',
-              background: '#ffffff',
-              border: '1px solid #e5e7eb',
-              borderRadius: '24px',
-              boxShadow:
-                '0 10px 35px rgba(16,24,40,.07)',
-            }}
-          >
-            <div
-              style={{
-                width: '100%',
-                aspectRatio: '1200 / 630',
-                background: '#eef1f5',
-              }}
+            <span
+              className="max-w-[250px] truncate sm:max-w-[500px]"
+              aria-current="page"
             >
-              <img
-                src={imageUrl}
-                alt={blog.title}
-                width={1200}
-                height={630}
-                style={{
-                  width: '100%',
-                  height: '100%',
-                  objectFit: 'cover',
-                  display: 'block',
-                }}
-              />
+              {blog.title}
+            </span>
+          </nav>
+        </div>
+
+        {/* Hero */}
+        <header className="container mx-auto px-4 pb-8 pt-8 sm:px-6 lg:px-8 lg:pt-12">
+          <div className="mx-auto max-w-7xl overflow-hidden rounded-[2rem] border border-border bg-card/70 shadow-2xl shadow-black/5 backdrop-blur">
+            <div className="relative overflow-hidden">
+              {blog.cover_image ? (
+                <div className="relative aspect-[16/8.5] min-h-[240px] w-full overflow-hidden bg-muted">
+                  <img
+                    src={blog.cover_image}
+                    alt={blog.title}
+                    width={1600}
+                    height={850}
+                    fetchPriority="high"
+                    decoding="async"
+                    className="h-full w-full object-cover"
+                  />
+
+                  <div
+                    aria-hidden="true"
+                    className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/20 to-transparent"
+                  />
+
+                  <div className="absolute bottom-0 left-0 right-0 p-6 sm:p-8 lg:p-12">
+                    {blog.category ? (
+                      <div className="mb-4 inline-flex rounded-full border border-white/20 bg-white/10 px-3 py-1.5 text-xs font-semibold uppercase tracking-wider text-white backdrop-blur">
+                        {blog.category}
+                      </div>
+                    ) : null}
+
+                    <h1 className="max-w-5xl text-3xl font-black tracking-tight text-white sm:text-4xl lg:text-6xl">
+                      {blog.title}
+                    </h1>
+
+                    {blog.excerpt ? (
+                      <p className="mt-4 max-w-4xl text-base leading-7 text-white/85 sm:text-lg">
+                        {blog.excerpt}
+                      </p>
+                    ) : null}
+                  </div>
+                </div>
+              ) : (
+                <div className="relative overflow-hidden px-6 py-12 sm:px-10 sm:py-16 lg:px-14 lg:py-20">
+                  <div
+                    aria-hidden="true"
+                    className="absolute inset-0 bg-gradient-to-br from-violet-500/20 via-transparent to-fuchsia-500/10"
+                  />
+
+                  <div className="relative">
+                    {blog.category ? (
+                      <div className="mb-4 inline-flex rounded-full border border-border bg-background/70 px-3 py-1.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                        {blog.category}
+                      </div>
+                    ) : null}
+
+                    <h1 className="max-w-5xl text-3xl font-black tracking-tight sm:text-4xl lg:text-6xl">
+                      {blog.title}
+                    </h1>
+
+                    {blog.excerpt ? (
+                      <p className="mt-5 max-w-4xl text-base leading-7 text-muted-foreground sm:text-lg">
+                        {blog.excerpt}
+                      </p>
+                    ) : null}
+                  </div>
+                </div>
+              )}
             </div>
 
-            <div
-              style={{
-                padding: 'clamp(24px, 5vw, 44px)',
-              }}
-            >
-              {blog.category ? (
-                <div
-                  style={{
-                    display: 'inline-block',
-                    padding: '7px 12px',
-                    marginBottom: '15px',
-                    borderRadius: '999px',
-                    background: '#eef2ff',
-                    color: '#3730a3',
-                    fontSize: '13px',
-                    fontWeight: 700,
-                  }}
-                >
-                  {blog.category}
-                </div>
-              ) : null}
-
-              <h1
-                style={{
-                  margin: 0,
-                  maxWidth: '1000px',
-                  fontSize:
-                    'clamp(32px, 5vw, 58px)',
-                  lineHeight: 1.06,
-                  letterSpacing: '-0.035em',
-                  fontWeight: 800,
-                }}
-              >
-                {blog.title}
-              </h1>
-
-              {blog.excerpt ? (
-                <p
-                  style={{
-                    maxWidth: '900px',
-                    margin:
-                      '20px 0 0',
-                    color: '#475467',
-                    fontSize: '18px',
-                    lineHeight: 1.7,
-                  }}
-                >
-                  {blog.excerpt}
-                </p>
-              ) : null}
-
-              <div
-                style={{
-                  display: 'flex',
-                  flexWrap: 'wrap',
-                  gap: '10px 18px',
-                  marginTop: '22px',
-                  color: '#667085',
-                  fontSize: '14px',
-                }}
-              >
-                <span>
-                  By <strong>ThrillyVerse</strong>
+            {/* Article information */}
+            <div className="border-t border-border px-6 py-5 sm:px-8 lg:px-12">
+              <div className="flex flex-wrap items-center gap-x-5 gap-y-3 text-sm text-muted-foreground">
+                <span className="inline-flex items-center gap-2">
+                  <span
+                    aria-hidden="true"
+                    className="inline-block h-2 w-2 rounded-full bg-current"
+                  />
+                  By{' '}
+                  <strong className="font-semibold text-foreground">
+                    ThrillyVerse
+                  </strong>
                 </span>
 
                 {publishedDate ? (
-                  <span>
-                    Published {publishedDate}
+                  <time
+                    dateTime={
+                      publishedTime
+                    }
+                    className="inline-flex items-center gap-2"
+                  >
+                    <span aria-hidden="true">
+                      •
+                    </span>
+                    Published{' '}
+                    {publishedDate}
+                  </time>
+                ) : null}
+
+                {modifiedDate ? (
+                  <span className="inline-flex items-center gap-2">
+                    <span aria-hidden="true">
+                      •
+                    </span>
+                    Updated{' '}
+                    {modifiedDate}
                   </span>
                 ) : null}
 
-                <span>
+                <span className="inline-flex items-center gap-2">
+                  <span aria-hidden="true">
+                    •
+                  </span>
                   {readingTime} min read
                 </span>
 
-                <span>
-                  {currentViews + 1} views
-                </span>
+                {wordCount > 0 ? (
+                  <span className="inline-flex items-center gap-2">
+                    <span aria-hidden="true">
+                      •
+                    </span>
+                    {wordCount.toLocaleString(
+                      'en-IN'
+                    )}{' '}
+                    words
+                  </span>
+                ) : null}
+
+                {blog.view_count !== null &&
+                Number(blog.view_count) > 0 ? (
+                  <span className="inline-flex items-center gap-2">
+                    <span aria-hidden="true">
+                      •
+                    </span>
+                    {Number(
+                      blog.view_count
+                    ).toLocaleString('en-IN')}{' '}
+                    views
+                  </span>
+                ) : null}
               </div>
             </div>
-          </header>
-
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns:
-                headings.length > 0
-                  ? 'minmax(0, 1fr) 280px'
-                  : 'minmax(0, 1fr)',
-              gap: '28px',
-              alignItems: 'start',
-              marginTop: '28px',
-            }}
-          >
-            <article
-              style={{
-                minWidth: 0,
-                background: '#ffffff',
-                border: '1px solid #e5e7eb',
-                borderRadius: '22px',
-                padding:
-                  'clamp(22px, 4vw, 48px)',
-                boxShadow:
-                  '0 8px 30px rgba(16,24,40,.05)',
-              }}
-            >
-              <div
-                className="thrillyverse-blog-content"
-                dangerouslySetInnerHTML={{
-                  __html: contentHtml,
-                }}
-              />
-
-              {tags.length > 0 ? (
-                <div
-                  style={{
-                    display: 'flex',
-                    flexWrap: 'wrap',
-                    gap: '8px',
-                    marginTop: '30px',
-                    paddingTop: '22px',
-                    borderTop:
-                      '1px solid #eaecf0',
-                  }}
-                >
-                  {tags.map((tag) => (
-                    <span
-                      key={tag}
-                      style={{
-                        padding:
-                          '7px 10px',
-                        borderRadius:
-                          '999px',
-                        background:
-                          '#f2f4f7',
-                        color:
-                          '#475467',
-                        fontSize: '12px',
-                        fontWeight: 600,
-                      }}
-                    >
-                      #{tag}
-                    </span>
-                  ))}
-                </div>
-              ) : null}
-            </article>
-
-            {headings.length > 0 ? (
-              <aside
-                style={{
-                  position: 'sticky',
-                  top: '20px',
-                  background: '#ffffff',
-                  border:
-                    '1px solid #e5e7eb',
-                  borderRadius: '20px',
-                  padding: '20px',
-                  boxShadow:
-                    '0 8px 25px rgba(16,24,40,.05)',
-                }}
-              >
-                <h2
-                  style={{
-                    margin:
-                      '0 0 14px',
-                    fontSize: '17px',
-                    fontWeight: 800,
-                  }}
-                >
-                  In this article
-                </h2>
-
-                <nav
-                  aria-label="Table of contents"
-                  style={{
-                    display: 'flex',
-                    flexDirection:
-                      'column',
-                    gap: '7px',
-                  }}
-                >
-                  {headings.map(
-                    (heading) => (
-                      <a
-                        key={heading.id}
-                        href={`#${heading.id}`}
-                        style={{
-                          color:
-                            '#667085',
-                          textDecoration:
-                            'none',
-                          fontSize:
-                            heading.level ===
-                            3
-                              ? '13px'
-                              : '14px',
-                          lineHeight: 1.4,
-                          paddingLeft:
-                            heading.level ===
-                            2
-                              ? '8px'
-                              : heading.level ===
-                                3
-                              ? '18px'
-                              : '0',
-                        }}
-                      >
-                        {heading.text}
-                      </a>
-                    )
-                  )}
-                </nav>
-              </aside>
-            ) : null}
           </div>
+        </header>
 
-          {relatedBlogs.length > 0 ? (
-            <section
-              style={{
-                marginTop: '32px',
-              }}
-            >
-              <h2
-                style={{
-                  margin:
-                    '0 0 18px',
-                  fontSize: '28px',
-                  letterSpacing:
-                    '-0.02em',
-                }}
-              >
-                More from ThrillyVerse
-              </h2>
-
-              <div
-                style={{
-                  display: 'grid',
-                  gridTemplateColumns:
-                    'repeat(3, minmax(0, 1fr))',
-                  gap: '18px',
-                }}
-              >
-                {relatedBlogs
-                  .slice(0, 3)
-                  .map(
-                    (related) => (
-                      <a
-                        key={
-                          related.id
-                        }
-                        href={`/blogs/${related.slug}`}
-                        style={{
-                          display:
-                            'block',
-                          overflow:
-                            'hidden',
-                          background:
-                            '#ffffff',
-                          border:
-                            '1px solid #e5e7eb',
-                          borderRadius:
-                            '18px',
-                          color:
-                            'inherit',
-                          textDecoration:
-                            'none',
-                        }}
-                      >
-                        <div
-                          style={{
-                            aspectRatio:
-                              '16 / 9',
-                            background:
-                              '#eef1f5',
-                          }}
-                        >
-                          <img
-                            src={
-                              related.cover_image ||
-                              DEFAULT_IMAGE
-                            }
-                            alt={
-                              related.title
-                            }
-                            width={800}
-                            height={450}
-                            loading="lazy"
-                            style={{
-                              width:
-                                '100%',
-                              height:
-                                '100%',
-                              objectFit:
-                                'cover',
-                              display:
-                                'block',
-                            }}
-                          />
-                        </div>
-
-                        <div
-                          style={{
-                            padding:
-                              '16px',
-                          }}
-                        >
-                          <h3
-                            style={{
-                              margin: 0,
-                              fontSize:
-                                '17px',
-                              lineHeight:
-                                1.35,
-                            }}
-                          >
-                            {
-                              related.title
-                            }
-                          </h3>
-
-                          <p
-                            style={{
-                              margin:
-                                '9px 0 0',
-                              color:
-                                '#667085',
-                              fontSize:
-                                '13px',
-                              lineHeight:
-                                1.55,
-                            }}
-                          >
-                            {(
-                              related.excerpt ||
-                              'Explore another article from ThrillyVerse.'
-                            ).slice(
-                              0,
-                              150
-                            )}
-                            ...
-                          </p>
-                        </div>
-                      </a>
-                    )
-                  )}
-              </div>
-            </section>
-          ) : null}
-        </div>
-      </main>
-    </>
-  );
-}
+        {/* Main article area */}
+        <div className="container mx-auto px-4 pb-16 sm:px-6 lg:px-8">
+          <div
+            className={[
+              'mx-auto grid max-w-7xl gap-8',
+              headings.length > 0
+                ? 'lg:grid-cols-[minmax(0,1fr)_290px]'
+         
