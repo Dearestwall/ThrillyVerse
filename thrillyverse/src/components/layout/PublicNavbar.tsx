@@ -2,15 +2,9 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { usePathname } from 'next/navigation';
-import { useEffect, useState } from 'react';
-import { ThemeToggle } from '@/components/common/ThemeToggle';
-'use client';
-
-import Link from 'next/link';
-import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import type { MouseEvent } from 'react';
 import { ThemeToggle } from '@/components/common/ThemeToggle';
 import { NotificationBell } from '@/components/common/NotificationBell';
 import { Menu, X } from 'lucide-react';
@@ -30,6 +24,7 @@ export function PublicNavbar() {
 
   const [mobileOpen, setMobileOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [currentHash, setCurrentHash] = useState('');
 
   /*
    * Navbar shadow / compact state.
@@ -47,6 +42,23 @@ export function PublicNavbar() {
 
     return () => {
       window.removeEventListener('scroll', onScroll);
+    };
+  }, []);
+
+  /*
+   * Keep track of the current URL hash.
+   */
+  useEffect(() => {
+    const updateHash = () => {
+      setCurrentHash(window.location.hash);
+    };
+
+    updateHash();
+
+    window.addEventListener('hashchange', updateHash);
+
+    return () => {
+      window.removeEventListener('hashchange', updateHash);
     };
   }, []);
 
@@ -74,16 +86,12 @@ export function PublicNavbar() {
    * Handle hash navigation.
    *
    * Examples:
-   *
    * /#about
    * /#contact
    * /#contact-form
-   *
-   * When already on the homepage, Next.js navigation can
-   * update the hash without doing a full page navigation.
    */
   const handleNavClick = (
-    event: React.MouseEvent<HTMLAnchorElement>,
+    event: MouseEvent<HTMLAnchorElement>,
     href: string
   ) => {
     if (!href.startsWith('/#')) {
@@ -96,8 +104,8 @@ export function PublicNavbar() {
     setMobileOpen(false);
 
     /*
-     * If we're already on the homepage, smoothly scroll
-     * directly to the requested element.
+     * Already on homepage:
+     * smoothly scroll instead of performing navigation.
      */
     if (pathname === '/') {
       event.preventDefault();
@@ -105,14 +113,13 @@ export function PublicNavbar() {
       const target = document.getElementById(hash);
 
       if (target) {
-        /*
-         * Update URL without jumping.
-         */
         window.history.pushState(
           null,
           '',
           `/#${hash}`
         );
+
+        setCurrentHash(`#${hash}`);
 
         target.scrollIntoView({
           behavior: 'smooth',
@@ -120,8 +127,7 @@ export function PublicNavbar() {
         });
       } else {
         /*
-         * If the element hasn't rendered yet, fall back
-         * to normal browser navigation.
+         * Target may not have rendered yet.
          */
         router.push(`/#${hash}`);
       }
@@ -130,7 +136,7 @@ export function PublicNavbar() {
     }
 
     /*
-     * If we're on another page, allow Next.js to navigate
+     * On another page, allow Next.js to navigate
      * to the homepage with the hash.
      */
     setMobileOpen(false);
@@ -138,15 +144,30 @@ export function PublicNavbar() {
 
   /*
    * Active navigation state.
+   *
+   * Only the currently selected homepage hash is active.
+   * This prevents Home + About + Contact all appearing
+   * active at the same time.
    */
   const isActive = (href: string) => {
     if (href.startsWith('/#')) {
-      return pathname === '/';
+      return (
+        pathname === '/' &&
+        currentHash === href.substring(1)
+      );
     }
 
-    return href === '/'
-      ? pathname === '/'
-      : pathname.startsWith(href);
+    if (href === '/') {
+      return (
+        pathname === '/' &&
+        currentHash === ''
+      );
+    }
+
+    return (
+      pathname === href ||
+      pathname.startsWith(`${href}/`)
+    );
   };
 
   return (
