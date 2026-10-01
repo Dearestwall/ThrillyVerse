@@ -836,11 +836,358 @@ export default async function BlogSlugPage({
           </div>
         </header>
 
-        {/* Main article area */}
+           {/* Main article area */}
         <div className="container mx-auto px-4 pb-16 sm:px-6 lg:px-8">
           <div
             className={[
               'mx-auto grid max-w-7xl gap-8',
               headings.length > 0
                 ? 'lg:grid-cols-[minmax(0,1fr)_290px]'
-         
+                : 'lg:grid-cols-1',
+            ].join(' ')}
+          >
+            {/* Article */}
+            <article className="min-w-0">
+              <div className="rounded-[1.75rem] border border-border bg-card px-5 py-7 shadow-xl shadow-black/5 sm:px-8 sm:py-10 lg:px-12 lg:py-12">
+                {/* Screen-reader article label */}
+                <div className="sr-only">
+                  <h2>
+                    {blog.title} article
+                  </h2>
+                </div>
+
+                <div
+                  className="
+                    prose prose-lg max-w-none
+                    dark:prose-invert
+                    prose-headings:scroll-mt-24
+                    prose-headings:font-bold
+                    prose-h2:mt-12
+                    prose-h2:text-2xl
+                    prose-h3:mt-10
+                    prose-h3:text-xl
+                    prose-p:leading-8
+                    prose-a:font-semibold
+                    prose-a:underline
+                    prose-a:underline-offset-4
+                    prose-img:mx-auto
+                    prose-img:rounded-2xl
+                    prose-img:border
+                    prose-img:border-border
+                    prose-blockquote:rounded-r-xl
+                    prose-blockquote:border-l-4
+                    prose-blockquote:bg-muted/40
+                    prose-blockquote:px-5
+                    prose-blockquote:py-2
+                    prose-code:rounded
+                    prose-code:bg-muted
+                    prose-code:px-1.5
+                    prose-code:py-0.5
+                    prose-code:before:content-none
+                    prose-code:after:content-none
+                    prose-pre:overflow-x-auto
+                    prose-pre:rounded-2xl
+                    prose-table:block
+                    prose-table:overflow-x-auto
+                  "
+                  dangerouslySetInnerHTML={{
+                    __html: articleHtml,
+                  }}
+                />
+
+                {/* Tags */}
+                {tags.length > 0 ? (
+                  <div className="mt-10 border-t border-border pt-6">
+                    <div className="mb-3 text-sm font-bold">
+                      Topics
+                    </div>
+
+                    <div className="flex flex-wrap gap-2">
+                      {tags.map(
+                        (tag) => (
+                          <span
+                            key={tag}
+                            className="rounded-full border border-border bg-muted/60 px-3 py-1.5 text-xs font-medium text-muted-foreground"
+                          >
+                            #{tag}
+                          </span>
+                        )
+                      )}
+                    </div>
+                  </div>
+                ) : null}
+
+                {/* Share */}
+                <div className="mt-8 border-t border-border pt-6">
+                  <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                    <div>
+                      <div className="text-sm font-bold">
+                        Share this article
+                      </div>
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        Help others discover this article.
+                      </p>
+                    </div>
+
+                    <div className="flex flex-wrap gap-2">
+                      <a
+                        href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(
+                          canonicalUrl
+                        )}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="rounded-full border border-border bg-background px-4 py-2 text-sm font-semibold transition hover:bg-muted"
+                      >
+                        LinkedIn
+                      </a>
+
+                      <a
+                        href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(
+                          blog.title
+                        )}&url=${encodeURIComponent(
+                          canonicalUrl
+                        )}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="rounded-full border border-border bg-background px-4 py-2 text-sm font-semibold transition hover:bg-muted"
+                      >
+                        X
+                      </a>
+
+                      <a
+                        href={`https://api.whatsapp.com/send?text=${encodeURIComponent(
+                          `${blog.title} — ${canonicalUrl}`
+                        )}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="rounded-full border border-border bg-background px-4 py-2 text-sm font-semibold transition hover:bg-muted"
+                      >
+                        WhatsApp
+                      </a>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </article>
+
+            {/* Table of contents */}
+            {headings.length > 0 ? (
+              <aside className="lg:sticky lg:top-24 lg:self-start">
+                <details
+                  open
+                  className="rounded-2xl border border-border bg-card p-5 shadow-lg shadow-black/5"
+                >
+                  <summary className="cursor-pointer list-none text-base font-bold">
+                    <span className="flex items-center justify-between gap-4">
+                      <span>
+                        In this article
+                      </span>
+
+                      <span
+                        aria-hidden="true"
+                        className="text-muted-foreground"
+                      >
+                        ☰
+                      </span>
+                    </span>
+                  </summary>
+
+                  <nav
+                    aria-label="Table of contents"
+                    className="mt-5"
+                  >
+                    <div className="flex flex-col">
+                      {headings.map(
+                        (heading) => (
+                          <a
+                            key={
+                              heading.id
+                            }
+                            href={`#${heading.id}`}
+                            className={[
+                              'border-l-2 py-2 text-sm text-muted-foreground transition-colors hover:border-foreground hover:text-foreground',
+                              heading.level ===
+                              2
+                                ? 'border-border pl-3 font-medium'
+                                : 'border-border pl-7 text-xs',
+                            ].join(' ')}
+                          >
+                            {heading.text}
+                          </a>
+                        )
+                      )}
+                    </div>
+                  </nav>
+                </details>
+
+                {/* Article summary card */}
+                <div className="mt-5 rounded-2xl border border-border bg-card p-5 shadow-lg shadow-black/5">
+                  <div className="text-sm font-bold">
+                    Article details
+                  </div>
+
+                  <dl className="mt-4 space-y-3 text-sm">
+                    <div className="flex items-start justify-between gap-4">
+                      <dt className="text-muted-foreground">
+                        Category
+                      </dt>
+
+                      <dd className="text-right font-medium">
+                        {blog.category ||
+                          'Article'}
+                      </dd>
+                    </div>
+
+                    <div className="flex items-start justify-between gap-4">
+                      <dt className="text-muted-foreground">
+                        Reading time
+                      </dt>
+
+                      <dd className="text-right font-medium">
+                        {readingTime} min
+                      </dd>
+                    </div>
+
+                    {wordCount > 0 ? (
+                      <div className="flex items-start justify-between gap-4">
+                        <dt className="text-muted-foreground">
+                          Word count
+                        </dt>
+
+                        <dd className="text-right font-medium">
+                          {wordCount.toLocaleString(
+                            'en-IN'
+                          )}
+                        </dd>
+                      </div>
+                    ) : null}
+
+                    {publishedDate ? (
+                      <div className="flex items-start justify-between gap-4">
+                        <dt className="text-muted-foreground">
+                          Published
+                        </dt>
+
+                        <dd className="text-right font-medium">
+                          {publishedDate}
+                        </dd>
+                      </div>
+                    ) : null}
+                  </dl>
+                </div>
+              </aside>
+            ) : null}
+          </div>
+        </div>
+
+        {/* Related articles */}
+        {visibleRelatedBlogs.length >
+        0 ? (
+          <section
+            aria-labelledby="related-articles-heading"
+            className="container mx-auto px-4 pb-20 sm:px-6 lg:px-8"
+          >
+            <div className="mx-auto max-w-7xl">
+              <div className="mb-7 flex flex-col gap-2">
+                <p className="text-xs font-bold uppercase tracking-[0.2em] text-muted-foreground">
+                  Keep reading
+                </p>
+
+                <h2
+                  id="related-articles-heading"
+                  className="text-2xl font-black tracking-tight sm:text-3xl"
+                >
+                  More from ThrillyVerse
+                </h2>
+              </div>
+
+              <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+                {visibleRelatedBlogs.map(
+                  (related) => (
+                    <article
+                      key={related.id}
+                      className="group overflow-hidden rounded-2xl border border-border bg-card shadow-lg shadow-black/5 transition duration-300 hover:-translate-y-1 hover:shadow-xl"
+                    >
+                      <a
+                        href={`/blogs/${related.slug}`}
+                        className="block"
+                      >
+                        <div className="aspect-[16/9] overflow-hidden bg-muted">
+                          <img
+                            src={
+                              related.cover_image ||
+                              DEFAULT_IMAGE
+                            }
+                            alt={
+                              related.title
+                            }
+                            width={800}
+                            height={450}
+                            loading="lazy"
+                            decoding="async"
+                            className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+                          />
+                        </div>
+
+                        <div className="p-5">
+                          {related.category ? (
+                            <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+                              {
+                                related.category
+                              }
+                            </span>
+                          ) : null}
+
+                          <h3 className="mt-2 line-clamp-2 text-lg font-bold leading-snug transition-colors group-hover:text-violet-500">
+                            {
+                              related.title
+                            }
+                          </h3>
+
+                          {related.excerpt ? (
+                            <p className="mt-3 line-clamp-3 text-sm leading-6 text-muted-foreground">
+                              {
+                                related.excerpt
+                              }
+                            </p>
+                          ) : null}
+
+                          <div className="mt-4 text-sm font-semibold">
+                            Read article →
+                          </div>
+                        </div>
+                      </a>
+                    </article>
+                  )
+                )}
+              </div>
+            </div>
+          </section>
+        ) : null}
+
+        {/* Bottom navigation */}
+        <section className="container mx-auto px-4 pb-12 sm:px-6 lg:px-8">
+          <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 rounded-2xl border border-border bg-card p-6 text-center shadow-lg shadow-black/5 sm:flex-row sm:text-left">
+            <div>
+              <div className="font-bold">
+                Explore more ThrillyVerse articles
+              </div>
+
+              <p className="mt-1 text-sm text-muted-foreground">
+                Discover more guides, ideas, technology,
+                social media and digital topics.
+              </p>
+            </div>
+
+            <a
+              href="/blogs"
+              className="inline-flex shrink-0 items-center justify-center rounded-full bg-foreground px-5 py-2.5 text-sm font-bold text-background transition hover:opacity-90"
+            >
+              Browse all blogs
+            </a>
+          </div>
+        </section>
+      </main>
+    </>
+  );
+}
