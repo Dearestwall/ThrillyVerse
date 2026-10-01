@@ -1,63 +1,50 @@
 import type { MetadataRoute } from 'next';
+import { createClient } from '@/lib/supabase/server';
 
 const BASE_URL = 'https://thrillyverse.vercel.app';
 
-// Set ISR revalidation interval for the sitemap (e.g., revalidate every hour/day)
-export const revalidate = 3600; 
-
-// Helper function to fetch slugs from your API / DB
-async function getSlugs(endpoint: string): Promise<Array<{ slug: string; updatedAt?: string }>> {
-  try {
-    const res = await fetch(`https://api.thrillyverse.com/${endpoint}`, {
-      next: { revalidate: 3600 },
-    });
-    if (!res.ok) return [];
-    return await res.json();
-  } catch (error) {
-    console.error(`Failed to fetch slugs for ${endpoint}:`, error);
-    return [];
-  }
-}
+// Revalidate sitemap cache every 1 hour (3600 seconds)
+export const revalidate = 3600;
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  // 1. Fetch dynamic data for all dynamic routes in parallel
-  const [movies, materials, blogs, projects] = await Promise.all([
-    getSlugs('movies'),
-    getSlugs('materials'),
-    getSlugs('blogs'),
-    getSlugs('projects'),
+  const supabase = await createClient();
+
+  // Fetch slugs from all tables concurrently
+  const [blogsRes, projectsRes, moviesRes, materialsRes] = await Promise.all([
+    supabase.from('blogs').select('slug, updated_at, created_at'),
+    supabase.from('projects').select('slug, updated_at, created_at'),
+    supabase.from('movies').select('slug, updated_at, created_at'),
+    supabase.from('materials').select('slug, updated_at, created_at'),
   ]);
 
-  // 2. Map dynamic slugs to Sitemap entries
-  const movieEntries: MetadataRoute.Sitemap = movies.map((item) => ({
-    url: `${BASE_URL}/movies/${item.slug}`,
-    lastModified: item.updatedAt ? new Date(item.updatedAt) : new Date(),
-    changeFrequency: 'weekly',
-    priority: 0.8,
-  }));
-
-  const materialEntries: MetadataRoute.Sitemap = materials.map((item) => ({
-    url: `${BASE_URL}/materials/${item.slug}`,
-    lastModified: item.updatedAt ? new Date(item.updatedAt) : new Date(),
-    changeFrequency: 'weekly',
-    priority: 0.8,
-  }));
-
-  const blogEntries: MetadataRoute.Sitemap = blogs.map((item) => ({
+  const blogEntries: MetadataRoute.Sitemap = (blogsRes.data || []).map((item) => ({
     url: `${BASE_URL}/blogs/${item.slug}`,
-    lastModified: item.updatedAt ? new Date(item.updatedAt) : new Date(),
-    changeFrequency: 'monthly',
-    priority: 0.7,
+    lastModified: new Date(item.updated_at || item.created_at || Date.now()),
+    changeFrequency: 'weekly',
+    priority: 0.8,
   }));
 
-  const projectEntries: MetadataRoute.Sitemap = projects.map((item) => ({
+  const projectEntries: MetadataRoute.Sitemap = (projectsRes.data || []).map((item) => ({
     url: `${BASE_URL}/projects/${item.slug}`,
-    lastModified: item.updatedAt ? new Date(item.updatedAt) : new Date(),
+    lastModified: new Date(item.updated_at || item.created_at || Date.now()),
     changeFrequency: 'monthly',
-    priority: 0.7,
+    priority: 0.8,
   }));
 
-  // 3. Define static routes
+  const movieEntries: MetadataRoute.Sitemap = (moviesRes.data || []).map((item) => ({
+    url: `${BASE_URL}/movies/${item.slug}`,
+    lastModified: new Date(item.updated_at || item.created_at || Date.now()),
+    changeFrequency: 'weekly',
+    priority: 0.8,
+  }));
+
+  const materialEntries: MetadataRoute.Sitemap = (materialsRes.data || []).map((item) => ({
+    url: `${BASE_URL}/materials/${item.slug}`,
+    lastModified: new Date(item.updated_at || item.created_at || Date.now()),
+    changeFrequency: 'weekly',
+    priority: 0.8,
+  }));
+
   const staticRoutes: MetadataRoute.Sitemap = [
     {
       url: `${BASE_URL}/`,
@@ -97,12 +84,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     },
   ];
 
-  // 4. Merge all entries
   return [
     ...staticRoutes,
-    ...movieEntries,
-    ...materialEntries,
     ...blogEntries,
     ...projectEntries,
+    ...movieEntries,
+    ...materialEntries,
   ];
 }
