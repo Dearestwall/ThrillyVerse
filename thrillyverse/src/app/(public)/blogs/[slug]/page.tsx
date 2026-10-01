@@ -7,7 +7,7 @@ export const dynamic = 'force-dynamic';
 
 const SITE_URL =
   process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/+$/, '') ||
-  'https://thrillyverse.com';
+  'https://thrillyverse.verce.app';
 
 const SITE_NAME = 'ThrillyVerse';
 const DEFAULT_IMAGE = `${SITE_URL}/logo-192.png`;
