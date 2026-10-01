@@ -31,6 +31,9 @@ export const metadata: Metadata = {
   authors: [{ name: 'ThrillyVerse' }],
   creator: 'ThrillyVerse',
   publisher: 'ThrillyVerse',
+  verification: {
+    google: '9eLiMqGQ4L_3MovjMXRsMebqKmwvxSxjb7inEgFiSLQ',
+  },
   alternates: {
     canonical: '/',
   },
@@ -98,7 +101,7 @@ export default function RootLayout({
           toastOptions={{
             duration: 4000,
             style: {
-              background: '#333',
+              background: '#333',  
               color: '#fff',
             },
           }}
